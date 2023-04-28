@@ -15,8 +15,8 @@ ROOT_URLCONF = 'config.urls'
 TIME_ZONE = 'Europe/Stockholm'
 DEBUG = int(os.environ.get('DEBUG', 1))
 WSGI_APPLICATION = 'config.wsgi.application'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+MEDIA_ROOT = os.path.join(BASE_DIR.joinpath('media'))
+STATIC_ROOT = os.path.join(BASE_DIR.joinpath('static'))
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SECRET_KEY = os.environ.get('SECRET_KEY', 'asgdygHAGDHGSH435464655^%$^%^&$%')
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost 127.0.0.1').split(' ')
@@ -32,7 +32,7 @@ MIDDLEWARE = [
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [BASE_DIR.joinpath('templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -72,7 +72,7 @@ INSTALLED_APPS = [
 DATABASES = {
     'default': {
         'ENGINE': os.environ.get('POSTGRES_DB_ENGINE', 'django.db.backends.sqlite3'),
-        'NAME': os.environ.get('POSTGRES_DB_NAME', BASE_DIR / 'db.sqlite3'),
+        'NAME': os.environ.get('POSTGRES_DB_NAME', BASE_DIR.joinpath('db.sqlite3')),
         'USER': os.environ.get('POSTGRES_DB_USER'),
         'PASSWORD': os.environ.get('POSTGRES_DB_PASSWORD'),
         'HOST': os.environ.get('POSTGRES_DB_HOST', 'localhost'),

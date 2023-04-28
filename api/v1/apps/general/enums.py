@@ -1,16 +1,6 @@
 from enum import Enum
 
 
-class PriceType(Enum):
-    t = 'Terminal'
-    n = 'Naxt'
-    p = 'Perevod'
-
-    @classmethod
-    def choices(cls):
-        return ((i.name, i.value) for i in cls)
-
-
 class Month(Enum):
     jan = "January"
     feb = "February"
