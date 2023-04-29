@@ -13,7 +13,9 @@ class DebtIncome(AbstractIncomeExpense):
 
     # select
     to_user = models.ForeignKey(CustomUser, on_delete=models.PROTECT,
-                                blank=True, null=True)
+                                blank=True, null=True,
+                                related_name='debt_incomes')
+
     to_pharmacy = models.ForeignKey(Pharmacy, on_delete=models.PROTECT,
                                     blank=True, null=True)
     # ------
@@ -28,6 +30,7 @@ class DebtExpense(AbstractIncomeExpense):
     from_pharmacy = models.ForeignKey(Pharmacy, on_delete=models.PROTECT,
                                       blank=True, null=True)
     from_user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL,
-                                  null=True, blank=True)
+                                  null=True, blank=True,
+                                  related_name='debt_expenses')
     desc = models.CharField(max_length=500, blank=True)
     # ------

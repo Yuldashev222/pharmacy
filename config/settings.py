@@ -20,6 +20,8 @@ STATIC_ROOT = os.path.join(BASE_DIR.joinpath('static'))
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SECRET_KEY = os.environ.get('SECRET_KEY', 'asgdygHAGDHGSH435464655^%$^%^&$%')
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost 127.0.0.1').split(' ')
+AUTH_USER_MODEL = 'accounts.CustomUser'
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -29,6 +31,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -44,13 +47,14 @@ TEMPLATES = [
         },
     },
 ]
+
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'}
 ]
-AUTH_USER_MODEL = 'accounts.CustomUser'
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -64,9 +68,17 @@ INSTALLED_APPS = [
     'rest_framework',
 
     # apps
-    'api.v1.apps.companies.apps.CompaniesConfig',
+    'api.v1.apps.general.apps.GeneralConfig',
     'api.v1.apps.accounts.apps.AccountsConfig',
+    'api.v1.apps.companies.apps.CompaniesConfig',
     'api.v1.apps.pharmacies.apps.PharmaciesConfig',
+    'api.v1.apps.firms.apps.FirmsConfig',
+    'api.v1.apps.debts.apps.DebtsConfig',
+    'api.v1.apps.expenses.apps.ExpensesConfig',
+    'api.v1.apps.incomes.apps.IncomesConfig',
+    'api.v1.apps.wages.apps.WagesConfig',
+    'api.v1.apps.reports.apps.ReportsConfig',
+    'api.v1.apps.clients.apps.ClientsConfig',
 ]
 
 DATABASES = {

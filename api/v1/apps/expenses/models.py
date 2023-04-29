@@ -6,6 +6,9 @@ from api.v1.apps.general.models import TransferMoneyType, AbstractIncomeExpense
 
 
 class PharmacyExpense(AbstractIncomeExpense):
+    to_user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL,
+                                null=True, blank=True,
+                                related_name='pharmacy_expenses')
     from_pharmacy = models.ForeignKey(Pharmacy, on_delete=models.PROTECT)
 
     def __str__(self):
@@ -13,7 +16,8 @@ class PharmacyExpense(AbstractIncomeExpense):
 
 
 class UserExpense(AbstractIncomeExpense):  # firmaniki alohida
-    from_user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
+    from_user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True,
+                                  related_name='expenses')
 
     is_transfer = models.BooleanField(default=True)
     transfer_type = models.ForeignKey(TransferMoneyType, on_delete=models.PROTECT,
@@ -24,12 +28,17 @@ class UserExpense(AbstractIncomeExpense):  # firmaniki alohida
 
 
 class PharmacyExpenseHistory(PharmacyExpense):
-    pharmacy_expense = models.ForeignKey(PharmacyExpense, on_delete=models.CASCADE)
-    updater = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
+    pharmacy_expense = models.ForeignKey(PharmacyExpense, on_delete=models.CASCADE,
+                                         related_name='pharmacy_expenses_history')
+
+    updater = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True,
+                                related_name='pharmacy_expenses_history')
     updated_at = models.DateTimeField(auto_now_add=True)
 
 
 class UserExpenseHistory(UserExpense):
-    user_expense = models.ForeignKey(UserExpense, on_delete=models.CASCADE)
-    updater = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
+    user_expense = models.ForeignKey(UserExpense, on_delete=models.CASCADE,
+                                     related_name='user_expenses_history')
+    updater = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True,
+                                related_name='user_expenses_history')
     updated_at = models.DateTimeField(auto_now_add=True)

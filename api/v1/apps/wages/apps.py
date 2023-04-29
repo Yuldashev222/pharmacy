@@ -3,4 +3,4 @@ from django.apps import AppConfig
 
 class WagesConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'wages'
+    name = 'api.v1.apps.wages'

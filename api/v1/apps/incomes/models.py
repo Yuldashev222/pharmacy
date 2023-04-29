@@ -18,6 +18,7 @@ class PharmacyIncome(AbstractIncomeExpense):
 
 
 class PharmacyIncomeHistory(PharmacyIncome):
-    pharmacy_income = models.ForeignKey(PharmacyIncome, on_delete=models.CASCADE)
+    pharmacy_income = models.ForeignKey(PharmacyIncome, on_delete=models.CASCADE,
+                                        related_name='pharmacy_incomes_history')
     updater = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
     updated_at = models.DateTimeField(auto_now_add=True)

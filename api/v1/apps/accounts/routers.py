@@ -1,7 +1,7 @@
 from rest_framework.routers import DefaultRouter
 
-from .views import UserReadOnlyModelAPIViewSet
+from .views import DirectorAPIViewSet
 
 router = DefaultRouter()
 
-router.register('', UserReadOnlyModelAPIViewSet)
+router.register('directors', DirectorAPIViewSet, basename='director')

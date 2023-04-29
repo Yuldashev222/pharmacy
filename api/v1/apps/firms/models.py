@@ -3,8 +3,8 @@ from django.db import models
 from api.v1.apps.companies.models import Company
 from api.v1.apps.pharmacies.models import Pharmacy
 from api.v1.apps.accounts.models import CustomUser
-from api.v1.apps.general.models import AbstractIncomeExpense
 from api.v1.apps.general.validators import uzb_phone_number_validation
+from api.v1.apps.general.models import AbstractIncomeExpense, TransferMoneyType
 
 from .services import firm_logo_upload_location
 
@@ -27,6 +27,7 @@ class Firm(models.Model):
 
 class FirmIncome(AbstractIncomeExpense):
     income_expense_type, to_firm, to_user = (None,) * 3
+
     from_firm = models.ForeignKey(Firm, on_delete=models.PROTECT)
     to_pharmacy = models.ForeignKey(Pharmacy, on_delete=models.PROTECT)
     term_date = models.DateField(blank=True, null=True)
@@ -36,13 +37,18 @@ class FirmIncome(AbstractIncomeExpense):
 
 class FirmExpense(AbstractIncomeExpense):
     to_user = None
+
     to_firm = models.ForeignKey(Firm, on_delete=models.PROTECT)
+    is_transfer = models.BooleanField(default=True)
+    transfer_type = models.ForeignKey(TransferMoneyType, on_delete=models.PROTECT,
+                                      blank=True, null=True)
 
     # select
     from_pharmacy = models.ForeignKey(Pharmacy, on_delete=models.PROTECT,
                                       blank=True, null=True)
     from_user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL,
-                                  null=True, blank=True)
+                                  null=True, blank=True,
+                                  related_name='firm_expenses')
     desc = models.CharField(max_length=500, blank=True)
     # ------
 

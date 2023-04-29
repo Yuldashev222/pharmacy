@@ -1,3 +1,5 @@
 from django.contrib import admin
 
-# Register your models here.
+from api.v1.apps.companies.models import Company
+
+admin.site.register(Company)

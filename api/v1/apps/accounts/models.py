@@ -5,6 +5,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from api.v1.apps.wages.models import Wage
 from api.v1.apps.companies.models import Company
 from api.v1.apps.pharmacies.models import Pharmacy
+from api.v1.apps.general.services import text_normalize
 from api.v1.apps.general.validators import uzb_phone_number_validation
 
 from .enums import UserRole
@@ -19,8 +20,10 @@ class CustomUser(AbstractUser):
     objects = CustomUserManager()
 
     phone_number = models.CharField(max_length=13, unique=True, validators=[uzb_phone_number_validation])
+    first_name = models.CharField(max_length=150)
+    last_name = models.CharField(max_length=150)
     role = models.CharField(max_length=1, choices=UserRole.choices())
-    shift = models.PositiveSmallIntegerField(default=0, validators=[MaxValueValidator(3)])  # last
+    shift = models.PositiveSmallIntegerField(default=0, validators=[MaxValueValidator(3)])
     creator = models.ForeignKey('self', on_delete=models.SET_NULL, null=True)
     pharmacy = models.ForeignKey(Pharmacy, on_delete=models.PROTECT, blank=True, null=True)
     company = models.ForeignKey(Company, on_delete=models.PROTECT, blank=True, null=True)
@@ -31,6 +34,10 @@ class CustomUser(AbstractUser):
     address = models.CharField(max_length=500, blank=True)
 
     def save(self, *args, **kwargs):
+        self.first_name = text_normalize(self.first_name)
+        self.last_name = text_normalize(self.last_name)
+        self.bio = text_normalize(self.bio)
+        self.address = text_normalize(self.address)
         if not self.pk and self.role in [UserRole.m.name, UserRole.w.name]:
             Wage.objects.create(employee_id=self.pk)
         super().save(*args, **kwargs)
