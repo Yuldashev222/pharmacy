@@ -16,9 +16,19 @@ class IsProjectOwner(permissions.BasePermission):
         return request.user.role == UserRole.p.name
 
 
+class NotProjectOwner(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.role != UserRole.p.name
+
+
 class IsDirector(permissions.BasePermission):
     def has_permission(self, request, view):
         return request.user.role == UserRole.d.name
+
+
+class IsManager(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.role == UserRole.m.name
 
 
 class IsOwner(permissions.BasePermission):

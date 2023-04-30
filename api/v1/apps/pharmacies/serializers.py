@@ -1,17 +1,27 @@
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from .models import Pharmacy
 
 
 class PharmacySerializer(serializers.ModelSerializer):
-    director_phone_number = serializers.CharField(source='director.phone_number', read_only=True)
-    director_email = serializers.CharField(source='director.email', read_only=True)
-    director_first_name = serializers.CharField(source='director.first_name', read_only=True)
-    director_last_name = serializers.CharField(source='director.last_name', read_only=True)
-    director_detail = serializers.HyperlinkedRelatedField(source='director', view_name='customuser-detail',
-                                                          read_only=True)
-    detail = serializers.HyperlinkedRelatedField(source='id', view_name='pharmacies-detail', read_only=True)
+    detail = serializers.HyperlinkedRelatedField(source='id',
+                                                 view_name='pharmacy-detail',
+                                                 read_only=True)
+    company_detail = serializers.HyperlinkedRelatedField(source='company',
+                                                         view_name='company-detail',
+                                                         read_only=True)
+
+    def validate_company(self, obj):
+        if obj not in self.context['request'].user.companies.all():
+            raise ValidationError('not found')
+        return obj
 
     class Meta:
         model = Pharmacy
         fields = '__all__'
+
+    def update(self, instance, validated_data):
+        if validated_data.get('company'):
+            del validated_data['company']
+        return super().update(instance, validated_data)

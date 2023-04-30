@@ -43,11 +43,11 @@ class AbstractIncomeExpense(models.Model):
 
     # select
     desc = models.CharField(max_length=500, blank=True)
-    to_firm = models.ForeignKey('firms.Firm', on_delete=models.PROTECT,
-                                blank=True, null=True)
-    to_user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL,
-                                null=True, blank=True,
-                                related_name='income_expenses')
+    # to_firm = models.ForeignKey('firms.Firm', on_delete=models.PROTECT,
+    #                             blank=True, null=True)
+    # to_user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL,
+    #                             null=True, blank=True,
+    #                             related_name='income_expenses')
     # ------
 
     class Meta:

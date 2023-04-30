@@ -1,12 +1,16 @@
 from django.core.validators import MinValueValidator
 from django.db import models
 
+from api.v1.apps.companies.models import Company
 from api.v1.apps.accounts.models import CustomUser
+from api.v1.apps.general.services import text_normalize
 from api.v1.apps.general.validators import uzb_phone_number_validation
 
 
 class Client(models.Model):
-    phone_number = models.CharField(max_length=13, unique=True, validators=[uzb_phone_number_validation])
+    company = models.ForeignKey(Company, on_delete=models.PROTECT)
+    phone_number1 = models.CharField(max_length=13, unique=True, validators=[uzb_phone_number_validation])
+    phone_number2 = models.CharField(max_length=13, blank=True, validators=[uzb_phone_number_validation])
     first_name = models.CharField("first name", max_length=150)
     last_name = models.CharField("last name", max_length=150, blank=True)
     email = models.EmailField("email address", blank=True)
@@ -17,3 +21,9 @@ class Client(models.Model):
     bio = models.CharField(max_length=500, blank=True)
     birthdate = models.DateField(blank=True, null=True)
     address = models.CharField(max_length=500, blank=True)
+
+    def save(self, *args, **kwargs):
+        self.first_name = text_normalize(self.first_name)
+        self.last_name = text_normalize(self.last_name)
+        self.bio = text_normalize(self.bio)
+        super().save(*args, **kwargs)

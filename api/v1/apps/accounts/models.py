@@ -38,8 +38,8 @@ class CustomUser(AbstractUser):
         self.last_name = text_normalize(self.last_name)
         self.bio = text_normalize(self.bio)
         self.address = text_normalize(self.address)
-        if not self.pk and self.role in [UserRole.m.name, UserRole.w.name]:
-            Wage.objects.create(employee_id=self.pk)
+        if self.role == UserRole.w.name:
+            self.company_id = self.pharmacy.company_id
         super().save(*args, **kwargs)
 
 

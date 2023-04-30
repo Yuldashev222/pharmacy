@@ -1,25 +1,34 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from .models import Firm
+from api.v1.apps.accounts.enums import UserRole
+from api.v1.apps.companies.models import Company
+
+from .models import Client
 
 
-class FirmSerializer(serializers.ModelSerializer):
+class ClientSerializer(serializers.ModelSerializer):
+    creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
     detail = serializers.HyperlinkedRelatedField(source='id',
-                                                 view_name='firm-detail',
+                                                 view_name='client-detail',
                                                  read_only=True)
     company_detail = serializers.HyperlinkedRelatedField(source='company',
                                                          view_name='company-detail',
                                                          read_only=True)
 
-    def validate_company(self, obj):
-        if obj not in self.context['request'].user.companies.all():
-            raise ValidationError('not found')
-        return obj
-
     class Meta:
-        model = Firm
+        model = Client
         fields = '__all__'
+
+    def validate(self, attrs):
+        user = self.context['request'].user
+        if user.role == UserRole.d.name:
+            if attrs['company'] not in user.companies.all():
+                raise ValidationError({'company': 'not found'})
+        else:
+            attrs['company'] = user.company
+        return attrs
 
     def update(self, instance, validated_data):
         if validated_data.get('company'):
