@@ -42,6 +42,15 @@ class CustomUser(AbstractUser):
             self.company_id = self.pharmacy.company_id
         super().save(*args, **kwargs)
 
+    def director_pharmacies_all(self):
+        return Pharmacy.objects.filter(company__in=self.companies.all())
+
+    def manager_pharmacies_all(self):
+        return Pharmacy.objects.filter(company_id=self.company_id)
+
+    def director_companies_all(self):
+        return self.companies.all()
+
 
 class Director(CustomUser):
     objects = DirectorManager()

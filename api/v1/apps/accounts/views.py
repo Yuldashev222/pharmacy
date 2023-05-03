@@ -90,4 +90,5 @@ class WorkerUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
 # company_id 18
 # director +998974068633   18
 # manager +998974068000   22
+# worker +998974068681   22
 # print(CustomUser.objects.last().id)

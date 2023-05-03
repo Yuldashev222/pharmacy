@@ -38,17 +38,9 @@ class AbstractIncomeExpense(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     income_expense_type = models.ForeignKey(IncomeExpenseType, on_delete=models.PROTECT)
     price = models.FloatField(validators=[MinValueValidator(0)])
-    shift = models.PositiveSmallIntegerField(default=0,
-                                             validators=[MaxValueValidator(3)])  # or auto
+    shift = models.PositiveSmallIntegerField(validators=[MaxValueValidator(3), MinValueValidator(1)])  # or auto
 
-    # select
     desc = models.CharField(max_length=500, blank=True)
-    # to_firm = models.ForeignKey('firms.Firm', on_delete=models.PROTECT,
-    #                             blank=True, null=True)
-    # to_user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL,
-    #                             null=True, blank=True,
-    #                             related_name='income_expenses')
-    # ------
 
     class Meta:
         abstract = True

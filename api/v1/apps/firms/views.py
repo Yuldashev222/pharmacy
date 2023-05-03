@@ -1,3 +1,4 @@
+from rest_framework.exceptions import ValidationError
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 
@@ -5,7 +6,7 @@ from api.v1.apps.accounts.enums import UserRole
 from api.v1.apps.accounts.permissions import NotProjectOwner, IsDirector, IsManager
 
 from .models import Firm, FirmIncome
-from .serializers import FirmSerializer
+from .serializers import FirmSerializer, FirmIncomeSerializer
 
 
 class FirmAPIViewSet(ModelViewSet):
@@ -33,8 +34,7 @@ class FirmIncomeAPIViewSet(ModelViewSet):
     def get_queryset(self):
         firm_id = self.request.query_params.get('firm_id', 'no')
         if firm_id == 'no' or not isinstance(firm_id, int):
-            return []
-
+            raise ValidationError('firm_id not found in query params')
         user = self.request.user
         if user.role == UserRole.d.name:
             queryset = FirmIncome.objects.filter(
