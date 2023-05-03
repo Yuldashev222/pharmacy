@@ -1,13 +1,13 @@
-from rest_framework import mixins
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import CreateAPIView, RetrieveAPIView, UpdateAPIView, RetrieveUpdateDestroyAPIView
-from rest_framework.viewsets import ReadOnlyModelViewSet, GenericViewSet
+from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from . import serializers as user_serializers
 
 from .enums import UserRole
 from .models import Director, Manager, CustomUser, Worker
-from .permissions import IsProjectOwner, IsOwner, IsDirector, IsManager
+from .permissions import IsProjectOwner, IsDirector, IsManager
+from ..companies.models import Company
 
 
 class DirectorCreateAPIView(CreateAPIView):

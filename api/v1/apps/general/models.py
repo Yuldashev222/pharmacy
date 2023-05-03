@@ -2,7 +2,6 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 from api.v1.apps.reports.models import Report
-from api.v1.apps.accounts.models import CustomUser
 
 
 class TransferMoneyType(models.Model):
@@ -21,7 +20,7 @@ class IncomeExpenseType(models.Model):
     is_expense_type = models.BooleanField(default=True)
     name = models.CharField(max_length=300)
     desc = models.CharField(max_length=600, blank=True)
-    creator = models.ForeignKey(CustomUser, on_delete=models.SET_NULL,
+    creator = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL,
                                 null=True)  # directors
 
     def __str__(self):
@@ -33,7 +32,7 @@ class IncomeExpenseType(models.Model):
 
 
 class AbstractIncomeExpense(models.Model):
-    creator = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
+    creator = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True)
     report = models.ForeignKey(Report, on_delete=models.PROTECT)
     created_at = models.DateTimeField(auto_now_add=True)
     income_expense_type = models.ForeignKey(IncomeExpenseType, on_delete=models.PROTECT)

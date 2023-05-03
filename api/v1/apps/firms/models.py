@@ -1,8 +1,10 @@
+from datetime import date
+
+from django.core.validators import MinValueValidator
 from django.db import models
 
 from api.v1.apps.companies.models import Company
 from api.v1.apps.pharmacies.models import Pharmacy
-from api.v1.apps.accounts.models import CustomUser
 from api.v1.apps.general.services import text_normalize
 from api.v1.apps.general.validators import uzb_phone_number_validation
 from api.v1.apps.general.models import AbstractIncomeExpense, TransferMoneyType
@@ -12,10 +14,11 @@ from .services import firm_logo_upload_location
 
 class Firm(models.Model):
     name = models.CharField(max_length=400)
-    total_amount_purchased = models.PositiveIntegerField(default=0)
-    total_amount_given = models.PositiveIntegerField(default=0)
+    # total_amount_purchased = models.PositiveIntegerField(default=0)
+    # total_amount_given = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     company = models.ForeignKey(Company, on_delete=models.PROTECT)
+    creator = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True)
 
     phone_number1 = models.CharField(max_length=13, validators=[uzb_phone_number_validation], blank=True)
     phone_number2 = models.CharField(max_length=13, validators=[uzb_phone_number_validation], blank=True)
@@ -36,24 +39,17 @@ class FirmIncome(AbstractIncomeExpense):
 
     from_firm = models.ForeignKey(Firm, on_delete=models.PROTECT)
     to_pharmacy = models.ForeignKey(Pharmacy, on_delete=models.PROTECT)
-    deadline_date = models.DateField()
+    deadline_date = models.DateField(validators=[MinValueValidator(date.today())])
     paid_on_time = models.BooleanField(default=False)
     is_paid = models.BooleanField(default=False)
 
 
 class FirmExpense(AbstractIncomeExpense):
-    to_firm = models.ForeignKey(Firm, on_delete=models.PROTECT)
+    to_firm_income = models.ForeignKey(FirmIncome, on_delete=models.PROTECT)
+    from_pharmacy = models.BooleanField(default=True)
     is_transfer = models.BooleanField(default=False)
     transfer_type = models.ForeignKey(TransferMoneyType, on_delete=models.PROTECT,
                                       blank=True, null=True)
-
-    # select
-    from_pharmacy = models.ForeignKey(Pharmacy, on_delete=models.PROTECT,
-                                      blank=True, null=True)
-    from_user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL,
-                                  null=True, blank=True,
-                                  related_name='firm_expenses')
-    # ------
 
     is_verified = models.BooleanField(default=False)
     verified_code = models.PositiveIntegerField()

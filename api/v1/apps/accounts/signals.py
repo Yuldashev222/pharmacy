@@ -14,12 +14,10 @@ from .models import CustomUser
 def create_company(instance, created, *args, **kwargs):
     if created:
         if instance.role == UserRole.d.name:
-            company = Company.objects.create(
+            Company.objects.create(
                 name=f'Company::{instance.first_name}-{instance.last_name}',
                 director_id=instance.id
             )
-            instance.company_id = company.id
-            instance.save()
         elif instance.role in [UserRole.m.name, UserRole.w.name]:
             Wage.objects.create(employee_id=instance.pk)
 

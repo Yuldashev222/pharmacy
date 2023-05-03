@@ -2,9 +2,6 @@ from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from rest_framework.exceptions import ValidationError
 
-from api.v1.apps.companies.models import Company
-from api.v1.apps.pharmacies.models import Pharmacy
-
 from .enums import UserRole
 from .models import CustomUser
 
@@ -42,40 +39,39 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
 
 class ManagerCreateSerializer(UserCreateSerializer):
-    company_id = serializers.IntegerField()
-
     class Meta(UserCreateSerializer.Meta):
-        fields = UserCreateSerializer.Meta.fields + ['company_id']
+        fields = UserCreateSerializer.Meta.fields + ['company']
+        extra_kwargs = UserCreateSerializer.Meta.extra_kwargs.copy()
+        extra_kwargs['company'] = {'allow_null': False}
 
     def validate(self, attrs):
+        print(attrs['company'])
         user = self.context['request'].user
-        if attrs['company_id'] not in user.companies.values_list('id', flat=True):
-            raise ValidationError({'company_id': 'not found'})
+        if attrs['company'] not in user.companies.all():
+            raise ValidationError({'company': 'not found'})
         return super().validate(attrs)
 
 
 class WorkerCreateSerializer(UserCreateSerializer):
-    pharmacy_id = serializers.IntegerField()
-
     class Meta(UserCreateSerializer.Meta):
-        fields = UserCreateSerializer.Meta.fields + ['pharmacy_id']
+        fields = UserCreateSerializer.Meta.fields + ['pharmacy']
+        extra_kwargs = UserCreateSerializer.Meta.extra_kwargs.copy()
+        extra_kwargs['pharmacy'] = {'allow_null': False}
 
     def validate(self, attrs):
         user = self.context['request'].user
         if user.role == UserRole.d.name:
-            if attrs['pharmacy_id'] not in \
-                    Pharmacy.objects.filter(company__director_id=user.id).values_list('id', flat=True):
-                raise ValidationError({'pharmacy_id': 'not found'})
-
-        elif attrs['pharmacy_id'] not in Pharmacy.objects.filter(company_id=user.company_id):
-            raise ValidationError({'pharmacy_id': 'not found'})
+            if attrs['pharmacy'] not in user.director_pharmacies_all():
+                raise ValidationError({'pharmacy': 'not found'})
+        elif attrs['pharmacy'] not in user.manager_pharmacies_all():
+            raise ValidationError({'pharmacy': 'not found'})
         return super().validate(attrs)
 
 
 class UserReadOnlySerializer(serializers.ModelSerializer):
-    creator = serializers.StringRelatedField()
-    company = serializers.StringRelatedField()
-    pharmacy = serializers.StringRelatedField()
+    creator = serializers.StringRelatedField(read_only=True)
+    company = serializers.StringRelatedField(read_only=True)
+    pharmacy = serializers.StringRelatedField(read_only=True)
     pharmacy_detail = serializers.HyperlinkedRelatedField(source='pharmacy',
                                                           view_name='pharmacy-detail',
                                                           read_only=True)
@@ -98,6 +94,17 @@ class UserReadOnlySerializer(serializers.ModelSerializer):
             'company_detail', 'wage', 'bio', 'photo', 'address', 'email', 'is_active',
             'date_joined',
         ]
+
+    def get_field_names(self, declared_fields, info):
+        user = self.context['request'].user
+        f = super().get_field_names(declared_fields, info)
+        if user.role == UserRole.w.name:
+            return [
+                'id', 'detail', 'phone_number', 'first_name', 'last_name', 'role', 'shift',
+                'pharmacy', 'pharmacy_detail', 'company', 'company_detail', 'bio', 'photo',
+                'address', 'email', 'date_joined',
+            ]
+        return f
 
 
 class RetrieveUpdateDestroySerializer(serializers.ModelSerializer):
@@ -152,8 +159,8 @@ class WorkerUpdateDestroySerializer(DirectorUpdateDestroySerializer):
 
 
 class OwnerRetrieveUpdateSerializer(serializers.ModelSerializer):
-    company = serializers.StringRelatedField()
-    pharmacy = serializers.StringRelatedField()
+    company = serializers.StringRelatedField(read_only=True)
+    pharmacy = serializers.StringRelatedField(read_only=True)
     role = serializers.CharField(source='get_role_display', read_only=True)
     company_detail = serializers.HyperlinkedRelatedField(source='company',
                                                          view_name='company-detail',

@@ -2,7 +2,6 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from api.v1.apps.accounts.enums import UserRole
-from api.v1.apps.companies.models import Company
 
 from .models import Client
 

@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 
-from api.v1.apps.wages.models import Wage
+from api.v1.apps.firms.models import Firm
 from api.v1.apps.companies.models import Company
 from api.v1.apps.pharmacies.models import Pharmacy
 from api.v1.apps.general.services import text_normalize
@@ -48,8 +48,11 @@ class CustomUser(AbstractUser):
     def manager_pharmacies_all(self):
         return Pharmacy.objects.filter(company_id=self.company_id)
 
-    def director_companies_all(self):
-        return self.companies.all()
+    def director_firms_all(self):
+        return Firm.objects.filter(company__in=self.companies.all())
+
+    def employee_firms_all(self):
+        return Firm.objects.filter(company_id=self.company_id)
 
 
 class Director(CustomUser):
