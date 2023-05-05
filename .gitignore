@@ -1,4 +1,4 @@
-static
+src/static
 
 
 # Django #
@@ -7,7 +7,7 @@ static
 *.pyc
 __pycache__
 db.sqlite3
-media
+src/media
 
 # Backup files #
 *.bak
@@ -101,6 +101,8 @@ celerybeat-schedule.*
 
 # Environments
 .env
+.env.prod
+.env.prod.db
 .venv
 env/
 venv/

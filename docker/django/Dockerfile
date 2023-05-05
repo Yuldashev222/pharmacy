@@ -1,6 +1,0 @@
-FROM python:3.10-alpine
-
-SHELL ["/bin/bash", "-c"]
-
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
