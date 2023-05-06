@@ -1,7 +1,6 @@
 from datetime import date
-
-from django.core.validators import MinValueValidator
 from django.db import models
+from django.core.validators import MinValueValidator
 
 from api.v1.apps.companies.models import Company
 from api.v1.apps.pharmacies.models import Pharmacy
@@ -45,13 +44,13 @@ class FirmIncome(AbstractIncomeExpense):
 
 
 class FirmExpense(AbstractIncomeExpense):
-    to_firm_income = models.ForeignKey(FirmIncome, on_delete=models.PROTECT)
+    to_firm_income = models.ForeignKey(FirmIncome, on_delete=models.PROTECT)  # to_firm
     from_pharmacy = models.BooleanField(default=True)
     is_transfer = models.BooleanField(default=False)
     transfer_type = models.ForeignKey(TransferMoneyType, on_delete=models.PROTECT,
                                       blank=True, null=True)
 
-    is_verified = models.BooleanField(default=False)
+    is_verified = models.BooleanField(default=False)  # sms
     verified_code = models.PositiveIntegerField()
     verified_phone_number = models.CharField(max_length=13, validators=[uzb_phone_number_validation])
     verified_firm_worker_name = models.CharField(max_length=150, blank=True)

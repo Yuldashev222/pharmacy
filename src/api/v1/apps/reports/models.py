@@ -6,6 +6,7 @@ class Report(models.Model):
     Daily Report
     """
     report_date = models.DateField(unique=True)
+    is_closed = models.BooleanField(default=False)
     total_amount_incomes = models.PositiveIntegerField(default=0)
     total_amount_expenses = models.PositiveIntegerField(default=0)
     total_amount_debt_trading = models.PositiveIntegerField(default=0)

@@ -13,7 +13,7 @@ class PharmacyAPIViewSet(ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.role == UserRole.d.name:
+        if user.is_director():
             queryset = Pharmacy.objects.filter(company__in=user.companies.all())
         else:
             queryset = Pharmacy.objects.filter(company_id=user.company_id)
