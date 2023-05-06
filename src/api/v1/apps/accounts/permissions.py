@@ -1,11 +1,9 @@
 from rest_framework import permissions
 
-from .enums import UserRole
-
 
 class IsDirectorOrOwnerOrReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
-        return request.user.role == UserRole.d.name or request.method in permissions.SAFE_METHODS
+        return request.user.is_director or request.method in permissions.SAFE_METHODS
 
     def has_object_permission(self, request, view, obj):
         return request.user.id == obj.director_id or request.method in permissions.SAFE_METHODS
@@ -13,22 +11,22 @@ class IsDirectorOrOwnerOrReadOnly(permissions.BasePermission):
 
 class IsProjectOwner(permissions.BasePermission):
     def has_permission(self, request, view):
-        return request.user.role == UserRole.p.name
+        return request.user.is_project_owner
 
 
 class NotProjectOwner(permissions.BasePermission):
     def has_permission(self, request, view):
-        return request.user.role != UserRole.p.name
+        return not request.user.is_project_owner
 
 
 class IsDirector(permissions.BasePermission):
     def has_permission(self, request, view):
-        return request.user.role == UserRole.d.name
+        return request.user.is_director
 
 
 class IsManager(permissions.BasePermission):
     def has_permission(self, request, view):
-        return request.user.role == UserRole.m.name
+        return request.user.is_manager
 
 
 class IsOwner(permissions.BasePermission):

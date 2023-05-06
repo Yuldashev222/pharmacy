@@ -38,23 +38,30 @@ class CustomUser(AbstractUser):
         self.last_name = text_normalize(self.last_name)
         self.bio = text_normalize(self.bio)
         self.address = text_normalize(self.address)
-        if self.role == UserRole.w.name:
+        if self.is_worker:
             self.company_id = self.pharmacy.company_id
         super().save(*args, **kwargs)
 
+    @property
+    def is_project_owner(self):
+        return self.role == UserRole.p.name
+
+    @property
     def is_director(self):
         return self.role == UserRole.d.name
 
+    @property
     def is_manager(self):
         return self.role == UserRole.m.name
 
+    @property
     def is_worker(self):
         return self.role == UserRole.w.name
 
     def director_pharmacies_all(self):
         return Pharmacy.objects.filter(company__in=self.companies.all())
 
-    def manager_pharmacies_all(self):
+    def employee_pharmacies_all(self):
         return Pharmacy.objects.filter(company_id=self.company_id)
 
     def director_firms_all(self):

@@ -1,10 +1,8 @@
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 
-from api.v1.apps.accounts.enums import UserRole
 from api.v1.apps.accounts.permissions import NotProjectOwner, IsDirector
 
-from .models import Pharmacy
 from .serializers import PharmacySerializer
 
 
@@ -13,10 +11,10 @@ class PharmacyAPIViewSet(ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_director():
-            queryset = Pharmacy.objects.filter(company__in=user.companies.all())
+        if user.is_director:
+            queryset = user.director_pharmacies_all()
         else:
-            queryset = Pharmacy.objects.filter(company_id=user.company_id)
+            queryset = user.employee_pharmacies_all()
         return queryset
 
     def get_permissions(self):

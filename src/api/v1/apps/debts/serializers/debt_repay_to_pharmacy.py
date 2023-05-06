@@ -3,7 +3,6 @@ from django.core.validators import MaxValueValidator
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from api.v1.apps.accounts.enums import UserRole
 from api.v1.apps.reports.models import Report
 
 from ..models import DebtRepayToPharmacy
@@ -26,11 +25,10 @@ class DebtRepayToPharmacySerializer(serializers.ModelSerializer):
 
 class DirectorManagerDebtRepayToPharmacySerializer(DebtRepayToPharmacySerializer):
     r_date = serializers.DateField(write_only=True, required=False, validators=[MaxValueValidator(date.today())])
-    report = serializers.HiddenField(default=1)
 
     class Meta:
         model = DebtRepayToPharmacy
-        fields = '__all__'
+        exclude = ('report',)
         extra_kwargs = {
             'from_debt': {'write_only': True},
         }
@@ -45,12 +43,12 @@ class DirectorManagerDebtRepayToPharmacySerializer(DebtRepayToPharmacySerializer
     def validate(self, attrs):
         user = self.context['request'].user
 
-        if user.role == UserRole.d.name:
-            if attrs['from_debt'].to_pharmacy not in user.director_pharmacies_all():
-                raise ValidationError({'to_pharmacy': 'not found'})
+        if user.is_director:
+            if attrs['from_debt'].from_pharmacy not in user.director_pharmacies_all():
+                raise ValidationError({'from_pharmacy': 'not found'})
         else:
-            if attrs['from_debt'].to_pharmacy not in user.manager_pharmacies_all():
-                raise ValidationError({'to_pharmacy': 'not found'})
+            if attrs['from_debt'].from_pharmacy not in user.employee_pharmacies_all():
+                raise ValidationError({'from_pharmacy': 'not found'})
         return attrs
 
 
@@ -58,14 +56,14 @@ class WorkerDebtRepayToPharmacySerializer(DebtRepayToPharmacySerializer):
     class Meta:
         model = DebtRepayToPharmacy
         fields = '__all__'
-        read_only_fields = ('report',)
+        read_only_fields = ('report', 'shift')
         extra_kwargs = {
             'from_debt': {'write_only': True},
         }
 
     def validate(self, attrs):
         user = self.context['request'].user
-        if user.pharmacy_id != attrs['from_debt'].to_pharmacy_id:
+        if user.pharmacy_id != attrs['from_debt'].from_pharmacy_id:
             raise ValidationError({'from_debt': ['not found']})
         attrs['report'] = Report.objects.get_or_create(report_date=date.today())[0]
         attrs['shift'] = user.shift

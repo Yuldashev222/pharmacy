@@ -37,10 +37,9 @@ class AbstractIncomeExpense(models.Model):
     creator = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True)
     report = models.ForeignKey(Report, on_delete=models.PROTECT)
     created_at = models.DateTimeField(auto_now_add=True)
-    income_expense_type = models.ForeignKey(IncomeExpenseType, on_delete=models.PROTECT)
     price = models.FloatField(validators=[MinValueValidator(0)])
     shift = models.PositiveSmallIntegerField(validators=[MaxValueValidator(3), MinValueValidator(1)])
-
+    transfer_type = models.ForeignKey(TransferMoneyType, on_delete=models.PROTECT)
     desc = models.CharField(max_length=500, blank=True)
 
     def save(self, *args, **kwargs):

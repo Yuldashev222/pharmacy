@@ -1,8 +1,8 @@
+from django.core.validators import MinValueValidator
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from rest_framework.exceptions import ValidationError
 
-from .enums import UserRole
 from .models import CustomUser
 
 
@@ -42,10 +42,9 @@ class ManagerCreateSerializer(UserCreateSerializer):
     class Meta(UserCreateSerializer.Meta):
         fields = UserCreateSerializer.Meta.fields + ['company']
         extra_kwargs = UserCreateSerializer.Meta.extra_kwargs.copy()
-        extra_kwargs['company'] = {'allow_null': False}
+        extra_kwargs['company'] = {'required': True, 'allow_null': False}
 
     def validate(self, attrs):
-        print(attrs['company'])
         user = self.context['request'].user
         if attrs['company'] not in user.companies.all():
             raise ValidationError({'company': 'not found'})
@@ -56,15 +55,15 @@ class WorkerCreateSerializer(UserCreateSerializer):
     class Meta(UserCreateSerializer.Meta):
         fields = UserCreateSerializer.Meta.fields + ['pharmacy', 'shift']
         extra_kwargs = UserCreateSerializer.Meta.extra_kwargs.copy()
-        extra_kwargs['pharmacy'] = {'required': True}
-        extra_kwargs['shift'] = {'required': True}
+        extra_kwargs['pharmacy'] = {'required': True, 'allow_null': False}
+        extra_kwargs['shift'] = {'required': True, 'validators': [MinValueValidator(1)]}
 
     def validate(self, attrs):
         user = self.context['request'].user
-        if user.role == UserRole.d.name:
+        if user.is_director:
             if attrs['pharmacy'] not in user.director_pharmacies_all():
                 raise ValidationError({'pharmacy': 'not found'})
-        elif attrs['pharmacy'] not in user.manager_pharmacies_all():
+        elif attrs['pharmacy'] not in user.employee_pharmacies_all():
             raise ValidationError({'pharmacy': 'not found'})
         return super().validate(attrs)
 
@@ -99,7 +98,7 @@ class UserReadOnlySerializer(serializers.ModelSerializer):
     def get_field_names(self, declared_fields, info):
         user = self.context['request'].user
         f = super().get_field_names(declared_fields, info)
-        if user.role == UserRole.w.name:
+        if user.is_worker:
             return [
                 'id', 'detail', 'phone_number', 'first_name', 'last_name', 'role', 'shift',
                 'pharmacy', 'pharmacy_detail', 'company', 'company_detail', 'bio', 'photo',
@@ -127,7 +126,7 @@ class RetrieveUpdateDestroySerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         user = self.context['request'].user
-        if user.role == UserRole.p.name:
+        if user.is_project_owner:
             validated_data = {
                 'is_active': validated_data.get('is_active', instance.is_active),
                 'phone_number': validated_data.get('phone_number', instance.is_active)

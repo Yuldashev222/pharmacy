@@ -32,7 +32,7 @@ class FirmSerializer(serializers.ModelSerializer):
 
     def validate_company(self, obj):
         user = self.context['request'].user
-        if user.role == UserRole.d.name:
+        if user.is_director:
             if obj not in user.companies.all():
                 raise ValidationError('not found')
         else:
@@ -53,9 +53,6 @@ class FirmIncomeSerializer(serializers.ModelSerializer):
     detail = serializers.HyperlinkedRelatedField(source='id',
                                                  view_name='firm_income-detail',
                                                  read_only=True)
-    firm_detail = serializers.HyperlinkedRelatedField(source='firm',
-                                                      view_name='firm-detail',
-                                                      read_only=True)
 
     to_pharmacy_name = serializers.StringRelatedField(source='to_pharmacy', read_only=True)
     to_pharmacy_detail = serializers.HyperlinkedRelatedField(source='to_pharmacy',
@@ -67,7 +64,7 @@ class FirmIncomeSerializer(serializers.ModelSerializer):
     report_date = serializers.StringRelatedField(source='report', read_only=True)
     # report_detail = serializers.HyperlinkedRelatedField(source='report',
     #                                                     view_name='report-detail', read_only=True)  # last
-    r_date = serializers.DateField(write_only=True, validators=[MaxValueValidator(date.today())])
+    r_date = serializers.DateField(write_only=True, required=False, validators=[MaxValueValidator(date.today())])
 
     class Meta:
         model = FirmIncome
@@ -78,13 +75,28 @@ class FirmIncomeSerializer(serializers.ModelSerializer):
             'from_firm': {'write_only': True},
         }
 
+    def create(self, validated_data):
+        if not validated_data.get('report'):
+            raise ValidationError({'r_date': 'This field is required.'})
+        return super().create(validated_data)
+
     def validate(self, attrs):
         user = self.context['request'].user
-        if user.role == UserRole.d.name:
-            if attrs['from_firm'] not in Firm.objects.filter(company__in=user.companies.all()):
+
+        if user.is_director:
+            if attrs['from_firm'] not in user.director_firms_all():
                 raise ValidationError({'from_firm': 'not found'})
+            if attrs['to_pharmacy'] not in user.director_pharmacies_all():
+                raise ValidationError({'to_pharmacy': 'not found'})
+
         elif attrs['from_firm'] not in Firm.objects.filter(company_id=user.company_id):
             raise ValidationError({'from_firm': 'not found'})
-        attrs['report'] = Report.objects.get_or_create(report_date=attrs['r_date'])[0]
-        del attrs['r_date']
+
+        elif attrs['to_pharmacy'] not in user.employee_pharmacies_all():
+            raise ValidationError({'to_pharmacy': 'not found'})
+
+        if attrs.get('r_date'):
+            attrs['report'] = Report.objects.get_or_create(report_date=attrs['r_date'])[0]
+            del attrs['r_date']
+
         return attrs

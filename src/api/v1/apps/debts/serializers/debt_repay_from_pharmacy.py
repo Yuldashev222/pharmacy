@@ -1,10 +1,8 @@
 from datetime import date
-
 from django.core.validators import MaxValueValidator
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from api.v1.apps.accounts.enums import UserRole
 from api.v1.apps.reports.models import Report
 
 from ..models import DebtRepayFromPharmacy
@@ -23,15 +21,29 @@ class DebtRepayFromPharmacySerializer(serializers.ModelSerializer):
     to_debt_name = serializers.StringRelatedField(source='to_debt', read_only=True)
     to_debt_detail = serializers.HyperlinkedRelatedField(source='to_debt',
                                                          view_name='debt_to_pharmacy-detail', read_only=True)
+    from_user_name = serializers.StringRelatedField(source='from_user', read_only=True)
+    from_user_detail = serializers.HyperlinkedRelatedField(source='from_user',
+                                                           view_name='user-detail', read_only=True)
+
+    def validate(self, attrs):
+        user = self.context['request'].user
+
+        from_user = attrs.get('from_user')
+        if from_user:
+            if from_user.is_director:
+                if user.company not in from_user.companies.all():
+                    raise ValidationError({'from_user': 'not found'})
+            elif user.company_id != from_user.company_id:
+                raise ValidationError({'from_user': 'not found'})
+        return attrs
 
 
 class DirectorManagerDebtRepayFromPharmacySerializer(DebtRepayFromPharmacySerializer):
     r_date = serializers.DateField(write_only=True, required=False, validators=[MaxValueValidator(date.today())])
-    report = serializers.HiddenField(default=1)
 
     class Meta:
         model = DebtRepayFromPharmacy
-        fields = '__all__'
+        exclude = ('report',)
         extra_kwargs = {
             'to_debt': {'write_only': True},
         }
@@ -46,20 +58,19 @@ class DirectorManagerDebtRepayFromPharmacySerializer(DebtRepayFromPharmacySerial
     def validate(self, attrs):
         user = self.context['request'].user
 
-        if user.role == UserRole.d.name:
+        if user.is_director:
             if attrs['to_debt'].to_pharmacy not in user.director_pharmacies_all():
                 raise ValidationError({'to_pharmacy': 'not found'})
         else:
-            if attrs['to_debt'].to_pharmacy not in user.manager_pharmacies_all():
+            if attrs['to_debt'].to_pharmacy not in user.employee_pharmacies_all():
                 raise ValidationError({'to_pharmacy': 'not found'})
-        return attrs
+        return super().validate(attrs)
 
 
 class WorkerDebtRepayFromPharmacySerializer(DebtRepayFromPharmacySerializer):
     class Meta:
         model = DebtRepayFromPharmacy
-        fields = '__all__'
-        read_only_fields = ('report',)
+        exclude = ('report',)
         extra_kwargs = {
             'to_debt': {'write_only': True},
         }
@@ -70,4 +81,4 @@ class WorkerDebtRepayFromPharmacySerializer(DebtRepayFromPharmacySerializer):
             raise ValidationError({'to_debt': ['not found']})
         attrs['report'] = Report.objects.get_or_create(report_date=date.today())[0]
         attrs['shift'] = user.shift
-        return attrs
+        return super().validate(attrs)

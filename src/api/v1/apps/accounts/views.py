@@ -39,9 +39,9 @@ class UserReadOnlyAPIView(ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.role == UserRole.p.name:
+        if user.is_project_owner:
             queryset = CustomUser.objects.filter(role=UserRole.d.name)
-        elif user.role == UserRole.d.name:
+        elif user.is_director:
             queryset = CustomUser.objects.filter(company__in=user.companies.all())
         else:
             queryset = CustomUser.objects.filter(company_id=user.company_id)
@@ -80,7 +80,7 @@ class WorkerUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        if user.role == UserRole.d.name:
+        if user.is_director:
             queryset = Worker.objects.filter(company__in=user.companies.all())
         else:
             queryset = Worker.objects.filter(company_id=user.company_id)

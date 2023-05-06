@@ -1,14 +1,14 @@
 from django.db import models
 
+from api.v1.apps.accounts.models import CustomUser
 from api.v1.apps.pharmacies.models import Pharmacy
-from api.v1.apps.general.models import AbstractIncomeExpense
+from api.v1.apps.general.models import AbstractIncomeExpense, TransferMoneyType
 
 
 class DebtToPharmacy(AbstractIncomeExpense):  # aptekaga qarz berdi
-    income_expense_type = None
-
     from_who = models.CharField(max_length=500)
     to_pharmacy = models.ForeignKey(Pharmacy, on_delete=models.PROTECT)
+    is_paid = models.BooleanField(default=False)
 
     def repaid_debt(self):
         return self.debtrepayfrompharmacy_set.aggregate(total=models.Sum('price'))['total']
@@ -17,19 +17,16 @@ class DebtToPharmacy(AbstractIncomeExpense):  # aptekaga qarz berdi
         return self.from_who
 
 
-class DebtRepayFromPharmacy(AbstractIncomeExpense):  # apteka qarzni qaytardi
-    income_expense_type = None
-
+class DebtRepayFromPharmacy(AbstractIncomeExpense):  # apteka qarzini qaytardi
     to_debt = models.ForeignKey(DebtToPharmacy, on_delete=models.PROTECT)
-    from_pharmacy = models.BooleanField(default=True)  # desc   select  # last
+    from_user = models.ForeignKey(CustomUser, on_delete=models.PROTECT,
+                                  related_name='debt_repays', blank=True, null=True)
 
     def __str__(self):
         return str(self.to_debt)
 
 
-class DebtFromPharmacy(AbstractIncomeExpense):  # apteka qarz bedi
-    income_expense_type = None
-
+class DebtFromPharmacy(AbstractIncomeExpense):  # apteka qarz berdi
     is_paid = models.BooleanField(default=False)
     is_client = models.BooleanField(default=True)
     from_pharmacy = models.ForeignKey(Pharmacy, on_delete=models.PROTECT)
@@ -43,6 +40,4 @@ class DebtFromPharmacy(AbstractIncomeExpense):  # apteka qarz bedi
 
 
 class DebtRepayToPharmacy(AbstractIncomeExpense):  # aptekaga qarzini qaytardi
-    income_expense_type = None
-
     from_debt = models.ForeignKey(DebtFromPharmacy, on_delete=models.PROTECT)

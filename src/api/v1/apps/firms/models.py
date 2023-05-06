@@ -26,6 +26,9 @@ class Firm(models.Model):
     address = models.CharField(max_length=500, blank=True)
     desc = models.CharField(max_length=500, blank=True)
 
+    def __str__(self):
+        return self.name
+
     def save(self, *args, **kwargs):
         self.name = text_normalize(self.name)
         self.address = text_normalize(self.address)
@@ -34,27 +37,30 @@ class Firm(models.Model):
 
 
 class FirmIncome(AbstractIncomeExpense):
-    income_expense_type = None
+    transfer_type = None
 
     from_firm = models.ForeignKey(Firm, on_delete=models.PROTECT)
     to_pharmacy = models.ForeignKey(Pharmacy, on_delete=models.PROTECT)
-    deadline_date = models.DateField(validators=[MinValueValidator(date.today())])
+    deadline_date = models.DateField(validators=[MinValueValidator(date.today())], blank=True, null=True)
     paid_on_time = models.BooleanField(default=False)
     is_paid = models.BooleanField(default=False)
 
+    def __str__(self):
+        return str(self.from_firm)
 
-class FirmExpense(AbstractIncomeExpense):
-    to_firm_income = models.ForeignKey(FirmIncome, on_delete=models.PROTECT)  # to_firm
-    from_pharmacy = models.BooleanField(default=True)
-    is_transfer = models.BooleanField(default=False)
-    transfer_type = models.ForeignKey(TransferMoneyType, on_delete=models.PROTECT,
-                                      blank=True, null=True)
-
-    is_verified = models.BooleanField(default=False)  # sms
-    verified_code = models.PositiveIntegerField()
-    verified_phone_number = models.CharField(max_length=13, validators=[uzb_phone_number_validation])
-    verified_firm_worker_name = models.CharField(max_length=150, blank=True)
-
-    def save(self, *args, **kwargs):
-        self.verified_firm_worker_name = text_normalize(self.verified_firm_worker_name)
-        super().save(*args, **kwargs)
+#
+# class FirmExpense(AbstractIncomeExpense):
+#     to_firm_income = models.ForeignKey(FirmIncome, on_delete=models.PROTECT)  # to_firm
+#     from_pharmacy = models.BooleanField(default=True)
+#     is_transfer = models.BooleanField(default=False)
+#     transfer_type = models.ForeignKey(TransferMoneyType, on_delete=models.PROTECT,
+#                                       blank=True, null=True)
+#
+#     is_verified = models.BooleanField(default=False)  # sms
+#     verified_code = models.PositiveIntegerField()
+#     verified_phone_number = models.CharField(max_length=13, validators=[uzb_phone_number_validation])
+#     verified_firm_worker_name = models.CharField(max_length=150, blank=True)
+#
+#     def save(self, *args, **kwargs):
+#         self.verified_firm_worker_name = text_normalize(self.verified_firm_worker_name)
+#         super().save(*args, **kwargs)

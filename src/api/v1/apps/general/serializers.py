@@ -16,8 +16,7 @@ class DirectorTransferMoneyTypeSerializer(serializers.ModelSerializer):
 
 
 class EmployeeTransferMoneyTypeSerializer(DirectorTransferMoneyTypeSerializer):
-    class Meta:
-        model = TransferMoneyType
+    class Meta(DirectorTransferMoneyTypeSerializer.Meta):
         exclude = ('company',)
 
 
@@ -33,6 +32,5 @@ class DirectorIncomeExpenseTypeSerializer(serializers.ModelSerializer):
 
 
 class EmployeeIncomeExpenseTypeSerializer(DirectorIncomeExpenseTypeSerializer):
-    class Meta:
-        model = IncomeExpenseType
+    class Meta(DirectorIncomeExpenseTypeSerializer.Meta):
         exclude = ('company', 'is_expense_type')

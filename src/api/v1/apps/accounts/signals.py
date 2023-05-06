@@ -13,7 +13,7 @@ from .models import CustomUser
 @receiver(post_save, sender=CustomUser)
 def create_company(instance, created, *args, **kwargs):
     if created:
-        if instance.role == UserRole.d.name:
+        if instance.is_director:
             Company.objects.create(
                 name=f'Company::{instance.first_name}-{instance.last_name}',
                 director_id=instance.id

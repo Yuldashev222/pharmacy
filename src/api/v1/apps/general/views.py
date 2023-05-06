@@ -15,7 +15,7 @@ from .serializers import (
 
 class TransferMoneyTypeAPIViewSet(ModelViewSet):
     def get_serializer_class(self):
-        if self.request.user.role == UserRole.d.name:
+        if self.request.user.is_director:
             return DirectorTransferMoneyTypeSerializer
         return EmployeeTransferMoneyTypeSerializer
 
@@ -27,14 +27,14 @@ class TransferMoneyTypeAPIViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         user = self.request.user
-        if user.role == UserRole.m.name:
+        if user.is_manager:
             serializer.save(company_id=user.company_id)
         else:
             serializer.save()
 
     def get_queryset(self):
         user = self.request.user
-        if user.role == UserRole.d.name:
+        if user.is_director:
             queryset = TransferMoneyType.objects.filter(company__in=user.companies.all())
         else:
             queryset = TransferMoneyType.objects.filter(company_id=user.company_id)
@@ -43,7 +43,7 @@ class TransferMoneyTypeAPIViewSet(ModelViewSet):
 
 class IncomeExpenseTypeAPIViewSet(ModelViewSet):
     def get_serializer_class(self):
-        if self.request.user.role == UserRole.d.name:
+        if self.request.user.is_director:
             return DirectorIncomeExpenseTypeSerializer
         return EmployeeIncomeExpenseTypeSerializer
 
@@ -55,7 +55,7 @@ class IncomeExpenseTypeAPIViewSet(ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.role == UserRole.d.name:
+        if user.is_director:
             queryset = IncomeExpenseType.objects.filter(company__in=user.companies.all())
         else:
             queryset = IncomeExpenseType.objects.filter(company_id=user.company_id)
@@ -68,7 +68,7 @@ class ExpenseTypeAPIViewSet(IncomeExpenseTypeAPIViewSet):
 
     def perform_create(self, serializer):
         user = self.request.user
-        if user.role == UserRole.m.name:
+        if user.is_manager:
             serializer.save(company_id=user.company_id, is_expense_type=True)
         else:
             serializer.save(is_expense_type=True)
@@ -80,7 +80,7 @@ class IncomeTypeAPIViewSet(IncomeExpenseTypeAPIViewSet):
 
     def perform_create(self, serializer):
         user = self.request.user
-        if user.role == UserRole.m.name:
+        if user.is_manager:
             serializer.save(company_id=user.company_id, is_expense_type=False)
         else:
             serializer.save(is_expense_type=False)

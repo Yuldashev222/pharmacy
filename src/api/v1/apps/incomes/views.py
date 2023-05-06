@@ -1,11 +1,9 @@
+from datetime import date
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin, DestroyModelMixin
-from rest_framework.permissions import IsAuthenticated
 
-from api.v1.apps.accounts.enums import UserRole
-from api.v1.apps.general.permissions import IsOwnerCreator
 from api.v1.apps.accounts.permissions import NotProjectOwner, IsDirector, IsManager
-from api.v1.apps.reports.permissions import IsTodayDateReport
 
 from .models import PharmacyIncome, PharmacyIncomeHistory
 from .serializers import (
@@ -16,27 +14,22 @@ from .serializers import (
 
 
 class PharmacyIncomeAPIViewSet(ModelViewSet):
-    def get_permissions(self):
-        user = self.request.user
-        permission_classes = [IsAuthenticated, NotProjectOwner]
-        if user.is_authenticated and user.role == UserRole.w.name:
-            permission_classes += [IsTodayDateReport, IsOwnerCreator]
-        return [permission() for permission in permission_classes]
+    permission_classes = [IsAuthenticated, NotProjectOwner]  # + IsOwnerCreator
 
     def get_serializer_class(self):
         user = self.request.user
-        if user.role == UserRole.w.name:
+        if user.is_worker:
             return WorkerPharmacyIncomeSerializer
         return DirectorManagerPharmacyIncomeSerializer
 
     def get_queryset(self):
         user = self.request.user
-        if user.role == UserRole.d.name:
+        if user.is_director:
             queryset = PharmacyIncome.objects.filter(to_pharmacy__in=user.director_pharmacies_all())
-        elif user.role == UserRole.m.name:
+        elif user.is_manager:
             queryset = PharmacyIncome.objects.filter(to_pharmacy__company_id=user.company_id)
         else:
-            queryset = PharmacyIncome.objects.filter(to_pharmacy_id=user.pharmacy_id)
+            queryset = PharmacyIncome.objects.filter(to_pharmacy_id=user.pharmacy_id, report__report_date=date.today())
         return queryset
 
 
@@ -49,6 +42,6 @@ class PharmacyIncomeHistoryAPIView(ListModelMixin,
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_director():
+        if user.is_director:
             return PharmacyIncomeHistory.objects.filter(pharmacy_income__to_pharmacy__in=user.director_pharmacies_all())
-        return PharmacyIncomeHistory.objects.filter(pharmacy_income__to_pharmacy__in=user.manager_pharmacies_all())
+        return PharmacyIncomeHistory.objects.filter(pharmacy_income__to_pharmacy__in=user.employee_pharmacies_all())

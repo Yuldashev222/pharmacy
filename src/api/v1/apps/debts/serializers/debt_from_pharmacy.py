@@ -3,7 +3,6 @@ from rest_framework import serializers
 from django.core.validators import MaxValueValidator
 from rest_framework.exceptions import ValidationError
 
-from api.v1.apps.accounts.enums import UserRole
 from api.v1.apps.reports.models import Report
 
 from ..models import DebtFromPharmacy
@@ -26,8 +25,8 @@ class DebtFromPharmacySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DebtFromPharmacy
-        fields = '__all__'
-        read_only_fields = ('is_paid', 'report')
+        exclude = ('report',)
+        read_only_fields = ('is_paid',)
 
 
 class WorkerDebtFromPharmacySerializer(DebtFromPharmacySerializer):
@@ -52,10 +51,11 @@ class DirectorManagerDebtFromPharmacySerializer(DebtFromPharmacySerializer):
 
     def validate(self, attrs):
         user = self.context['request'].user
-        if user.role == UserRole.d.name:
+
+        if user.is_director:
             if attrs['from_pharmacy'] not in user.director_pharmacies_all():
                 ValidationError({'from_pharmacy': 'not found'})
-        elif attrs['from_pharmacy'] not in user.manager_pharmacies_all():
+        elif attrs['from_pharmacy'] not in user.employee_pharmacies_all():
             ValidationError({'from_pharmacy': 'not found'})
         if attrs.get('r_date'):
             attrs['report'] = Report.objects.get_or_create(report_date=attrs['r_date'])[0]
