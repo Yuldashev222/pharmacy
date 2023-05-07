@@ -3,14 +3,10 @@ from rest_framework.routers import DefaultRouter
 from api.v1.apps.clients.views import ClientAPIViewSet
 from api.v1.apps.companies.views import CompanyAPIViewSet
 from api.v1.apps.pharmacies.views import PharmacyAPIViewSet
-from ..debts.views import debt_from_pharmacy, debt_to_pharmacy
+from api.v1.apps.expenses.views import PharmacyExpenseAPIViewSet
+from api.v1.apps.debts.views import debt_from_pharmacy, debt_to_pharmacy
 from api.v1.apps.firms.views import FirmAPIViewSet, FirmIncomeAPIViewSet
 from api.v1.apps.incomes.views import PharmacyIncomeAPIViewSet, PharmacyIncomeHistoryAPIView
-from api.v1.apps.expenses.views import (
-    ExpenseRetrieveDestroyAPIViewSet,
-    ExpenseHistoryAPIView,
-    FromPharmacyExpenseCreateUpdateAPIView
-)
 
 from .views import TransferMoneyTypeAPIViewSet, ExpenseTypeAPIViewSet, IncomeTypeAPIViewSet
 
@@ -28,10 +24,9 @@ router.register('pharmacies/incomes/histories', PharmacyIncomeHistoryAPIView, ba
 router.register('pharmacies/incomes/types', IncomeTypeAPIViewSet, basename='income_types')
 router.register('pharmacies/incomes', PharmacyIncomeAPIViewSet, basename='pharmacy_income')
 
-router.register('pharmacies/expenses/histories', ExpenseHistoryAPIView, basename='pharmacy_expense_history')
+# router.register('pharmacies/expenses/histories', ExpenseHistoryAPIView, basename='pharmacy_expense_history')
 router.register('pharmacies/expenses/types', ExpenseTypeAPIViewSet, basename='expense_types')
-router.register('pharmacies/expenses', FromPharmacyExpenseCreateUpdateAPIView, basename='pharmacy_expense_create_update')
-router.register('pharmacies/expenses', ExpenseRetrieveDestroyAPIViewSet, basename='pharmacy_expense')
+router.register('pharmacies/expenses', PharmacyExpenseAPIViewSet, basename='pharmacy_expense')
 
 router.register('pharmacies', PharmacyAPIViewSet, basename='pharmacy')
 

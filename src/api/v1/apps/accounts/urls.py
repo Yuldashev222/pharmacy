@@ -22,3 +22,4 @@ urlpatterns = [
     path('profile/', views.OwnerRetrieveUpdateAPIView.as_view(), name='profile'),
     path('', include(router.urls)),
 ]
+
