@@ -1,6 +1,5 @@
 from django.db import models
 
-from api.v1.apps.accounts.models import CustomUser
 from api.v1.apps.pharmacies.models import Pharmacy
 from api.v1.apps.general.models import AbstractIncomeExpense, TransferMoneyType
 
@@ -19,7 +18,7 @@ class DebtToPharmacy(AbstractIncomeExpense):  # aptekaga qarz berdi
 
 class DebtRepayFromPharmacy(AbstractIncomeExpense):  # apteka qarzini qaytardi
     to_debt = models.ForeignKey(DebtToPharmacy, on_delete=models.PROTECT)
-    from_user = models.ForeignKey(CustomUser, on_delete=models.PROTECT,
+    from_user = models.ForeignKey('accounts.CustomUser', on_delete=models.PROTECT,
                                   related_name='debt_repays', blank=True, null=True)
 
     def __str__(self):

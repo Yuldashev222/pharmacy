@@ -7,14 +7,13 @@ from .models import CustomUser
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
-    re_password = serializers.CharField(write_only=True, style={'input_type': 'password'})
     creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
     role = serializers.CharField(source='get_role_display', read_only=True)
 
     class Meta:
         model = CustomUser
         fields = [
-            'phone_number', 'password', 're_password', 'email', 'first_name',
+            'phone_number', 'password', 'email', 'first_name',
             'last_name', 'is_active', 'photo', 'bio', 'address', 'role', 'creator'
         ]
         extra_kwargs = {
@@ -27,15 +26,6 @@ class UserCreateSerializer(serializers.ModelSerializer):
                 'validators': [validate_password]
             }
         }
-
-    def create(self, validated_data):
-        del validated_data['re_password']
-        return CustomUser.objects.create_user(**validated_data)
-
-    def validate(self, attrs):
-        if attrs['password'] != attrs['re_password']:
-            raise ValidationError({'re_password': 'passwords do not match'})
-        return attrs
 
 
 class ManagerCreateSerializer(UserCreateSerializer):
