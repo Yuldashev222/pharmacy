@@ -8,7 +8,7 @@ from api.v1.apps.debts.views import debt_from_pharmacy, debt_to_pharmacy
 from api.v1.apps.firms.views import FirmAPIViewSet, FirmIncomeAPIViewSet
 from api.v1.apps.incomes.views import PharmacyIncomeAPIViewSet, PharmacyIncomeHistoryAPIView
 
-from .views import TransferMoneyTypeAPIViewSet, ExpenseTypeAPIViewSet, IncomeTypeAPIViewSet
+from .views import TransferMoneyTypeAPIViewSet, ExpenseTypeAPIViewSet
 
 router = DefaultRouter()
 
@@ -21,7 +21,6 @@ router.register('pharmacies/to-debts', debt_from_pharmacy.DebtFromPharmacyAPIVie
 router.register('pharmacies/debts', debt_to_pharmacy.DebtToPharmacyAPIView, basename='debt_to_pharmacy')
 
 router.register('pharmacies/incomes/histories', PharmacyIncomeHistoryAPIView, basename='pharmacy_income_history')
-router.register('pharmacies/incomes/types', IncomeTypeAPIViewSet, basename='income_types')
 router.register('pharmacies/incomes', PharmacyIncomeAPIViewSet, basename='pharmacy_income')
 
 # router.register('pharmacies/expenses/histories', ExpenseHistoryAPIView, basename='pharmacy_expense_history')

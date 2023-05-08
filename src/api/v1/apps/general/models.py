@@ -16,8 +16,7 @@ class TransferMoneyType(models.Model):
         unique_together = ['name', 'company']
 
 
-class IncomeExpenseType(models.Model):
-    is_expense_type = models.BooleanField(default=True)
+class ExpenseType(models.Model):
     name = models.CharField(max_length=300)
     desc = models.CharField(max_length=600, blank=True)
     company = models.ForeignKey(Company, on_delete=models.PROTECT)
@@ -26,7 +25,7 @@ class IncomeExpenseType(models.Model):
         return self.name
 
     class Meta:
-        unique_together = ['name', 'company', 'is_expense_type']
+        unique_together = ['name', 'company']
 
     def save(self, *args, **kwargs):
         self.desc = ' '.join(self.desc.split())

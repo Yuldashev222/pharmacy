@@ -26,6 +26,10 @@ class PharmacyExpenseSerializer(serializers.ModelSerializer):
     to_pharmacy_detail = serializers.HyperlinkedRelatedField(source='to_pharmacy',
                                                              view_name='pharmacy-detail', read_only=True)
 
+    transfer_type_name = serializers.StringRelatedField(source='transfer_type', read_only=True)
+    transfer_type_detail = serializers.HyperlinkedRelatedField(source='transfer_type',
+                                                               view_name='transfer_type-detail', read_only=True)
+    # expense_type = serializers.StringRelatedField(source='income_expense_type', read_only=True)
     report_date = serializers.StringRelatedField(source='report', read_only=True)
 
     # report_detail = serializers.HyperlinkedRelatedField(source='report',

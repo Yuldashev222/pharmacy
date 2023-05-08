@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from .models import TransferMoneyType, IncomeExpenseType
+from .models import TransferMoneyType, ExpenseType
 
 
 class DirectorTransferMoneyTypeSerializer(serializers.ModelSerializer):
@@ -20,9 +20,9 @@ class EmployeeTransferMoneyTypeSerializer(DirectorTransferMoneyTypeSerializer):
         exclude = ('company',)
 
 
-class DirectorIncomeExpenseTypeSerializer(serializers.ModelSerializer):
+class DirectorExpenseTypeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = IncomeExpenseType
+        model = ExpenseType
         exclude = ('is_expense_type',)
 
     def validate_company(self, obj):
@@ -31,6 +31,6 @@ class DirectorIncomeExpenseTypeSerializer(serializers.ModelSerializer):
         return obj
 
 
-class EmployeeIncomeExpenseTypeSerializer(DirectorIncomeExpenseTypeSerializer):
-    class Meta(DirectorIncomeExpenseTypeSerializer.Meta):
+class EmployeeExpenseTypeSerializer(DirectorExpenseTypeSerializer):
+    class Meta(DirectorExpenseTypeSerializer.Meta):
         exclude = ('company', 'is_expense_type')

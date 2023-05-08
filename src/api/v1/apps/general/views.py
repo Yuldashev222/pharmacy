@@ -1,15 +1,14 @@
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 
-from api.v1.apps.accounts.enums import UserRole
 from api.v1.apps.accounts.permissions import IsDirector, IsManager
 
-from .models import TransferMoneyType, IncomeExpenseType
+from .models import TransferMoneyType, ExpenseType
 from .serializers import (
     DirectorTransferMoneyTypeSerializer,
     EmployeeTransferMoneyTypeSerializer,
-    DirectorIncomeExpenseTypeSerializer,
-    EmployeeIncomeExpenseTypeSerializer
+    DirectorExpenseTypeSerializer,
+    EmployeeExpenseTypeSerializer
 )
 
 
@@ -41,11 +40,18 @@ class TransferMoneyTypeAPIViewSet(ModelViewSet):
         return queryset
 
 
-class IncomeExpenseTypeAPIViewSet(ModelViewSet):
+class ExpenseTypeAPIViewSet(ModelViewSet):
+    def perform_create(self, serializer):
+        user = self.request.user
+        if user.is_manager:
+            serializer.save(company_id=user.company_id)
+        else:
+            serializer.save()
+
     def get_serializer_class(self):
         if self.request.user.is_director:
-            return DirectorIncomeExpenseTypeSerializer
-        return EmployeeIncomeExpenseTypeSerializer
+            return DirectorExpenseTypeSerializer
+        return EmployeeExpenseTypeSerializer
 
     def get_permissions(self):
         permission_classes = [IsAuthenticated]
@@ -56,31 +62,7 @@ class IncomeExpenseTypeAPIViewSet(ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.is_director:
-            queryset = IncomeExpenseType.objects.filter(company__in=user.companies.all())
+            queryset = ExpenseType.objects.filter(company__in=user.companies.all())
         else:
-            queryset = IncomeExpenseType.objects.filter(company_id=user.company_id)
+            queryset = ExpenseType.objects.filter(company_id=user.company_id)
         return queryset.order_by('-id')
-
-
-class ExpenseTypeAPIViewSet(IncomeExpenseTypeAPIViewSet):
-    def get_queryset(self):
-        return super().get_queryset().filter(is_expense_type=True)
-
-    def perform_create(self, serializer):
-        user = self.request.user
-        if user.is_manager:
-            serializer.save(company_id=user.company_id, is_expense_type=True)
-        else:
-            serializer.save(is_expense_type=True)
-
-
-class IncomeTypeAPIViewSet(IncomeExpenseTypeAPIViewSet):
-    def get_queryset(self):
-        return super().get_queryset().filter(is_expense_type=False)
-
-    def perform_create(self, serializer):
-        user = self.request.user
-        if user.is_manager:
-            serializer.save(company_id=user.company_id, is_expense_type=False)
-        else:
-            serializer.save(is_expense_type=False)

@@ -22,6 +22,12 @@ class PharmacyIncomeSerializer(serializers.ModelSerializer):
     to_pharmacy_name = serializers.StringRelatedField(source='to_pharmacy', read_only=True)
     to_pharmacy_detail = serializers.HyperlinkedRelatedField(source='to_pharmacy',
                                                              view_name='pharmacy-detail', read_only=True)
+    to_user_name = serializers.StringRelatedField(source='to_user', read_only=True)
+    to_user_detail = serializers.HyperlinkedRelatedField(source='to_user', view_name='user-detail', read_only=True)
+
+    transfer_type_name = serializers.StringRelatedField(source='transfer_type', read_only=True)
+    transfer_type_detail = serializers.HyperlinkedRelatedField(source='transfer_type',
+                                                               view_name='transfer_type-detail', read_only=True)
 
     class Meta:
         model = PharmacyIncome
