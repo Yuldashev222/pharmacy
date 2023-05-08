@@ -1,6 +1,6 @@
 from datetime import date
-from django.core.validators import MaxValueValidator
 from rest_framework import serializers
+from django.core.validators import MaxValueValidator
 from rest_framework.exceptions import ValidationError
 
 from api.v1.apps.reports.models import Report
@@ -22,6 +22,13 @@ class DebtRepayToPharmacySerializer(serializers.ModelSerializer):
     from_debt_detail = serializers.HyperlinkedRelatedField(source='from_debt',
                                                            view_name='debt_to_pharmacy-detail', read_only=True)
 
+    transfer_type_name = serializers.StringRelatedField(source='transfer_type', read_only=True)
+    transfer_type_detail = serializers.HyperlinkedRelatedField(source='transfer_type',
+                                                               view_name='transfer_type-detail', read_only=True)
+
+    expense_type_name = serializers.StringRelatedField(source='expense_type', read_only=True)
+    expense_type_detail = serializers.HyperlinkedRelatedField(source='expense_type',
+                                                              view_name='expense_type-detail', read_only=True)
 
 class DirectorManagerDebtRepayToPharmacySerializer(DebtRepayToPharmacySerializer):
     r_date = serializers.DateField(write_only=True, required=False, validators=[MaxValueValidator(date.today())])
@@ -34,21 +41,18 @@ class DirectorManagerDebtRepayToPharmacySerializer(DebtRepayToPharmacySerializer
         }
 
     def create(self, validated_data):
-        if not validated_data.get('r_date'):
+        if not validated_data.get('report'):
             raise ValidationError({'r_date': 'required'})
-        validated_data['report'] = Report.objects.get_or_create(report_date=validated_data['r_date'])[0]
-        del validated_data['r_date']
         return super().create(validated_data)
 
     def validate(self, attrs):
         user = self.context['request'].user
+        if attrs['from_debt'].from_pharmacy.director_id != user.director_id:
+            raise ValidationError({'from_pharmacy': 'not found'})
 
-        if user.is_director:
-            if attrs['from_debt'].from_pharmacy not in user.director_pharmacies_all():
-                raise ValidationError({'from_pharmacy': 'not found'})
-        else:
-            if attrs['from_debt'].from_pharmacy not in user.employee_pharmacies_all():
-                raise ValidationError({'from_pharmacy': 'not found'})
+        if attrs.get('r_date'):
+            attrs['report'] = Report.objects.get_or_create(report_date=attrs['r_date'])[0]
+            del attrs['r_date']
         return attrs
 
 

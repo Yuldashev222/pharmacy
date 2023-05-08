@@ -23,6 +23,14 @@ class DebtFromPharmacySerializer(serializers.ModelSerializer):
                                                                view_name='pharmacy-detail', read_only=True)
     repaid_debt = serializers.FloatField(read_only=True)
 
+    transfer_type_name = serializers.StringRelatedField(source='transfer_type', read_only=True)
+    transfer_type_detail = serializers.HyperlinkedRelatedField(source='transfer_type',
+                                                               view_name='transfer_type-detail', read_only=True)
+
+    expense_type_name = serializers.StringRelatedField(source='expense_type', read_only=True)
+    expense_type_detail = serializers.HyperlinkedRelatedField(source='expense_type',
+                                                              view_name='expense_type-detail', read_only=True)
+
     class Meta:
         model = DebtFromPharmacy
         exclude = ('report',)
@@ -52,10 +60,7 @@ class DirectorManagerDebtFromPharmacySerializer(DebtFromPharmacySerializer):
     def validate(self, attrs):
         user = self.context['request'].user
 
-        if user.is_director:
-            if attrs['from_pharmacy'] not in user.director_pharmacies_all():
-                ValidationError({'from_pharmacy': 'not found'})
-        elif attrs['from_pharmacy'] not in user.employee_pharmacies_all():
+        if attrs['from_pharmacy'].director_id != user.director_id:
             ValidationError({'from_pharmacy': 'not found'})
         if attrs.get('r_date'):
             attrs['report'] = Report.objects.get_or_create(report_date=attrs['r_date'])[0]

@@ -1,5 +1,6 @@
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ReadOnlyModelViewSet
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.generics import CreateAPIView, RetrieveAPIView, UpdateAPIView, RetrieveUpdateDestroyAPIView
 
 from . import serializers as user_serializers
@@ -18,11 +19,11 @@ class DirectorCreateAPIView(CreateAPIView):
 
 
 class ManagerCreateAPIView(CreateAPIView):
-    serializer_class = user_serializers.ManagerCreateSerializer
+    serializer_class = user_serializers.UserCreateSerializer
     permission_classes = [IsAuthenticated, IsDirector]
 
     def perform_create(self, serializer):
-        serializer.save(role=UserRole.m.name)
+        serializer.save(role=UserRole.m.name, director_id=self.request.user.director_id)
 
 
 class WorkerCreateAPIView(CreateAPIView):
@@ -30,21 +31,21 @@ class WorkerCreateAPIView(CreateAPIView):
     permission_classes = [IsAuthenticated, (IsDirector | IsManager)]
 
     def perform_create(self, serializer):
-        serializer.save(role=UserRole.w.name)
+        serializer.save(role=UserRole.w.name, director_id=self.request.user.director_id)
 
 
 class UserReadOnlyAPIView(ReadOnlyModelViewSet):
     serializer_class = user_serializers.UserReadOnlySerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['role', 'shift', 'pharmacy', 'director']
 
     def get_queryset(self):
         user = self.request.user
         if user.is_project_owner:
             queryset = CustomUser.objects.filter(role=UserRole.d.name)
-        elif user.is_director:
-            queryset = CustomUser.objects.filter(company__in=user.companies.all())
         else:
-            queryset = CustomUser.objects.filter(company_id=user.company_id)
+            queryset = CustomUser.objects.filter(director_id=user.director_id)
         return queryset.order_by('-date_joined')
 
 
@@ -61,7 +62,7 @@ class DirectorUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated, IsProjectOwner]
 
     def get_queryset(self):
-        queryset = Director.objects.all()
+        queryset = Director.objects.all().order_by('-date_joined')
         return queryset
 
 
@@ -70,8 +71,7 @@ class ManagerUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated, IsDirector]
 
     def get_queryset(self):
-        queryset = Manager.objects.filter(company__in=self.request.user.companies.all())
-        return queryset
+        return Manager.objects.filter(director_id=self.request.user.director_id).order_by('-date_joined')
 
 
 class WorkerUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
@@ -80,13 +80,9 @@ class WorkerUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_director:
-            queryset = Worker.objects.filter(company__in=user.companies.all())
-        else:
-            queryset = Worker.objects.filter(company_id=user.company_id)
-        return queryset
+        return Worker.objects.filter(director_id=user.director_id).order_by('-date_joined')
 
-# company_id 18
+# director_id 18
 # director +998974068633   18
 # manager +998974068000   22
 # worker +998974068681   22

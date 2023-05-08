@@ -1,3 +1,5 @@
+from datetime import date
+
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 
@@ -18,16 +20,16 @@ class DebtToPharmacyAPIView(ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.is_worker:
-            queryset = DebtToPharmacy.objects.filter(to_pharmacy_id=user.pharmacy_id)
-        elif user.is_manager:
-            queryset = DebtToPharmacy.objects.filter(to_pharmacy__company_id=user.company_id)
+            queryset = DebtToPharmacy.objects.filter(
+                to_pharmacy_id=user.pharmacy_id,
+                report__report_date=date.today(),
+                shift=user.shift)
         else:
-            queryset = DebtToPharmacy.objects.filter(to_pharmacy__company__in=user.companies.all())
+            queryset = DebtToPharmacy.objects.filter(to_pharmacy__director_id=user.director_id)
         return queryset.order_by('-created_at')
 
 
 class DebtRepayFromPharmacyAPIView(ModelViewSet):
-    queryset = DebtRepayFromPharmacy.objects.all()
     permission_classes = [IsAuthenticated, NotProjectOwner]
 
     def get_serializer_class(self):
@@ -38,9 +40,11 @@ class DebtRepayFromPharmacyAPIView(ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.is_worker:
-            queryset = DebtRepayFromPharmacy.objects.filter(to_debt__to_pharmacy_id=user.pharmacy_id)
-        elif user.is_manager:
-            queryset = DebtRepayFromPharmacy.objects.filter(to_debt__to_pharmacy__company_id=user.company_id)
+            queryset = DebtRepayFromPharmacy.objects.filter(
+                to_debt__to_pharmacy_id=user.pharmacy_id,
+                report__report_date=date.today(),
+                shift=user.shift
+            )
         else:
-            queryset = DebtRepayFromPharmacy.objects.filter(to_debt__to_pharmacy__company__in=user.companies.all())
-        return queryset
+            queryset = DebtRepayFromPharmacy.objects.filter(to_debt__to_pharmacy__director_id=user.director_id)
+        return queryset.order_by('-created_at')

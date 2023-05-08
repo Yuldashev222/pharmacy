@@ -29,6 +29,9 @@ class PharmacyIncomeSerializer(serializers.ModelSerializer):
     transfer_type_detail = serializers.HyperlinkedRelatedField(source='transfer_type',
                                                                view_name='transfer_type-detail', read_only=True)
 
+    expense_type_name = serializers.StringRelatedField(source='expense_type', read_only=True)
+    expense_type_detail = serializers.HyperlinkedRelatedField(source='expense_type',
+                                                              view_name='expense_type-detail', read_only=True)
     class Meta:
         model = PharmacyIncome
         exclude = ('report',)
@@ -53,50 +56,18 @@ class PharmacyIncomeSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         user = self.context['request'].user
+        to_user = attrs.get('to_user')
 
-        transfer_type = attrs.get('transfer_type')
-        to_user = attrs['to_user']
-        if transfer_type:
-            if user.is_director:
-                if transfer_type not in TransferMoneyType.objects.filter(company__in=user.companies.all()):
-                    raise ValidationError({'transfer_type': 'not found'})
-            elif transfer_type not in TransferMoneyType.objects.filter(company_id=user.company_id):
-                raise ValidationError({'transfer_type': 'not found'})
-
-        valid_to_user = True
-        if to_user:
-            if user.is_director:
-                if to_user.is_director:
-                    if to_user.id != user.id:
-                        valid_to_user = False
-                elif to_user.company not in user.companies.all():
-                    valid_to_user = False
-            else:
-                if to_user.is_director:
-                    if user.company not in to_user.companies.all():
-                        valid_to_user = False
-                elif to_user.company_id != user.company_id:
-                    valid_to_user = False
-
-        if not valid_to_user:
+        if to_user and to_user.director_id != user.director_id:
             raise ValidationError({'to_user': 'not found'})
+
         return attrs
 
 
 class WorkerPharmacyIncomeSerializer(PharmacyIncomeSerializer):
-    class Meta(PharmacyIncomeSerializer.Meta):
+    class Meta:
+        model = PharmacyIncome
         exclude = ('report', 'to_pharmacy')
-        read_only_fields = ('shift',)
-        extra_kwargs = {}
-
-    def validate(self, attrs):
-        user = self.context['request'].user
-        attrs['report'], attrs['shift'], attrs['to_pharmacy'] = (
-            Report.objects.get_or_create(report_date=date.today())[0],
-            user.shift,
-            user.pharmacy
-        )
-        return super().validate(attrs)
 
 
 class DirectorManagerPharmacyIncomeSerializer(PharmacyIncomeSerializer):
@@ -108,10 +79,11 @@ class DirectorManagerPharmacyIncomeSerializer(PharmacyIncomeSerializer):
         return super().create(validated_data)
 
     def validate(self, attrs):
+        attrs = super().validate(attrs)
         if attrs.get('r_date'):
             attrs['report'] = Report.objects.get_or_create(report_date=attrs['r_date'])[0]
             del attrs['r_date']
-        return super().validate(attrs)
+        return attrs
 
 
 class PharmacyIncomeHistorySerializer(serializers.ModelSerializer):

@@ -1,7 +1,8 @@
-from django.core.validators import MinValueValidator
 from rest_framework import serializers
-from django.contrib.auth.password_validation import validate_password
+from django.core.validators import MinValueValidator
 from rest_framework.exceptions import ValidationError
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth.password_validation import validate_password
 
 from .models import CustomUser
 
@@ -27,18 +28,9 @@ class UserCreateSerializer(serializers.ModelSerializer):
             }
         }
 
-
-class ManagerCreateSerializer(UserCreateSerializer):
-    class Meta(UserCreateSerializer.Meta):
-        fields = UserCreateSerializer.Meta.fields + ['company']
-        extra_kwargs = UserCreateSerializer.Meta.extra_kwargs.copy()
-        extra_kwargs['company'] = {'required': True, 'allow_null': False}
-
-    def validate(self, attrs):
-        user = self.context['request'].user
-        if attrs['company'] not in user.companies.all():
-            raise ValidationError({'company': 'not found'})
-        return super().validate(attrs)
+    def create(self, validated_data):
+        validated_data['password'] = make_password(validated_data['password'])
+        return super().create(validated_data)
 
 
 class WorkerCreateSerializer(UserCreateSerializer):
@@ -48,27 +40,24 @@ class WorkerCreateSerializer(UserCreateSerializer):
         extra_kwargs['pharmacy'] = {'required': True, 'allow_null': False}
         extra_kwargs['shift'] = {'required': True, 'validators': [MinValueValidator(1)]}
 
-    def validate(self, attrs):
+    def validate_pharmacy(self, obj):
         user = self.context['request'].user
-        if user.is_director:
-            if attrs['pharmacy'] not in user.director_pharmacies_all():
-                raise ValidationError({'pharmacy': 'not found'})
-        elif attrs['pharmacy'] not in user.employee_pharmacies_all():
-            raise ValidationError({'pharmacy': 'not found'})
-        return super().validate(attrs)
+        if obj.director_id != user.director_id:
+            raise ValidationError('not found')
+        return obj
 
 
 class UserReadOnlySerializer(serializers.ModelSerializer):
     creator = serializers.StringRelatedField(read_only=True)
-    company = serializers.StringRelatedField(read_only=True)
+    director = serializers.StringRelatedField(read_only=True)
     pharmacy = serializers.StringRelatedField(read_only=True)
     pharmacy_detail = serializers.HyperlinkedRelatedField(source='pharmacy',
                                                           view_name='pharmacy-detail',
                                                           read_only=True)
     role = serializers.CharField(source='get_role_display', read_only=True)
-    company_detail = serializers.HyperlinkedRelatedField(source='company',
-                                                         view_name='company-detail',
-                                                         read_only=True)
+    director_detail = serializers.HyperlinkedRelatedField(source='director',
+                                                          view_name='user-detail',
+                                                          read_only=True)
     detail = serializers.HyperlinkedRelatedField(source='id',
                                                  view_name='user-detail',
                                                  read_only=True)
@@ -80,8 +69,8 @@ class UserReadOnlySerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = [
             'id', 'detail', 'phone_number', 'first_name', 'last_name', 'role', 'shift',
-            'creator', 'creator_detail', 'pharmacy', 'pharmacy_detail', 'company',
-            'company_detail', 'wage', 'bio', 'photo', 'address', 'email', 'is_active',
+            'creator', 'creator_detail', 'pharmacy', 'pharmacy_detail', 'director',
+            'director_detail', 'wage', 'bio', 'photo', 'address', 'email', 'is_active',
             'date_joined',
         ]
 
@@ -91,27 +80,25 @@ class UserReadOnlySerializer(serializers.ModelSerializer):
         if user.is_worker:
             return [
                 'id', 'detail', 'phone_number', 'first_name', 'last_name', 'role', 'shift',
-                'pharmacy', 'pharmacy_detail', 'company', 'company_detail', 'bio', 'photo',
+                'pharmacy', 'pharmacy_detail', 'director', 'director_detail', 'bio', 'photo',
                 'address', 'email', 'date_joined',
             ]
         return f
 
 
 class RetrieveUpdateDestroySerializer(serializers.ModelSerializer):
-    # company = serializers.StringRelatedField()
-    # pharmacy = serializers.StringRelatedField()
     pharmacy_detail = serializers.HyperlinkedRelatedField(source='pharmacy',
                                                           view_name='pharmacy-detail',
                                                           read_only=True)
-    company_detail = serializers.HyperlinkedRelatedField(source='company',
-                                                         view_name='company-detail',
-                                                         read_only=True)
+    director_detail = serializers.HyperlinkedRelatedField(source='director',
+                                                          view_name='user-detail',
+                                                          read_only=True)
 
     class Meta:
         model = CustomUser
         fields = [
             'id', 'phone_number', 'role', 'shift', 'pharmacy',
-            'pharmacy_detail', 'company', 'company_detail', 'wage', 'is_active',
+            'pharmacy_detail', 'director', 'director_detail', 'wage', 'is_active',
         ]
 
     def update(self, instance, validated_data):
@@ -119,7 +106,7 @@ class RetrieveUpdateDestroySerializer(serializers.ModelSerializer):
         if user.is_project_owner:
             validated_data = {
                 'is_active': validated_data.get('is_active', instance.is_active),
-                'phone_number': validated_data.get('phone_number', instance.is_active)
+                'phone_number': validated_data.get('phone_number', instance.phone_number)
             }
         return super().update(instance, validated_data)
 
@@ -153,12 +140,12 @@ class WorkerUpdateDestroySerializer(DirectorUpdateDestroySerializer):
 
 
 class OwnerRetrieveUpdateSerializer(serializers.ModelSerializer):
-    company = serializers.StringRelatedField(read_only=True)
+    director = serializers.StringRelatedField(read_only=True)
     pharmacy = serializers.StringRelatedField(read_only=True)
     role = serializers.CharField(source='get_role_display', read_only=True)
-    company_detail = serializers.HyperlinkedRelatedField(source='company',
-                                                         view_name='company-detail',
-                                                         read_only=True)
+    director_detail = serializers.HyperlinkedRelatedField(source='director',
+                                                          view_name='user-detail',
+                                                          read_only=True)
     pharmacy_detail = serializers.HyperlinkedRelatedField(source='pharmacy',
                                                           view_name='pharmacy-detail',
                                                           read_only=True)
@@ -167,7 +154,7 @@ class OwnerRetrieveUpdateSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = [
             'phone_number', 'first_name', 'last_name', 'role', 'shift',
-            'pharmacy', 'pharmacy_detail', 'company', 'company_detail', 'wage', 'bio', 'photo',
+            'pharmacy', 'pharmacy_detail', 'director', 'director_detail', 'wage', 'bio', 'photo',
             'address', 'email', 'is_active', 'date_joined',
         ]
         read_only_fields = ['date_joined', 'is_active', 'phone_number', 'wage', 'shift']

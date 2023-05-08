@@ -1,6 +1,5 @@
 from django.db import models
 
-from api.v1.apps.companies.models import Company
 from api.v1.apps.general.services import text_normalize
 
 from .services import pharmacy_logo_upload_location
@@ -9,7 +8,7 @@ from .services import pharmacy_logo_upload_location
 class Pharmacy(models.Model):
     name = models.CharField(max_length=500)
     created_at = models.DateTimeField(auto_now_add=True)
-    company = models.ForeignKey(Company, related_name='pharmacies', on_delete=models.PROTECT)
+    director = models.ForeignKey('accounts.CustomUser', related_name='pharmacies', on_delete=models.PROTECT)
 
     logo = models.ImageField(upload_to=pharmacy_logo_upload_location, blank=True, null=True)
     address = models.CharField(max_length=500, blank=True)

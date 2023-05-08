@@ -2,7 +2,6 @@ from datetime import date
 from django.db import models
 from django.core.validators import MinValueValidator
 
-from api.v1.apps.companies.models import Company
 from api.v1.apps.pharmacies.models import Pharmacy
 from api.v1.apps.debts.models import DebtToPharmacy
 from api.v1.apps.general.services import text_normalize
@@ -17,7 +16,8 @@ class Firm(models.Model):
     # total_amount_purchased = models.PositiveIntegerField(default=0)
     # total_amount_given = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
-    company = models.ForeignKey(Company, on_delete=models.PROTECT)
+    director = models.ForeignKey('accounts.CustomUser',
+                                 related_name='firms', on_delete=models.PROTECT)
     creator = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True)
 
     phone_number1 = models.CharField(max_length=13, validators=[uzb_phone_number_validation], blank=True)
@@ -49,22 +49,21 @@ class FirmIncome(AbstractIncomeExpense):
     def __str__(self):
         return str(self.from_firm)
 
-
-class FirmExpense(AbstractIncomeExpense):
-    to_firm = models.ForeignKey(FirmIncome, on_delete=models.PROTECT)
-
-    # select
-    from_pharmacy = models.ForeignKey(Pharmacy, on_delete=models.PROTECT, blank=True, null=True)
-    from_debt = models.ForeignKey(DebtToPharmacy, on_delete=models.PROTECT, blank=True, null=True)
-    from_user = models.ForeignKey('accounts.CustomUser', on_delete=models.PROTECT,
-                                  related_name='firm_expenses', blank=True, null=True)
-    # --------
-
-    is_verified = models.BooleanField(default=False)
-    verified_code = models.PositiveIntegerField()
-    verified_phone_number = models.CharField(max_length=13, validators=[uzb_phone_number_validation])
-    verified_firm_worker_name = models.CharField(max_length=150, blank=True)
-
-    def save(self, *args, **kwargs):
-        self.verified_firm_worker_name = text_normalize(self.verified_firm_worker_name)
-        super().save(*args, **kwargs)
+# class FirmExpense(AbstractIncomeExpense):
+#     to_firm = models.ForeignKey(FirmIncome, on_delete=models.PROTECT)
+#
+#     # select
+#     from_pharmacy = models.ForeignKey(Pharmacy, on_delete=models.PROTECT, blank=True, null=True)
+#     from_debt = models.ForeignKey(DebtToPharmacy, on_delete=models.PROTECT, blank=True, null=True)
+#     from_user = models.ForeignKey('accounts.CustomUser', on_delete=models.PROTECT,
+#                                   related_name='firm_expenses', blank=True, null=True)
+#     # --------
+#
+#     is_verified = models.BooleanField(default=False)
+#     verified_code = models.PositiveIntegerField()
+#     verified_phone_number = models.CharField(max_length=13, validators=[uzb_phone_number_validation])
+#     verified_firm_worker_name = models.CharField(max_length=150, blank=True)
+#
+#     def save(self, *args, **kwargs):
+#         self.verified_firm_worker_name = text_normalize(self.verified_firm_worker_name)
+#         super().save(*args, **kwargs)

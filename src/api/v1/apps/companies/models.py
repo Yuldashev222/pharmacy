@@ -9,7 +9,7 @@ from .services import company_logo_upload_location
 class Company(models.Model):
     name = models.CharField(max_length=500)
     created_at = models.DateTimeField(auto_now_add=True)
-    director = models.ForeignKey('accounts.CustomUser', related_name='companies', on_delete=models.PROTECT)
+    director = models.OneToOneField('accounts.CustomUser', related_name='companies', on_delete=models.CASCADE)
 
     logo = models.ImageField(upload_to=company_logo_upload_location, blank=True, null=True)
     address = models.CharField(max_length=500, blank=True)

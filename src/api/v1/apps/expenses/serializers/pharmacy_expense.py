@@ -29,6 +29,10 @@ class PharmacyExpenseSerializer(serializers.ModelSerializer):
     transfer_type_name = serializers.StringRelatedField(source='transfer_type', read_only=True)
     transfer_type_detail = serializers.HyperlinkedRelatedField(source='transfer_type',
                                                                view_name='transfer_type-detail', read_only=True)
+
+    expense_type_name = serializers.StringRelatedField(source='expense_type', read_only=True)
+    expense_type_detail = serializers.HyperlinkedRelatedField(source='expense_type',
+                                                              view_name='expense_type-detail', read_only=True)
     # expense_type = serializers.StringRelatedField(source='income_expense_type', read_only=True)
     report_date = serializers.StringRelatedField(source='report', read_only=True)
 
@@ -46,12 +50,12 @@ class WorkerPharmacyExpenseSerializer(PharmacyExpenseSerializer):
         user = self.context['request'].user
         to_user = attrs.get('to_user')
 
-        if to_user:
-            if to_user.is_director:
-                if user.company not in to_user.companies.all():
-                    raise ValidationError({'to_user': 'not found'})
-            elif to_user.company_id != user.company_id:
-                raise ValidationError({'to_user': 'not found'})
+        if to_user and to_user.company_id != user.company_id:
+            raise ValidationError({'to_user': 'not found'})
+
+        attrs['shift'] = user.shift
+        attrs['report'] = Report.objects.get_or_create(report_date=date.today())[0]
+        attrs['from_pharmacy'] = user.pharmacy
         return attrs
 
 
@@ -70,44 +74,16 @@ class DirectorManagerPharmacyExpenseSerializer(PharmacyExpenseSerializer):
     def validate(self, attrs):
         user = self.context['request'].user
         from_pharmacy = attrs['from_pharmacy']
+        to_user = attrs.get('to_user')
 
-        if from_pharmacy not in user.director_pharmacies_all():
+        if from_pharmacy.director_id != user.director_id:
             raise ValidationError({'from_pharmacy': 'not found'})
+
+        if to_user and to_user.director_id != user.director_id:
+            raise ValidationError({'to_user': 'not found'})
 
         r_date = attrs.get('r_date')
         if r_date:
             attrs['report'] = Report.objects.get_or_create(report_date=date.today())[0]
             del attrs['r_date']
-        return attrs
-
-
-class DirectorPharmacyExpenseSerializer(DirectorManagerPharmacyExpenseSerializer):
-    def validate(self, attrs):
-        attrs = super().validate(attrs)
-        user = self.context['request'].user
-        to_user = attrs.get('to_user')
-
-        if to_user:
-            if to_user.is_director:
-                if user.id != to_user.id:
-                    raise ValidationError({'to_user': 'not found'})
-            elif to_user.company not in user.companies.all():
-                raise ValidationError({'to_user': 'not found'})
-
-        return attrs
-
-
-class ManagerPharmacyExpenseSerializer(DirectorManagerPharmacyExpenseSerializer):
-    def validate(self, attrs):
-        attrs = super().validate(attrs)
-        user = self.context['request'].user
-        to_user = attrs.get('to_user')
-
-        if to_user:
-            if to_user.is_director:
-                if user.id != to_user.id:
-                    raise ValidationError({'to_user': 'not found'})
-            elif to_user.company not in user.companies.all():
-                raise ValidationError({'to_user': 'not found'})
-
         return attrs

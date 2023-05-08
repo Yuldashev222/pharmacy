@@ -1,6 +1,6 @@
 from datetime import date
-from django.core.validators import MaxValueValidator
 from rest_framework import serializers
+from django.core.validators import MaxValueValidator
 from rest_framework.exceptions import ValidationError
 
 from api.v1.apps.reports.models import Report
@@ -25,15 +25,19 @@ class DebtRepayFromPharmacySerializer(serializers.ModelSerializer):
     from_user_detail = serializers.HyperlinkedRelatedField(source='from_user',
                                                            view_name='user-detail', read_only=True)
 
+    transfer_type_name = serializers.StringRelatedField(source='transfer_type', read_only=True)
+    transfer_type_detail = serializers.HyperlinkedRelatedField(source='transfer_type',
+                                                               view_name='transfer_type-detail', read_only=True)
+
+    expense_type_name = serializers.StringRelatedField(source='expense_type', read_only=True)
+    expense_type_detail = serializers.HyperlinkedRelatedField(source='expense_type',
+                                                              view_name='expense_type-detail', read_only=True)
     def validate(self, attrs):
         user = self.context['request'].user
 
         from_user = attrs.get('from_user')
         if from_user:
-            if from_user.is_director:
-                if user.company not in from_user.companies.all():
-                    raise ValidationError({'from_user': 'not found'})
-            elif user.company_id != from_user.company_id:
+            if user.director_id != from_user.director_id:
                 raise ValidationError({'from_user': 'not found'})
         return attrs
 
@@ -49,21 +53,19 @@ class DirectorManagerDebtRepayFromPharmacySerializer(DebtRepayFromPharmacySerial
         }
 
     def create(self, validated_data):
-        if not validated_data.get('r_date'):
+        if not validated_data.get('report'):
             raise ValidationError({'r_date': 'required'})
-        validated_data['report'] = Report.objects.get_or_create(report_date=validated_data['r_date'])[0]
-        del validated_data['r_date']
         return super().create(validated_data)
 
     def validate(self, attrs):
         user = self.context['request'].user
 
-        if user.is_director:
-            if attrs['to_debt'].to_pharmacy not in user.director_pharmacies_all():
-                raise ValidationError({'to_pharmacy': 'not found'})
-        else:
-            if attrs['to_debt'].to_pharmacy not in user.employee_pharmacies_all():
-                raise ValidationError({'to_pharmacy': 'not found'})
+        if attrs['to_debt'].to_pharmacy.director_id != user.director_id:
+            raise ValidationError({'to_pharmacy': 'not found'})
+
+        if attrs.get('r_date'):
+            attrs['report'] = Report.objects.get_or_create(report_date=attrs['r_date'])[0]
+            del attrs['r_date']
         return super().validate(attrs)
 
 

@@ -24,7 +24,7 @@ router.register('pharmacies/incomes/histories', PharmacyIncomeHistoryAPIView, ba
 router.register('pharmacies/incomes', PharmacyIncomeAPIViewSet, basename='pharmacy_income')
 
 # router.register('pharmacies/expenses/histories', ExpenseHistoryAPIView, basename='pharmacy_expense_history')
-router.register('pharmacies/expenses/types', ExpenseTypeAPIViewSet, basename='expense_types')
+router.register('pharmacies/expenses/types', ExpenseTypeAPIViewSet, basename='expense_type')
 router.register('pharmacies/expenses', PharmacyExpenseAPIViewSet, basename='pharmacy_expense')
 
 router.register('pharmacies', PharmacyAPIViewSet, basename='pharmacy')

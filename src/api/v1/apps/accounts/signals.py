@@ -18,6 +18,8 @@ def create_company(instance, created, *args, **kwargs):
                 name=f'Company::{instance.first_name}-{instance.last_name}',
                 director_id=instance.id
             )
+            instance.director_id = instance.id
+            instance.save()
         elif instance.role in [UserRole.m.name, UserRole.w.name]:
             Wage.objects.create(employee_id=instance.pk)
 

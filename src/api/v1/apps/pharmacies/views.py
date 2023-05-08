@@ -9,13 +9,12 @@ from .serializers import PharmacySerializer
 class PharmacyAPIViewSet(ModelViewSet):
     serializer_class = PharmacySerializer
 
+    def perform_create(self, serializer):
+        serializer.save(director_id=self.request.user.director_id)
+
     def get_queryset(self):
         user = self.request.user
-        if user.is_director:
-            queryset = user.director_pharmacies_all()
-        else:
-            queryset = user.employee_pharmacies_all()
-        return queryset
+        return user.pharmacies_all()
 
     def get_permissions(self):
         permission_classes = [IsAuthenticated, NotProjectOwner]

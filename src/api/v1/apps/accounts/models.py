@@ -3,7 +3,6 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 from api.v1.apps.firms.models import Firm
-from api.v1.apps.companies.models import Company
 from api.v1.apps.pharmacies.models import Pharmacy
 from api.v1.apps.general.services import text_normalize
 from api.v1.apps.general.validators import uzb_phone_number_validation
@@ -26,7 +25,8 @@ class CustomUser(AbstractUser):
     shift = models.PositiveSmallIntegerField(default=0, validators=[MaxValueValidator(3)])
     creator = models.ForeignKey('self', on_delete=models.SET_NULL, null=True)
     pharmacy = models.ForeignKey(Pharmacy, on_delete=models.PROTECT, blank=True, null=True)
-    company = models.ForeignKey(Company, on_delete=models.PROTECT, blank=True, null=True)
+    director = models.ForeignKey('self', on_delete=models.CASCADE,
+                                 related_name='employees', blank=True, null=True)
     wage = models.FloatField(validators=[MinValueValidator(0)], default=0)
 
     bio = models.CharField(max_length=500, blank=True)
@@ -38,8 +38,6 @@ class CustomUser(AbstractUser):
         self.last_name = text_normalize(self.last_name)
         self.bio = text_normalize(self.bio)
         self.address = text_normalize(self.address)
-        if self.is_worker:
-            self.company_id = self.pharmacy.company_id
         super().save(*args, **kwargs)
 
     @property
@@ -58,17 +56,11 @@ class CustomUser(AbstractUser):
     def is_worker(self):
         return self.role == UserRole.w.name
 
-    def director_pharmacies_all(self):
-        return Pharmacy.objects.filter(company__in=self.companies.all())
+    def pharmacies_all(self):
+        return Pharmacy.objects.filter(director_id=self.director_id)
 
-    def employee_pharmacies_all(self):
-        return Pharmacy.objects.filter(company_id=self.company_id)
-
-    def director_firms_all(self):
-        return Firm.objects.filter(company__in=self.companies.all())
-
-    def employee_firms_all(self):
-        return Firm.objects.filter(company_id=self.company_id)
+    def firms_all(self):
+        return Firm.objects.filter(director_id=self.director_id)
 
 
 class Director(CustomUser):
