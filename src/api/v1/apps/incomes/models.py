@@ -14,6 +14,6 @@ class PharmacyIncome(AbstractIncomeExpense):
         return f'{self.to_pharmacy}: {self.price}'
 
 
-class PharmacyIncomeHistory(PharmacyIncome):
-    pharmacy_income = models.ForeignKey(PharmacyIncome, on_delete=models.CASCADE,
-                                        related_name='pharmacy_incomes_history')
+#class PharmacyIncomeHistory(PharmacyIncome):
+#    pharmacy_income = models.ForeignKey(PharmacyIncome, on_delete=models.CASCADE,
+#                                        related_name='pharmacy_incomes_history')

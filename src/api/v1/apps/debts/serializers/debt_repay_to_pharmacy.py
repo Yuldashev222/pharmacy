@@ -10,7 +10,7 @@ from ..models import DebtRepayToPharmacy
 
 class DebtRepayToPharmacySerializer(serializers.ModelSerializer):
     detail = serializers.HyperlinkedRelatedField(source='pk',
-                                                 view_name='debt_repay_from_pharmacy-detail', read_only=True)
+                                                 view_name='debt_repay_to_pharmacy-detail', read_only=True)
     creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
     creator_name = serializers.StringRelatedField(source='creator', read_only=True)
     creator_detail = serializers.HyperlinkedRelatedField(source='creator',
@@ -20,7 +20,7 @@ class DebtRepayToPharmacySerializer(serializers.ModelSerializer):
     #                                                     view_name='report-detail', read_only=True)  # last
     from_debt_name = serializers.StringRelatedField(source='from_debt', read_only=True)
     from_debt_detail = serializers.HyperlinkedRelatedField(source='from_debt',
-                                                           view_name='debt_to_pharmacy-detail', read_only=True)
+                                                           view_name='debt_from_pharmacy-detail', read_only=True)
 
     transfer_type_name = serializers.StringRelatedField(source='transfer_type', read_only=True)
     transfer_type_detail = serializers.HyperlinkedRelatedField(source='transfer_type',
@@ -36,9 +36,6 @@ class DirectorManagerDebtRepayToPharmacySerializer(DebtRepayToPharmacySerializer
     class Meta:
         model = DebtRepayToPharmacy
         exclude = ('report',)
-        extra_kwargs = {
-            'from_debt': {'write_only': True},
-        }
 
     def create(self, validated_data):
         if not validated_data.get('report'):
@@ -61,9 +58,6 @@ class WorkerDebtRepayToPharmacySerializer(DebtRepayToPharmacySerializer):
         model = DebtRepayToPharmacy
         fields = '__all__'
         read_only_fields = ('report', 'shift')
-        extra_kwargs = {
-            'from_debt': {'write_only': True},
-        }
 
     def validate(self, attrs):
         user = self.context['request'].user

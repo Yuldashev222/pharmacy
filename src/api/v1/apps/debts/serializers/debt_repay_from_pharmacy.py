@@ -76,11 +76,10 @@ class WorkerDebtRepayFromPharmacySerializer(DebtRepayFromPharmacySerializer):
         extra_kwargs = {
             'to_debt': {'write_only': True},
         }
+        read_only_fields = ('shift',)
 
     def validate(self, attrs):
         user = self.context['request'].user
         if user.pharmacy_id != attrs['to_debt'].to_pharmacy_id:
             raise ValidationError({'to_debt': ['not found']})
-        attrs['report'] = Report.objects.get_or_create(report_date=date.today())[0]
-        attrs['shift'] = user.shift
         return super().validate(attrs)

@@ -32,6 +32,9 @@ class CustomUser(AbstractUser):
     bio = models.CharField(max_length=500, blank=True)
     photo = models.ImageField(upload_to=user_photo_upload_location, blank=True, null=True)
     address = models.CharField(max_length=500, blank=True)
+  
+    def __str__(self):
+        return self.get_full_name()
 
     def save(self, *args, **kwargs):
         self.first_name = text_normalize(self.first_name)

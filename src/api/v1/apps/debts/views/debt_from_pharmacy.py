@@ -20,11 +20,7 @@ class DebtFromPharmacyAPIView(ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.is_worker:
-            queryset = DebtFromPharmacy.objects.filter(
-                from_pharmacy_id=user.pharmacy_id,
-                report__report_date=date.today(),
-                shift=user.shift
-            )
+            queryset = DebtFromPharmacy.objects.filter(from_pharmacy_id=user.pharmacy_id)
         else:
             queryset = DebtFromPharmacy.objects.filter(from_pharmacy__director_id=user.director_id)
         return queryset.order_by('-created_at')
@@ -42,11 +38,7 @@ class DebtRepayToPharmacyAPIView(ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.is_worker:
-            queryset = DebtRepayToPharmacy.objects.filter(
-                from_debt__from_pharmacy_id=user.pharmacy_id,
-                report__report_date=date.today(),
-                shift=user.shift
-            )
+            queryset = DebtRepayToPharmacy.objects.filter(from_debt__from_pharmacy_id=user.pharmacy_id)
         else:
             queryset = DebtRepayToPharmacy.objects.filter(from_debt__from_pharmacy__director_id=user.director_id)
         return queryset.order_by('-created_at')

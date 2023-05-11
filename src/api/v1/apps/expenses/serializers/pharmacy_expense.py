@@ -50,7 +50,7 @@ class WorkerPharmacyExpenseSerializer(PharmacyExpenseSerializer):
         user = self.context['request'].user
         to_user = attrs.get('to_user')
 
-        if to_user and to_user.company_id != user.company_id:
+        if to_user and to_user.director_id != user.director_id:
             raise ValidationError({'to_user': 'not found'})
 
         attrs['shift'] = user.shift

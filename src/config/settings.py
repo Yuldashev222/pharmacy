@@ -27,6 +27,7 @@ LOGIN_REDIRECT_URL = 'profile'
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -70,6 +71,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'drf_yasg',
     'django_filters',
+    'corsheaders',
 
     # apps
     'api.v1.apps.general.apps.GeneralConfig',
@@ -190,3 +192,5 @@ SIMPLE_JWT = {
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""
 SIMPLE JWT CONFIGURATIONS
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+CORS_ORIGIN_ALLOW_ALL = True

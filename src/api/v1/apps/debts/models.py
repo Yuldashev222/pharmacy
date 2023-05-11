@@ -2,6 +2,7 @@ from django.db import models
 
 from api.v1.apps.pharmacies.models import Pharmacy
 from api.v1.apps.general.models import AbstractIncomeExpense, TransferMoneyType
+from api.v1.apps.general.validators import uzb_phone_number_validation
 
 
 class DebtToPharmacy(AbstractIncomeExpense):  # aptekaga qarz berdi
@@ -30,9 +31,10 @@ class DebtFromPharmacy(AbstractIncomeExpense):  # apteka qarz berdi
     is_client = models.BooleanField(default=True)
     from_pharmacy = models.ForeignKey(Pharmacy, on_delete=models.PROTECT)
     to_who = models.CharField(max_length=500)
+    phone_number = models.CharField(max_length=13, blank=True, validators=[uzb_phone_number_validation])
 
     def __str__(self):
-        return str(self.from_pharmacy)
+        return self.to_who
 
     def repaid_debt(self):
         return self.debtrepaytopharmacy_set.aggregate(total=models.Sum('price'))['total']
