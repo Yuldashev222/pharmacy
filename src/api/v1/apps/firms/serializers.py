@@ -115,9 +115,6 @@ class FirmExpenseSerializer(serializers.ModelSerializer):
         if from_debt and from_user:
             raise ValidationError('from_debt or from_user enter one of the two !.')
 
-        if from_debt and from_debt.to_pharmacy_id != attrs['from_pharmacy'].id:
-            raise ValidationError({'from_debt': 'not found'})
-
         if from_user and from_user.director_id != user.director_id:
             raise ValidationError({'from_user': 'not found'})
         return attrs
@@ -131,6 +128,10 @@ class DirectorManagerFirmExpenseSerializer(FirmExpenseSerializer):
 
     def validate(self, attrs):
         user = self.context['request'].user
+        from_debt = attrs.get('from_debt')
+
+        if from_debt and from_debt.to_pharmacy_id != attrs['from_pharmacy'].id:
+            raise ValidationError({'from_debt': 'not found'})
 
         if attrs['from_pharmacy'].director_id != user.director_id:
             raise ValidationError({'from_pharmacy': 'not found'})
@@ -142,6 +143,16 @@ class WorkerFirmExpenseSerializer(FirmExpenseSerializer):
         model = FirmExpense
         exclude = ('verified_code', 'report')
         read_only_fields = ('is_verified', 'from_pharmacy', 'shift')
+
+    def validate(self, attrs):
+        user = self.context['request'].user
+
+        from_debt = attrs.get('from_debt')
+
+        if from_debt and from_debt.to_pharmacy_id != user.pharmacy_id:
+            raise ValidationError({'from_debt': 'not found'})
+
+        return attrs
 
 
 class FirmExpenseVerifySerializer(serializers.Serializer):
