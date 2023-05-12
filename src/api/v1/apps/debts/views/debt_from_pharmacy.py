@@ -1,7 +1,6 @@
-from datetime import date
-
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
+from django_filters.rest_framework import DjangoFilterBackend
 
 from api.v1.apps.accounts.permissions import NotProjectOwner
 
@@ -11,6 +10,8 @@ from ..serializers import debt_from_pharmacy, debt_repay_to_pharmacy
 
 class DebtFromPharmacyAPIView(ModelViewSet):
     permission_classes = [IsAuthenticated, NotProjectOwner]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['is_paid']
 
     def get_serializer_class(self):
         if self.request.user.is_worker:

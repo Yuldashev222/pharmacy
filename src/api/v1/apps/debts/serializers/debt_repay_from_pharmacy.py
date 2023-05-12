@@ -32,6 +32,7 @@ class DebtRepayFromPharmacySerializer(serializers.ModelSerializer):
     expense_type_name = serializers.StringRelatedField(source='expense_type', read_only=True)
     expense_type_detail = serializers.HyperlinkedRelatedField(source='expense_type',
                                                               view_name='expense_type-detail', read_only=True)
+
     def validate(self, attrs):
         user = self.context['request'].user
 
@@ -48,9 +49,6 @@ class DirectorManagerDebtRepayFromPharmacySerializer(DebtRepayFromPharmacySerial
     class Meta:
         model = DebtRepayFromPharmacy
         exclude = ('report',)
-        extra_kwargs = {
-            'to_debt': {'write_only': True},
-        }
 
     def create(self, validated_data):
         if not validated_data.get('report'):
@@ -73,9 +71,6 @@ class WorkerDebtRepayFromPharmacySerializer(DebtRepayFromPharmacySerializer):
     class Meta:
         model = DebtRepayFromPharmacy
         exclude = ('report',)
-        extra_kwargs = {
-            'to_debt': {'write_only': True},
-        }
         read_only_fields = ('shift',)
 
     def validate(self, attrs):

@@ -30,6 +30,7 @@ class DebtRepayToPharmacySerializer(serializers.ModelSerializer):
     expense_type_detail = serializers.HyperlinkedRelatedField(source='expense_type',
                                                               view_name='expense_type-detail', read_only=True)
 
+
 class DirectorManagerDebtRepayToPharmacySerializer(DebtRepayToPharmacySerializer):
     r_date = serializers.DateField(write_only=True, required=False, validators=[MaxValueValidator(date.today())])
 
