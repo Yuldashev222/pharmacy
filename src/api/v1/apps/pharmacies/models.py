@@ -6,7 +6,7 @@ from .services import pharmacy_logo_upload_location
 
 
 class Pharmacy(models.Model):
-    name = models.CharField(max_length=500)
+    name = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
     director = models.ForeignKey('accounts.CustomUser', related_name='pharmacies', on_delete=models.PROTECT)
 
