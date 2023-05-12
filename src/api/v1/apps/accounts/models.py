@@ -37,8 +37,8 @@ class CustomUser(AbstractUser):
         return self.get_full_name()
 
     def save(self, *args, **kwargs):
-        self.first_name = text_normalize(self.first_name)
-        self.last_name = text_normalize(self.last_name)
+        self.first_name = text_normalize(self.first_name).title()
+        self.last_name = text_normalize(self.last_name).title()
         self.bio = text_normalize(self.bio)
         self.address = text_normalize(self.address)
         super().save(*args, **kwargs)

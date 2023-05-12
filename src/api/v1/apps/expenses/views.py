@@ -1,4 +1,5 @@
 from datetime import date
+from random import randint
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 
@@ -30,6 +31,9 @@ class UserExpenseAPIViewSet(ModelViewSet):
 
 class PharmacyExpenseAPIViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated, NotProjectOwner]
+
+    def perform_create(self, serializer):
+        serializer.save(verified_code=randint(10000, 99999))
 
     def get_serializer_class(self):
         user = self.request.user

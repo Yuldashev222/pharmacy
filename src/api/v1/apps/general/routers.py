@@ -5,8 +5,8 @@ from api.v1.apps.companies.views import CompanyAPIViewSet
 from api.v1.apps.pharmacies.views import PharmacyAPIViewSet
 from api.v1.apps.expenses.views import PharmacyExpenseAPIViewSet
 from api.v1.apps.debts.views import debt_from_pharmacy, debt_to_pharmacy
-from api.v1.apps.firms.views import FirmAPIViewSet, FirmIncomeAPIViewSet
 from api.v1.apps.incomes.views import PharmacyIncomeAPIViewSet  # , PharmacyIncomeHistoryAPIView
+from api.v1.apps.firms.views import FirmAPIViewSet, FirmIncomeAPIViewSet, FirmExpenseAPIViewSet, FirmExpenseVerify
 
 from .views import TransferMoneyTypeAPIViewSet, ExpenseTypeAPIViewSet
 
@@ -29,6 +29,8 @@ router.register('pharmacies/expenses', PharmacyExpenseAPIViewSet, basename='phar
 
 router.register('pharmacies', PharmacyAPIViewSet, basename='pharmacy')
 
+router.register('firms/expenses/verify', FirmExpenseVerify, basename='firm_expense')
+router.register('firms/expenses', FirmExpenseAPIViewSet, basename='firm_expense_verify')
 router.register('firms/incomes', FirmIncomeAPIViewSet, basename='firm_income')
 router.register('firms', FirmAPIViewSet, basename='firm')
 
