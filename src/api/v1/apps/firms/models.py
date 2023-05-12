@@ -50,21 +50,21 @@ class FirmIncome(AbstractIncomeExpense):
         return str(self.from_firm)
 
 
-class FirmExpense(AbstractIncomeExpense):
-    to_firm = models.ForeignKey(Firm, on_delete=models.PROTECT)
+#class FirmExpense(AbstractIncomeExpense):
+#    to_firm = models.ForeignKey(Firm, on_delete=models.PROTECT)
 
     # select
-    from_pharmacy = models.ForeignKey(Pharmacy, on_delete=models.PROTECT, blank=True, null=True)
-    from_debt = models.ForeignKey(DebtToPharmacy, on_delete=models.PROTECT, blank=True, null=True)
-    from_user = models.ForeignKey('accounts.CustomUser', on_delete=models.PROTECT, blank=True, null=True,
-                                  related_name='firm_expenses')
+#    from_pharmacy = models.ForeignKey(Pharmacy, on_delete=models.PROTECT, blank=True, null=True)
+#    from_debt = models.ForeignKey(DebtToPharmacy, on_delete=models.PROTECT, blank=True, null=True)
+#    from_user = models.ForeignKey('accounts.CustomUser', on_delete=models.PROTECT, blank=True, null=True,
+#                                  related_name='firm_expenses')
     # --------
 
-    is_verified = models.BooleanField(default=False)
-    verified_code = models.PositiveIntegerField()
-    verified_phone_number = models.CharField(max_length=13, validators=[uzb_phone_number_validation])
-    verified_firm_worker_name = models.CharField(max_length=150)
+ #   is_verified = models.BooleanField(default=False)
+ #   verified_code = models.PositiveIntegerField()
+ #   verified_phone_number = models.CharField(max_length=13, validators=[uzb_phone_number_validation])
+ #   verified_firm_worker_name = models.CharField(max_length=150)
 
-    def save(self, *args, **kwargs):
-        self.verified_firm_worker_name = text_normalize(self.verified_firm_worker_name)
-        super().save(*args, **kwargs)
+  #  def save(self, *args, **kwargs):
+  #      self.verified_firm_worker_name = text_normalize(self.verified_firm_worker_name)
+  #      super().save(*args, **kwargs)

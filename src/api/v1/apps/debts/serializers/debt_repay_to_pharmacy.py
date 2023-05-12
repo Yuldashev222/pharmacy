@@ -29,6 +29,7 @@ class DebtRepayToPharmacySerializer(serializers.ModelSerializer):
     expense_type_name = serializers.StringRelatedField(source='expense_type', read_only=True)
     expense_type_detail = serializers.HyperlinkedRelatedField(source='expense_type',
                                                               view_name='expense_type-detail', read_only=True)
+    is_client = serializers.BooleanField(source='from_debt.is_client', read_only=True)
 
 
 class DirectorManagerDebtRepayToPharmacySerializer(DebtRepayToPharmacySerializer):
