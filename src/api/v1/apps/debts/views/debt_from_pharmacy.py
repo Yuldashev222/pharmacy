@@ -31,6 +31,14 @@ class DebtRepayToPharmacyAPIView(ModelViewSet):
     queryset = DebtRepayToPharmacy.objects.all()
     permission_classes = [IsAuthenticated, NotProjectOwner]
 
+    def perform_destroy(self, instance):
+        to_debt = instance.to_debt
+        to_debt.remaining_debt += instance.price
+        if to_debt.remaining_debt > 0:
+            to_debt.is_paid = False
+        to_debt.save()
+        instance.delete()
+
     def get_serializer_class(self):
         if self.request.user.is_worker:
             return debt_repay_to_pharmacy.WorkerDebtRepayToPharmacySerializer

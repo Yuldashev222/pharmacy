@@ -31,6 +31,16 @@ class DebtFromPharmacySerializer(serializers.ModelSerializer):
     expense_type_detail = serializers.HyperlinkedRelatedField(source='expense_type',
                                                               view_name='expense_type-detail', read_only=True)
 
+    def update(self, instance, validated_data):
+        new_price = validated_data.get('price')
+        if new_price and instance.price != new_price:
+            instance.remaining_debt += new_price - instance.price
+            if instance.remaining_debt <= 0:
+                instance.is_paid = True
+            else:
+                instance.is_paid = False
+        return super().update(instance, validated_data)
+
     class Meta:
         model = DebtFromPharmacy
         exclude = ('report',)
