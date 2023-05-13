@@ -3,6 +3,7 @@ from random import randint
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 
+from api.v1.apps.reports.models import Report
 from api.v1.apps.accounts.permissions import NotProjectOwner, IsDirector, IsManager
 
 from .models import UserExpense, PharmacyExpense, ExpenseType
@@ -30,6 +31,13 @@ class ExpenseTypeAPIViewSet(ModelViewSet):
 
 class UserExpenseAPIViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated, NotProjectOwner]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        if user.is_worker:
+            serializer.save(shift=user.shift, report_id=Report.objects.get_or_create(report_date=date.today())[0].id)
+        else:
+            serializer.save()
 
     def get_serializer_class(self):
         user = self.request.user

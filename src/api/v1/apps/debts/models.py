@@ -16,9 +16,6 @@ class DebtToPharmacy(AbstractIncomeExpense):  # aptekaga qarz berdi
             self.remaining_debt = self.price
         super().save(*args, **kwargs)
 
-    def repaid_debt(self):
-        return self.debtrepayfrompharmacy_set.aggregate(total=models.Sum('price'))['total']
-
     def __str__(self):
         return self.from_who
 
@@ -47,9 +44,6 @@ class DebtFromPharmacy(AbstractIncomeExpense):  # apteka qarz berdi
 
     def __str__(self):
         return self.to_who
-
-    def repaid_debt(self):
-        return self.debtrepaytopharmacy_set.aggregate(total=models.Sum('price'))['total']
 
 
 class DebtRepayToPharmacy(AbstractIncomeExpense):  # aptekaga qarzini qaytardi

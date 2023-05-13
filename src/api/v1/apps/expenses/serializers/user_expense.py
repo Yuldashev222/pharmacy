@@ -4,7 +4,6 @@ from django.core.validators import MaxValueValidator
 from rest_framework.exceptions import ValidationError
 
 from api.v1.apps.reports.models import Report
-from ..enums import DefaultExpenseType
 
 from ..models import UserExpense
 
@@ -38,12 +37,18 @@ class UserExpenseSerializer(serializers.ModelSerializer):
     # report_detail = serializers.HyperlinkedRelatedField(source='report',
     #                                                     view_name='report-detail', read_only=True)
 
+    def validate(self, attrs):
+        to_user = attrs.get('to_user')
+        if to_user and attrs['from_user'].id == to_user.id:
+            raise ValidationError({'to_user': 'not found'})
+        return attrs
+
 
 class WorkerUserExpenseSerializer(UserExpenseSerializer):
     class Meta:
         model = UserExpense
-        exclude = ('report', 'to_pharmacy')
-        read_only_fields = ('shift',)
+        exclude = ('report', )
+        read_only_fields = ('shift', 'to_pharmacy')
 
     def validate(self, attrs):
         user = self.context['request'].user
@@ -58,9 +63,7 @@ class WorkerUserExpenseSerializer(UserExpenseSerializer):
                 raise ValidationError({'to_user': 'not found'})
         else:
             attrs['to_pharmacy'] = user.pharmacy
-        attrs['shift'] = user.shift,
-        attrs['report'] = Report.objects.get_or_create(report_date=date.today())[0]
-        return attrs
+        return super().validate(attrs)
 
 
 class DirectorManagerUserExpenseSerializer(UserExpenseSerializer):
@@ -101,4 +104,4 @@ class DirectorManagerUserExpenseSerializer(UserExpenseSerializer):
         if r_date:
             attrs['report'] = Report.objects.get_or_create(report_date=date.today())[0]
             del attrs['r_date']
-        return attrs
+        return super().validate(attrs)

@@ -33,6 +33,25 @@ class DebtRepayFromPharmacySerializer(serializers.ModelSerializer):
     expense_type_detail = serializers.HyperlinkedRelatedField(source='expense_type',
                                                               view_name='expense_type-detail', read_only=True)
 
+    def create(self, validated_data):
+        to_debt = validated_data['to_debt']
+        to_debt.remaining_debt -= validated_data['price']
+        if to_debt.remaining_debt <= 0:
+            to_debt.is_paid = True
+        to_debt.save()
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        price = validated_data.get('price')
+        if price and price != instance.price:
+            difference = price - instance.price
+            to_debt = instance.to_debt
+            to_debt.remaining_debt -= difference
+            if to_debt.remaining_debt <= 0:
+                to_debt.is_paid = True
+            to_debt.save()
+        return super().update(instance, validated_data)
+
     def validate(self, attrs):
         user = self.context['request'].user
 
