@@ -49,6 +49,8 @@ class DebtRepayFromPharmacySerializer(serializers.ModelSerializer):
             to_debt.remaining_debt -= difference
             if to_debt.remaining_debt <= 0:
                 to_debt.is_paid = True
+            else:
+                to_debt.is_paid = False
             to_debt.save()
         return super().update(instance, validated_data)
 

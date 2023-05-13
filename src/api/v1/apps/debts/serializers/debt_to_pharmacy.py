@@ -35,6 +35,10 @@ class DebtToPharmacySerializer(serializers.ModelSerializer):
         new_price = validated_data.get('price')
         if new_price and instance.price != new_price:
             instance.remaining_debt += new_price - instance.price
+            if instance.remaining_debt <= 0:
+                instance.is_paid = True
+            else:
+                instance.is_paid = False
         return super().update(instance, validated_data)
 
 
