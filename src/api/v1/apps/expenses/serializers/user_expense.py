@@ -47,7 +47,7 @@ class UserExpenseSerializer(serializers.ModelSerializer):
 class WorkerUserExpenseSerializer(UserExpenseSerializer):
     class Meta:
         model = UserExpense
-        exclude = ('report', )
+        exclude = ('report',)
         read_only_fields = ('shift', 'to_pharmacy')
 
     def validate(self, attrs):

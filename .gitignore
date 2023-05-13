@@ -1,6 +1,6 @@
 src/static
 
-
+**/migrations/*
 # Django #
 *.log
 *.pot

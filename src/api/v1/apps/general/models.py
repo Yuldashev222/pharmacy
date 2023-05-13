@@ -20,9 +20,11 @@ class AbstractIncomeExpense(models.Model):
     shift = models.PositiveSmallIntegerField(validators=[MaxValueValidator(3), MinValueValidator(1)])
     transfer_type = models.ForeignKey(TransferMoneyType, on_delete=models.PROTECT)
     desc = models.CharField(max_length=500, blank=True)
+    second_name = models.CharField(max_length=100, blank=True)
 
     def save(self, *args, **kwargs):
         self.desc = ' '.join(self.desc.split())
+        self.second_name = ' '.join(self.second_name.split())
         super().save(*args, **kwargs)
 
     class Meta:
