@@ -6,12 +6,12 @@ from api.v1.apps.general.services import text_normalize
 
 class Drug(models.Model):
     director = models.ForeignKey('accounts.CustomUser',
-                                 related_name='clients', on_delete=models.CASCADE)
+                                 related_name='drugs', on_delete=models.CASCADE)
     name = models.CharField(max_length=150)
     price = models.IntegerField(blank=True, null=True)
     manufacturer = models.CharField(max_length=200, blank=True)
     desc = models.CharField(max_length=500, blank=True)
-    created_at = models.DateTimeField("date created", auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
         self.name = text_normalize(self.name)
