@@ -32,9 +32,6 @@ class UserExpenseAPIViewSet(ModelViewSet):
 class PharmacyExpenseAPIViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated, NotProjectOwner]
 
-    def perform_create(self, serializer):
-        serializer.save(verified_code=randint(10000, 99999))
-
     def get_serializer_class(self):
         user = self.request.user
         if user.is_worker:
