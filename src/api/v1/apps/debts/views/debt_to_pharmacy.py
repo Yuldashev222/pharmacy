@@ -32,6 +32,14 @@ class DebtToPharmacyAPIView(ModelViewSet):
 class DebtRepayFromPharmacyAPIView(ModelViewSet):
     permission_classes = [IsAuthenticated, NotProjectOwner]
 
+    def perform_destroy(self, instance):
+        to_debt = instance.to_debt
+        to_debt.remaining_debt += instance.price
+        if to_debt.remaining_debt > 0:
+            to_debt.is_paid = False
+        to_debt.save()
+        instance.delete()
+
     def perform_create(self, serializer):
         user = self.request.user
         if user.is_worker:
