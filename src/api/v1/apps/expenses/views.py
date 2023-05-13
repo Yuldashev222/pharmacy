@@ -3,10 +3,29 @@ from random import randint
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 
-from api.v1.apps.accounts.permissions import NotProjectOwner
+from api.v1.apps.accounts.permissions import NotProjectOwner, IsDirector, IsManager
 
-from .models import UserExpense, PharmacyExpense
+from .models import UserExpense, PharmacyExpense, ExpenseType
 from .serializers import user_expense, pharmacy_expense
+
+
+class ExpenseTypeAPIViewSet(ModelViewSet):
+    serializer_class = pharmacy_expense.ExpenseTypeSerializer
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(director_id=user.director_id)
+
+    def get_permissions(self):
+        permission_classes = [IsAuthenticated]
+        if self.action not in ['list', 'retrieve']:
+            permission_classes += [(IsDirector | IsManager)]
+        return [permission() for permission in permission_classes]
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = ExpenseType.objects.filter(director_id=user.director_id)
+        return queryset.order_by('-id')
 
 
 class UserExpenseAPIViewSet(ModelViewSet):

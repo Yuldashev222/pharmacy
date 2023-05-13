@@ -5,7 +5,13 @@ from rest_framework.exceptions import ValidationError
 
 from api.v1.apps.reports.models import Report
 
-from ..models import PharmacyExpense
+from ..models import PharmacyExpense, ExpenseType
+
+
+class ExpenseTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ExpenseType
+        exclude = ('director',)
 
 
 class PharmacyExpenseSerializer(serializers.ModelSerializer):

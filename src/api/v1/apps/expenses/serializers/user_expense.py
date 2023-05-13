@@ -4,6 +4,7 @@ from django.core.validators import MaxValueValidator
 from rest_framework.exceptions import ValidationError
 
 from api.v1.apps.reports.models import Report
+from ..enums import DefaultExpenseType
 
 from ..models import UserExpense
 

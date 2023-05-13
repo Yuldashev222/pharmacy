@@ -9,6 +9,12 @@ class DebtToPharmacy(AbstractIncomeExpense):  # aptekaga qarz berdi
     from_who = models.CharField(max_length=500)
     to_pharmacy = models.ForeignKey(Pharmacy, on_delete=models.PROTECT)
     is_paid = models.BooleanField(default=False)
+    remaining_debt = models.IntegerField()
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            self.remaining_debt = self.price
+        super().save(*args, **kwargs)
 
     def repaid_debt(self):
         return self.debtrepayfrompharmacy_set.aggregate(total=models.Sum('price'))['total']
@@ -32,6 +38,12 @@ class DebtFromPharmacy(AbstractIncomeExpense):  # apteka qarz berdi
     from_pharmacy = models.ForeignKey(Pharmacy, on_delete=models.PROTECT)
     to_who = models.CharField(max_length=500)
     phone_number = models.CharField(max_length=13, blank=True, validators=[uzb_phone_number_validation])
+    remaining_debt = models.IntegerField()
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            self.remaining_debt = self.price
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.to_who

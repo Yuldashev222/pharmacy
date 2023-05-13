@@ -6,23 +6,10 @@ from api.v1.apps.reports.models import Report
 
 class TransferMoneyType(models.Model):
     name = models.CharField(max_length=150)
-    director = models.ForeignKey('accounts.CustomUser', on_delete=models.PROTECT)
+    director = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return self.name
-
-
-class ExpenseType(models.Model):
-    name = models.CharField(max_length=300)
-    desc = models.CharField(max_length=600, blank=True)
-    director = models.ForeignKey('accounts.CustomUser', on_delete=models.PROTECT, null=True)
-
-    def __str__(self):
-        return self.name
-
-    def save(self, *args, **kwargs):
-        self.desc = ' '.join(self.desc.split())
-        super().save(*args, **kwargs)
 
 
 class AbstractIncomeExpense(models.Model):

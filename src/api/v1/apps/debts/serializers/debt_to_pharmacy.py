@@ -38,7 +38,7 @@ class DirectorManagerDebtToPharmacySerializer(DebtToPharmacySerializer):
     class Meta:
         model = DebtToPharmacy
         exclude = ('report',)
-        read_only_fields = ('is_paid',)
+        read_only_fields = ('is_paid', 'remaining_debt')
 
     def create(self, validated_data):
         if not validated_data.get('report'):
@@ -61,7 +61,7 @@ class WorkerDebtToPharmacySerializer(DebtToPharmacySerializer):
     class Meta:
         model = DebtToPharmacy
         fields = '__all__'
-        read_only_fields = ('is_paid', 'report', 'to_pharmacy', 'shift')
+        read_only_fields = ('is_paid', 'report', 'to_pharmacy', 'shift', 'remaining_debt')
 
     def validate(self, attrs):
         user = self.context['request'].user
