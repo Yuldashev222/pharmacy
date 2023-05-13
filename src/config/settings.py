@@ -85,6 +85,7 @@ INSTALLED_APPS = [
     'api.v1.apps.wages.apps.WagesConfig',
     'api.v1.apps.reports.apps.ReportsConfig',
     'api.v1.apps.clients.apps.ClientsConfig',
+    'api.v1.apps.drugs.apps.DrugsConfig',
 ]
 
 DATABASES = {
