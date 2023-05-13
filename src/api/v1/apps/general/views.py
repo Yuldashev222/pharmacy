@@ -7,12 +7,10 @@ from api.v1.apps.firms.models import Firm
 from api.v1.apps.accounts.models import CustomUser
 from api.v1.apps.pharmacies.models import Pharmacy
 from api.v1.apps.accounts.permissions import IsDirector, IsManager, NotProjectOwner
+from api.v1.apps.expenses.models import ExpenseType
 
-from .models import TransferMoneyType, ExpenseType
-from .serializers import (
-    TransferMoneyTypeSerializer,
-    ExpenseTypeSerializer
-)
+from .models import TransferMoneyType
+from .serializers import TransferMoneyTypeSerializer
 
 
 @api_view(['GET'])
@@ -56,21 +54,3 @@ class TransferMoneyTypeAPIViewSet(ModelViewSet):
         queryset = TransferMoneyType.objects.filter(director_id=user.director_id)
         return queryset.order_by('-id')
 
-
-class ExpenseTypeAPIViewSet(ModelViewSet):
-    serializer_class = ExpenseTypeSerializer
-
-    def perform_create(self, serializer):
-        user = self.request.user
-        serializer.save(director_id=user.director_id)
-
-    def get_permissions(self):
-        permission_classes = [IsAuthenticated]
-        if self.action not in ['list', 'retrieve']:
-            permission_classes += [(IsDirector | IsManager)]
-        return [permission() for permission in permission_classes]
-
-    def get_queryset(self):
-        user = self.request.user
-        queryset = ExpenseType.objects.filter(director_id=user.director_id)
-        return queryset.order_by('-id')

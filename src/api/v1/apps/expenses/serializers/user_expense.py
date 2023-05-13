@@ -4,6 +4,7 @@ from django.core.validators import MaxValueValidator
 from rest_framework.exceptions import ValidationError
 
 from api.v1.apps.reports.models import Report
+from ..enums import DefaultExpenseType
 
 from ..models import UserExpense
 
@@ -41,8 +42,8 @@ class UserExpenseSerializer(serializers.ModelSerializer):
 class WorkerUserExpenseSerializer(UserExpenseSerializer):
     class Meta:
         model = UserExpense
-        exclude = ('report', 'to_pharmacy')
-        read_only_fields = ('shift',)
+        exclude = ('report',)
+        read_only_fields = ('shift', 'to_pharmacy')
 
     def validate(self, attrs):
         user = self.context['request'].user
@@ -57,8 +58,6 @@ class WorkerUserExpenseSerializer(UserExpenseSerializer):
                 raise ValidationError({'to_user': 'not found'})
         else:
             attrs['to_pharmacy'] = user.pharmacy
-        attrs['shift'] = user.shift,
-        attrs['report'] = Report.objects.get_or_create(report_date=date.today())[0]
         return attrs
 
 
