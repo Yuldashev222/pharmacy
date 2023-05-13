@@ -52,6 +52,13 @@ class DebtRepayToPharmacySerializer(serializers.ModelSerializer):
             from_debt.save()
         return super().update(instance, validated_data)
 
+    def validate(self, attrs):
+        from_debt = attrs['from_debt']
+
+        if from_debt.is_paid:
+            raise ValidationError({'from_debt': 'not found'})
+        return attrs
+
 
 class DirectorManagerDebtRepayToPharmacySerializer(DebtRepayToPharmacySerializer):
     r_date = serializers.DateField(write_only=True, required=False, validators=[MaxValueValidator(date.today())])
@@ -73,7 +80,7 @@ class DirectorManagerDebtRepayToPharmacySerializer(DebtRepayToPharmacySerializer
         if attrs.get('r_date'):
             attrs['report'] = Report.objects.get_or_create(report_date=attrs['r_date'])[0]
             del attrs['r_date']
-        return attrs
+        return super().validate(attrs)
 
 
 class WorkerDebtRepayToPharmacySerializer(DebtRepayToPharmacySerializer):
@@ -88,4 +95,4 @@ class WorkerDebtRepayToPharmacySerializer(DebtRepayToPharmacySerializer):
             raise ValidationError({'from_debt': ['not found']})
         attrs['report'] = Report.objects.get_or_create(report_date=date.today())[0]
         attrs['shift'] = user.shift
-        return attrs
+        return super().validate(attrs)

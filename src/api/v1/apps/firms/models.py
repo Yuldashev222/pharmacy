@@ -70,9 +70,10 @@ class FirmExpense(AbstractIncomeExpense):
         self.verified_firm_worker_name = text_normalize(self.verified_firm_worker_name).title()
         if not self.pk:
             FirmExpense.objects.filter(created_at__lt=timedelta(minutes=5) + date.today()).delete()
+
             self.verified_code = randint(10000, 99999)
 
-            # import requests 
+            # import requests
             #
             # url = "notify.eskiz.uz/api/message/sms/send"
             # price_string = ''  # last
