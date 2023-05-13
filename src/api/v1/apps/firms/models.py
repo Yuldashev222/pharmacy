@@ -1,7 +1,6 @@
-from datetime import date, timedelta
 from random import randint
-
 from django.db import models
+from datetime import date, timedelta
 from django.core.validators import MinValueValidator
 
 from api.v1.apps.pharmacies.models import Pharmacy
@@ -73,7 +72,7 @@ class FirmExpense(AbstractIncomeExpense):
             FirmExpense.objects.filter(created_at__lt=timedelta(minutes=5) + date.today()).delete()
             self.verified_code = randint(10000, 99999)
 
-            # import requests
+            # import requests 
             #
             # url = "notify.eskiz.uz/api/message/sms/send"
             # price_string = ''  # last
