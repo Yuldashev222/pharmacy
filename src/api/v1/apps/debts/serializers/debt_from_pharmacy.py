@@ -44,12 +44,12 @@ class DebtFromPharmacySerializer(serializers.ModelSerializer):
     class Meta:
         model = DebtFromPharmacy
         exclude = ('report',)
-        read_only_fields = ('is_paid',)
+        read_only_fields = ('is_paid', 'remaining_debt')
 
 
 class WorkerDebtFromPharmacySerializer(DebtFromPharmacySerializer):
     class Meta(DebtFromPharmacySerializer.Meta):
-        read_only_fields = ('is_paid', 'shift', 'from_pharmacy')
+        read_only_fields = ('is_paid', 'shift', 'from_pharmacy' 'remaining_debt')
 
     def validate(self, attrs):
         user = self.context['request'].user

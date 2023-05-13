@@ -13,7 +13,6 @@ class PharmacyIncome(AbstractIncomeExpense):
     def __str__(self):
         return f'{self.to_pharmacy}: {self.price}'
 
-
-#class PharmacyIncomeHistory(PharmacyIncome):
+# class PharmacyIncomeHistory(PharmacyIncome):
 #    pharmacy_income = models.ForeignKey(PharmacyIncome, on_delete=models.CASCADE,
 #                                        related_name='pharmacy_incomes_history')
