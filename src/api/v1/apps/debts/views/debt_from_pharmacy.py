@@ -32,11 +32,11 @@ class DebtRepayToPharmacyAPIView(ModelViewSet):
     permission_classes = [IsAuthenticated, NotProjectOwner]
 
     def perform_destroy(self, instance):
-        to_debt = instance.to_debt
-        to_debt.remaining_debt += instance.price
-        if to_debt.remaining_debt > 0:
-            to_debt.is_paid = False
-        to_debt.save()
+        from_debt = instance.from_debt
+        from_debt.remaining_debt += instance.price
+        if from_debt.remaining_debt > 0:
+            from_debt.is_paid = False
+        from_debt.save()
         instance.delete()
 
     def get_serializer_class(self):

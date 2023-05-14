@@ -53,9 +53,9 @@ class DebtRepayToPharmacySerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
     def validate(self, attrs):
-        from_debt = attrs['from_debt']
+        from_debt = attrs.get('from_debt')
 
-        if from_debt.is_paid:
+        if from_debt and from_debt.is_paid:
             raise ValidationError({'from_debt': 'not found'})
         return attrs
 
@@ -91,7 +91,8 @@ class WorkerDebtRepayToPharmacySerializer(DebtRepayToPharmacySerializer):
 
     def validate(self, attrs):
         user = self.context['request'].user
-        if user.pharmacy_id != attrs['from_debt'].from_pharmacy_id:
+        from_debt = attrs.get('from_debt')
+        if from_debt and user.pharmacy_id != from_debt.from_pharmacy_id:  # last
             raise ValidationError({'from_debt': ['not found']})
         attrs['report'] = Report.objects.get_or_create(report_date=date.today())[0]
         attrs['shift'] = user.shift
