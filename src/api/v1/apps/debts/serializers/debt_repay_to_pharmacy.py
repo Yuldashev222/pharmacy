@@ -86,7 +86,8 @@ class WorkerDebtRepayToPharmacySerializer(DebtRepayToPharmacySerializer):
 
     def validate(self, attrs):
         user = self.context['request'].user
-        if user.pharmacy_id != attrs['from_debt'].from_pharmacy_id:
+        from_debt = attrs.get('from_debt')
+        if from_debt and user.pharmacy_id != from_debt.from_pharmacy_id:  # last
             raise ValidationError({'from_debt': ['not found']})
         attrs['report_date'] = date.today()
         attrs['shift'] = user.shift

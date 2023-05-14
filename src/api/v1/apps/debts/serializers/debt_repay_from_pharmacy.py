@@ -94,6 +94,7 @@ class WorkerDebtRepayFromPharmacySerializer(DebtRepayFromPharmacySerializer):
 
     def validate(self, attrs):
         user = self.context['request'].user
-        if user.pharmacy_id != attrs['to_debt'].to_pharmacy_id:
+        to_debt = attrs.get('to_debt')
+        if to_debt and user.pharmacy_id != attrs['to_debt'].to_pharmacy_id:  # last
             raise ValidationError({'to_debt': ['not found']})
         return super().validate(attrs)
