@@ -1,4 +1,3 @@
-from datetime import date
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -8,7 +7,7 @@ from ..models import PharmacyExpense, ExpenseType
 class ExpenseTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ExpenseType
-        fields = '__all__'
+        exclude = ('is_user_expense',)
         read_only_fields = ('director',)
 
 
