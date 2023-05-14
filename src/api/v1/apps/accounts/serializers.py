@@ -114,7 +114,7 @@ class WorkerUpdateDestroySerializer(DirectorUpdateDestroySerializer):
     class Meta:
         model = CustomUser
         fields = [
-            'id', 'phone_number', 'is_active', 'detail', 'shift', 'password'
+            'id', 'phone_number', 'is_active', 'shift', 'password'
         ]
 
 
