@@ -40,16 +40,12 @@ class PharmacyExpenseSerializer(serializers.ModelSerializer):
     expense_type_detail = serializers.HyperlinkedRelatedField(source='expense_type',
                                                               view_name='expense_type-detail', read_only=True)
     # expense_type = serializers.StringRelatedField(source='income_expense_type', read_only=True)
-    report_date = serializers.StringRelatedField(source='report', read_only=True)
-
-    # report_detail = serializers.HyperlinkedRelatedField(source='report',
-    #                                                     view_name='report-detail', read_only=True)
 
 
 class WorkerPharmacyExpenseSerializer(PharmacyExpenseSerializer):
     class Meta:
         model = PharmacyExpense
-        exclude = ('report', 'from_pharmacy')
+        exclude = ('from_pharmacy',)
         read_only_fields = ('shift',)
 
     def validate(self, attrs):
@@ -60,21 +56,22 @@ class WorkerPharmacyExpenseSerializer(PharmacyExpenseSerializer):
             raise ValidationError({'to_user': 'not found'})
 
         attrs['shift'] = user.shift
-        attrs['report'] = Report.objects.get_or_create(report_date=date.today())[0]
+        attrs['report_date'] = date.today()
         attrs['from_pharmacy'] = user.pharmacy
         return attrs
 
 
 class DirectorManagerPharmacyExpenseSerializer(PharmacyExpenseSerializer):
-    r_date = serializers.DateField(write_only=True, required=False, validators=[MaxValueValidator(date.today())])
-
     class Meta:
         model = PharmacyExpense
-        exclude = ('report',)
+        fields = '__all__'
+        extra_kwargs = {
+            'report_date': {'required': False}
+        }
 
     def create(self, validated_data):
-        if not validated_data.get('report'):
-            raise ValidationError({'r_date': 'This field is required.'})
+        if not validated_data.get('report_date'):
+            raise ValidationError({'report_date': 'This field is required.'})
         return super().create(validated_data)
 
     def validate(self, attrs):
@@ -88,8 +85,4 @@ class DirectorManagerPharmacyExpenseSerializer(PharmacyExpenseSerializer):
         if to_user and to_user.director_id != user.director_id:
             raise ValidationError({'to_user': 'not found'})
 
-        r_date = attrs.get('r_date')
-        if r_date:
-            attrs['report'] = Report.objects.get_or_create(report_date=date.today())[0]
-            del attrs['r_date']
         return attrs

@@ -3,8 +3,6 @@ from rest_framework import serializers
 from django.core.validators import MaxValueValidator
 from rest_framework.exceptions import ValidationError
 
-from api.v1.apps.reports.models import Report
-
 from ..models import DebtRepayToPharmacy
 
 
@@ -15,9 +13,6 @@ class DebtRepayToPharmacySerializer(serializers.ModelSerializer):
     creator_name = serializers.StringRelatedField(source='creator', read_only=True)
     creator_detail = serializers.HyperlinkedRelatedField(source='creator',
                                                          view_name='user-detail', read_only=True)
-    report_date = serializers.StringRelatedField(source='report', read_only=True)
-    # report_detail = serializers.HyperlinkedRelatedField(source='report',
-    #                                                     view_name='report-detail', read_only=True)  # last
     from_debt_name = serializers.StringRelatedField(source='from_debt', read_only=True)
     from_debt_detail = serializers.HyperlinkedRelatedField(source='from_debt',
                                                            view_name='debt_from_pharmacy-detail', read_only=True)
@@ -53,9 +48,9 @@ class DebtRepayToPharmacySerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
     def validate(self, attrs):
-        from_debt = attrs['from_debt']
+        from_debt = attrs.get('from_debt')
 
-        if from_debt.is_paid:
+        if from_debt and from_debt.is_paid:
             raise ValidationError({'from_debt': 'not found'})
         return attrs
 
@@ -65,11 +60,14 @@ class DirectorManagerDebtRepayToPharmacySerializer(DebtRepayToPharmacySerializer
 
     class Meta:
         model = DebtRepayToPharmacy
-        exclude = ('report',)
+        fields = '__all__'
+        extra_kwargs = {
+            'report_date': {'required': False}
+        }
 
     def create(self, validated_data):
-        if not validated_data.get('report'):
-            raise ValidationError({'r_date': 'required'})
+        if not validated_data.get('report_date'):
+            raise ValidationError({'report_date': 'required'})
         return super().create(validated_data)
 
     def validate(self, attrs):
@@ -77,9 +75,6 @@ class DirectorManagerDebtRepayToPharmacySerializer(DebtRepayToPharmacySerializer
         if attrs['from_debt'].from_pharmacy.director_id != user.director_id:
             raise ValidationError({'from_pharmacy': 'not found'})
 
-        if attrs.get('r_date'):
-            attrs['report'] = Report.objects.get_or_create(report_date=attrs['r_date'])[0]
-            del attrs['r_date']
         return super().validate(attrs)
 
 
@@ -93,6 +88,6 @@ class WorkerDebtRepayToPharmacySerializer(DebtRepayToPharmacySerializer):
         user = self.context['request'].user
         if user.pharmacy_id != attrs['from_debt'].from_pharmacy_id:
             raise ValidationError({'from_debt': ['not found']})
-        attrs['report'] = Report.objects.get_or_create(report_date=date.today())[0]
+        attrs['report_date'] = date.today()
         attrs['shift'] = user.shift
         return super().validate(attrs)

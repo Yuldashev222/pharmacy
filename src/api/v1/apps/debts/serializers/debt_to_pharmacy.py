@@ -3,8 +3,6 @@ from rest_framework import serializers
 from django.core.validators import MaxValueValidator
 from rest_framework.exceptions import ValidationError
 
-from api.v1.apps.reports.models import Report
-
 from ..models import DebtToPharmacy
 
 
@@ -15,9 +13,6 @@ class DebtToPharmacySerializer(serializers.ModelSerializer):
     creator_name = serializers.StringRelatedField(source='creator', read_only=True)
     creator_detail = serializers.HyperlinkedRelatedField(source='creator',
                                                          view_name='user-detail', read_only=True)
-    report_date = serializers.StringRelatedField(source='report', read_only=True)
-    # report_detail = serializers.HyperlinkedRelatedField(source='report',
-    #                                                     view_name='report-detail', read_only=True)  # last
     to_pharmacy_name = serializers.StringRelatedField(source='to_pharmacy', read_only=True)
     to_pharmacy_detail = serializers.HyperlinkedRelatedField(source='to_pharmacy',
                                                              view_name='pharmacy-detail', read_only=True)
@@ -47,12 +42,12 @@ class DirectorManagerDebtToPharmacySerializer(DebtToPharmacySerializer):
 
     class Meta:
         model = DebtToPharmacy
-        exclude = ('report',)
+        fields = '__all__'
         read_only_fields = ('is_paid', 'remaining_debt')
 
     def create(self, validated_data):
-        if not validated_data.get('report'):
-            raise ValidationError({'r_date': 'required'})
+        if not validated_data.get('report_date'):
+            raise ValidationError({'report_date': 'required'})
         return super().create(validated_data)
 
     def validate(self, attrs):
@@ -60,10 +55,6 @@ class DirectorManagerDebtToPharmacySerializer(DebtToPharmacySerializer):
         if attrs['to_pharmacy'].director_id != user.director_id:
             raise ValidationError({'to_pharmacy': 'not found'})
 
-        r_date = attrs.get('r_date')
-        if r_date:
-            attrs['report'] = Report.objects.get_or_create(report_date=r_date)[0]
-            del r_date
         return attrs
 
 
@@ -75,7 +66,7 @@ class WorkerDebtToPharmacySerializer(DebtToPharmacySerializer):
 
     def validate(self, attrs):
         user = self.context['request'].user
-        attrs['report'] = Report.objects.get_or_create(report_date=date.today())[0]
+        attrs['report_date'] = date.today()
         attrs['to_pharmacy'] = user.pharmacy
         attrs['shift'] = user.shift
         return attrs

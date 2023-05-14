@@ -34,7 +34,7 @@ class UserExpenseAPIViewSet(ModelViewSet):
     def perform_create(self, serializer):
         user = self.request.user
         if user.is_worker:
-            serializer.save(shift=user.shift, report_id=Report.objects.get_or_create(report_date=date.today())[0].id)
+            serializer.save(shift=user.shift, report_date=date.today())
         else:
             serializer.save()
 
@@ -49,7 +49,7 @@ class UserExpenseAPIViewSet(ModelViewSet):
         queryset = UserExpense.objects.filter(from_user__director_id=user.director_id)
         if user.is_worker:
             queryset = queryset.filter(
-                report__report_date=date.today(),
+                report_date=date.today(),
                 shift=user.shift
             )
         return queryset.order_by('-created_at')
@@ -69,7 +69,7 @@ class PharmacyExpenseAPIViewSet(ModelViewSet):
         if user.is_worker:
             queryset = PharmacyExpense.objects.filter(
                 from_pharmacy_id=user.pharmacy_id,
-                report__report_date=date.today(),
+                report_date=date.today(),
                 shift=user.shift
             )
         else:

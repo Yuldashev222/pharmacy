@@ -11,7 +11,6 @@ from api.v1.apps.accounts.permissions import NotProjectOwner, IsDirector, IsMana
 
 from . import serializers
 from .models import FirmIncome, FirmExpense
-from ..reports.models import Report
 
 
 class FirmAPIViewSet(ModelViewSet):
@@ -60,7 +59,7 @@ class FirmExpenseAPIViewSet(CreateModelMixin, ReadOnlyModelViewSet):
     def perform_create(self, serializer):
         user = self.request.user
         data = {
-            'report_id': Report.objects.get_or_create(report_date=date.today())[0].id
+            'report_date': date.today()
         }
         if user.is_worker:
             data['shift'] = user.shift

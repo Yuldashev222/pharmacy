@@ -22,7 +22,7 @@ class PharmacyIncomeAPIViewSet(ModelViewSet):
         if user.is_worker:
             serializer.save(
                    shift=user.shift,
-                   report_id=Report.objects.get_or_create(report_date=date.today())[0].id,
+                   report_date=date.today(),
                    to_pharmacy_id=user.pharmacy_id
             )
         else:
@@ -39,7 +39,7 @@ class PharmacyIncomeAPIViewSet(ModelViewSet):
         if user.is_worker:
             queryset = PharmacyIncome.objects.filter(
                 to_pharmacy_id=user.pharmacy_id,
-                report__report_date=date.today(),
+                report_date=date.today(),
                 shift=user.shift
             )
         else:

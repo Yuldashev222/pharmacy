@@ -4,7 +4,6 @@ from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 
 from api.v1.apps.accounts.permissions import NotProjectOwner
-from api.v1.apps.reports.models import Report
 
 from ..models import DebtToPharmacy, DebtRepayFromPharmacy
 from ..serializers import debt_to_pharmacy, debt_repay_from_pharmacy
@@ -45,7 +44,7 @@ class DebtRepayFromPharmacyAPIView(ModelViewSet):
         if user.is_worker:
             serializer.save(
                 shift=user.shift,
-                report_id=Report.objects.get_or_create(report_date=date.today())[0].id
+                report_date=date.today()
             )
 
     def get_serializer_class(self):
@@ -59,7 +58,7 @@ class DebtRepayFromPharmacyAPIView(ModelViewSet):
             queryset = DebtRepayFromPharmacy.objects.filter(
                 to_debt__to_pharmacy_id=user.pharmacy_id,
                 shift=user.shift,
-                report__report_date=date.today()
+                report_date=date.today()
             )
         else:
             queryset = DebtRepayFromPharmacy.objects.filter(to_debt__to_pharmacy__director_id=user.director_id)

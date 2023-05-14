@@ -12,7 +12,11 @@ class ClientAPIViewSet(ModelViewSet):
     serializer_class = ClientSerializer
 
     def perform_create(self, serializer):
-        serializer.save(director_id=self.request.user.director_id)
+        user = self.request.user
+        if user.is_worker:
+            serializer.save(pharmacy_id=user.pharmacy_id)
+        else:
+            serializer.save()
 
     def get_permissions(self):
         permission_classes = [IsAuthenticated, NotProjectOwner]
@@ -22,4 +26,8 @@ class ClientAPIViewSet(ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        return Client.objects.filter(director_id=user.director_id).order_by('-created_at')
+        if user.is_worker:
+            queryset = Client.objects.filter(pharmacy_id=user.pharmacy_id)
+        else:
+            queryset = Client.objects.filter(pharmacy__director_id=user.director_id)
+        return queryset.order_by('-created_at')

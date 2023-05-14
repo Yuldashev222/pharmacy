@@ -67,15 +67,16 @@ class WorkerUserExpenseSerializer(UserExpenseSerializer):
 
 
 class DirectorManagerUserExpenseSerializer(UserExpenseSerializer):
-    r_date = serializers.DateField(write_only=True, required=False, validators=[MaxValueValidator(date.today())])
-
     class Meta:
         model = UserExpense
-        exclude = ('report',)
+        fields = '__all__'
+        extra_kwargs = {
+            'report_date': {'required': False}
+        }
 
     def create(self, validated_data):
-        if not validated_data.get('report'):
-            raise ValidationError({'r_date': 'This field is required.'})
+        if not validated_data.get('report_date'):
+            raise ValidationError({'report_date': 'This field is required.'})
         return super().create(validated_data)
 
     def validate(self, attrs):
@@ -83,7 +84,6 @@ class DirectorManagerUserExpenseSerializer(UserExpenseSerializer):
         from_user = attrs['from_user']
         to_user = attrs.get('to_user')
         to_pharmacy = attrs.get('to_pharmacy')
-        r_date = attrs.get('r_date')
 
         if user.director_id != from_user.director_id:
             raise ValidationError({'from_user': 'not found'})
@@ -101,7 +101,4 @@ class DirectorManagerUserExpenseSerializer(UserExpenseSerializer):
         if to_pharmacy and to_pharmacy.director_id != user.director_id:
             raise ValidationError({'to_pharmacy': 'not found'})
 
-        if r_date:
-            attrs['report'] = Report.objects.get_or_create(report_date=date.today())[0]
-            del attrs['r_date']
         return super().validate(attrs)

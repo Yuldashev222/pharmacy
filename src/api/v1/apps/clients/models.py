@@ -4,11 +4,11 @@ from django.db import models
 from api.v1.apps.accounts.models import CustomUser
 from api.v1.apps.general.services import text_normalize
 from api.v1.apps.general.validators import uzb_phone_number_validation
+from api.v1.apps.pharmacies.models import Pharmacy
 
 
 class Client(models.Model):
-    director = models.ForeignKey('accounts.CustomUser',
-                                 related_name='clients', on_delete=models.PROTECT)
+    pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE)
     phone_number1 = models.CharField(max_length=13, unique=True, validators=[uzb_phone_number_validation])
     phone_number2 = models.CharField(max_length=13, blank=True, validators=[uzb_phone_number_validation])
     first_name = models.CharField("first name", max_length=150)

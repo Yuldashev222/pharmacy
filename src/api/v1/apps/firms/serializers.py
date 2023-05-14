@@ -2,9 +2,6 @@ from datetime import date
 from rest_framework import serializers
 from django.core.validators import MaxValueValidator
 from rest_framework.exceptions import ValidationError
-from rest_framework.generics import get_object_or_404
-
-from api.v1.apps.reports.models import Report
 
 from .models import Firm, FirmIncome, FirmExpense
 
@@ -43,9 +40,6 @@ class FirmIncomeSerializer(serializers.ModelSerializer):
     from_firm_detail = serializers.HyperlinkedRelatedField(source='from_firm',
                                                            view_name='firm-detail', read_only=True)
 
-    report_date = serializers.StringRelatedField(source='report', read_only=True)
-    # report_detail = serializers.HyperlinkedRelatedField(source='report',
-    #                                                     view_name='report-detail', read_only=True)  # last
     r_date = serializers.DateField(write_only=True, required=False, validators=[MaxValueValidator(date.today())])
 
     class Meta:
@@ -55,11 +49,12 @@ class FirmIncomeSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'to_pharmacy': {'write_only': True},
             'from_firm': {'write_only': True},
+            'report_date': {'required': False},
         }
 
     def create(self, validated_data):
-        if not validated_data.get('report'):
-            raise ValidationError({'r_date': 'This field is required.'})
+        if not validated_data.get('report_date'):
+            raise ValidationError({'report_date': 'This field is required.'})
         return super().create(validated_data)
 
     def validate(self, attrs):
@@ -71,9 +66,6 @@ class FirmIncomeSerializer(serializers.ModelSerializer):
         if attrs['to_pharmacy'].director_id != user.director_id:
             raise ValidationError({'to_pharmacy': 'not found'})
 
-        if attrs.get('r_date'):
-            attrs['report'] = Report.objects.get_or_create(report_date=attrs['r_date'])[0]
-            del attrs['r_date']
         return attrs
 
 

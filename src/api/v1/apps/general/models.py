@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
@@ -14,7 +16,7 @@ class TransferMoneyType(models.Model):
 
 class AbstractIncomeExpense(models.Model):
     creator = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True)
-    report = models.ForeignKey(Report, on_delete=models.PROTECT)
+    report_date = models.DateField(validators=[MaxValueValidator(date.today())])
     created_at = models.DateTimeField(auto_now_add=True)
     price = models.PositiveIntegerField()
     shift = models.PositiveSmallIntegerField(validators=[MaxValueValidator(3), MinValueValidator(1)])
