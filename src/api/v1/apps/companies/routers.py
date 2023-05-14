@@ -3,10 +3,13 @@ from rest_framework.routers import DefaultRouter
 from api.v1.apps.clients.views import ClientAPIViewSet
 from api.v1.apps.drugs.views import DrugAPIViewSet
 from api.v1.apps.pharmacies.views import PharmacyAPIViewSet
-from api.v1.apps.expenses.views import PharmacyExpenseAPIViewSet, ExpenseTypeAPIViewSet
+from api.v1.apps.expenses.views import PharmacyExpenseAPIViewSet, PharmacyExpenseTypeAPIViewSet
 from api.v1.apps.debts.views import debt_from_pharmacy, debt_to_pharmacy
-from api.v1.apps.incomes.views import PharmacyIncomeAPIViewSet  # , PharmacyIncomeHistoryAPIView
-from api.v1.apps.firms.views import FirmAPIViewSet, FirmIncomeAPIViewSet, FirmExpenseAPIViewSet, FirmExpenseVerify
+from api.v1.apps.incomes.views import PharmacyIncomeAPIViewSet
+from api.v1.apps.firms.views import (
+    FirmAPIViewSet, FirmIncomeAPIViewSet, FirmFromPharmacyExpenseAPIViewSet,
+    FirmFromDebtExpenseAPIViewSet, FirmExpenseVerify
+)
 
 from .views import TransferMoneyTypeAPIViewSet, CompanyAPIViewSet
 
@@ -20,17 +23,17 @@ router.register('pharmacies/to-debts/repay', debt_from_pharmacy.DebtRepayToPharm
 router.register('pharmacies/to-debts', debt_from_pharmacy.DebtFromPharmacyAPIView, basename='debt_from_pharmacy')
 router.register('pharmacies/debts', debt_to_pharmacy.DebtToPharmacyAPIView, basename='debt_to_pharmacy')
 
-# router.register('pharmacies/incomes/histories', PharmacyIncomeHistoryAPIView, basename='pharmacy_income_history')
 router.register('pharmacies/incomes', PharmacyIncomeAPIViewSet, basename='pharmacy_income')
 
-# router.register('pharmacies/expenses/histories', ExpenseHistoryAPIView, basename='pharmacy_expense_history')
-router.register('pharmacies/expenses/types', ExpenseTypeAPIViewSet, basename='expense_type')
+router.register('pharmacies/expenses/types', PharmacyExpenseTypeAPIViewSet, basename='pharmacy_expense_type')
 router.register('pharmacies/expenses', PharmacyExpenseAPIViewSet, basename='pharmacy_expense')
 
 router.register('pharmacies', PharmacyAPIViewSet, basename='pharmacy')
 
-router.register('firms/expenses/verify', FirmExpenseVerify, basename='firm_expense')
-router.register('firms/expenses', FirmExpenseAPIViewSet, basename='firm_expense_verify')
+router.register('firms/expenses/verify', FirmExpenseVerify, basename='firm_expense_verify')
+router.register('firms/expenses/from-pharmacies', FirmFromPharmacyExpenseAPIViewSet,
+                basename='firm_expense_from_pharmacy')
+router.register('firms/expenses/from-debt', FirmFromDebtExpenseAPIViewSet, basename='firm_expense_from_debt')
 router.register('firms/incomes', FirmIncomeAPIViewSet, basename='firm_income')
 router.register('firms', FirmAPIViewSet, basename='firm')
 

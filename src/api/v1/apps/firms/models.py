@@ -47,26 +47,20 @@ class FirmIncome(AbstractIncomeExpense):
         return str(self.from_firm)
 
 
-class FirmExpense(AbstractIncomeExpense):
+class FirmExpense(models.Model):
     to_firm = models.ForeignKey(Firm, on_delete=models.PROTECT)
     from_pharmacy = models.ForeignKey(Pharmacy, on_delete=models.PROTECT)
-
-    # select
-    from_debt = models.ForeignKey(DebtToPharmacy, on_delete=models.PROTECT, blank=True, null=True)
-    from_user = models.ForeignKey('accounts.CustomUser', on_delete=models.PROTECT, blank=True, null=True,
-                                  related_name='firm_expenses')
-    # --------
-
     is_verified = models.BooleanField(default=False)
     verified_code = models.PositiveIntegerField()
     verified_phone_number = models.CharField(max_length=13, validators=[uzb_phone_number_validation])
     verified_firm_worker_name = models.CharField(max_length=50)
 
+    class Meta:
+        abstract = True
+
     def save(self, *args, **kwargs):
         self.verified_firm_worker_name = text_normalize(self.verified_firm_worker_name).title()
         if not self.pk:
-            FirmExpense.objects.filter(created_at__lt=timedelta(minutes=5) + date.today()).delete()
-
             self.verified_code = randint(10000, 99999)
 
             # import requests
@@ -85,4 +79,31 @@ class FirmExpense(AbstractIncomeExpense):
             # }
             # requests.request("POST", url, data=payload)
 
+        super().save(*args, **kwargs)
+
+
+class FirmFromPharmacyExpense(FirmExpense, AbstractIncomeExpense):
+    from_user = models.ForeignKey(
+        'accounts.CustomUser', on_delete=models.PROTECT,
+        blank=True, null=True, related_name='firm_expenses'
+    )
+
+    def save(self, *args, **kwargs):
+        FirmFromPharmacyExpense.objects.filter(
+            is_verified=False, created_at__lt=timedelta(minutes=5) + date.today()
+        ).delete()
+        super().save(*args, **kwargs)
+
+
+class FirmFromDebtExpense(FirmExpense, models.Model):
+    from_pharmacy = None
+    from_debt = models.ForeignKey(DebtToPharmacy, on_delete=models.PROTECT)
+
+    def save(self, *args, **kwargs):
+        expenses = FirmFromDebtExpense.objects.filter(
+            is_verified=False, from_debt__created_at__lt=timedelta(minutes=5) + date.today()
+        )
+        if expenses.exists():
+            DebtToPharmacy.objects.filter(id__in=expenses.values_list('from_debt_id', flat=True).distinct()).delete()
+            expenses.delete()
         super().save(*args, **kwargs)
