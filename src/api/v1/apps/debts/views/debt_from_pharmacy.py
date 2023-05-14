@@ -16,7 +16,7 @@ class DebtFromPharmacyAPIView(ModelViewSet):
 
     def get_permissions(self):
         permission_classes = [IsAuthenticated, NotProjectOwner]
-        if self.request.user.is_worker and self.action not in ['list', 'retrieve']:
+        if self.request.user.is_worker and self.action not in ['list', 'retrieve']:  # last
             permission_classes += [WorkerTodayObject]
         return [permission() for permission in self.permission_classes]
 

@@ -56,22 +56,11 @@ class UserReadOnlySerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = [
-            'id', 'detail', 'phone_number', 'first_name', 'last_name', 'role', 'shift',
+            'id', 'phone_number', 'first_name', 'last_name', 'role', 'shift',
             'creator', 'pharmacy', 'director',
             'wage', 'bio', 'photo', 'address', 'email', 'is_active',
             'date_joined',
         ]
-
-    def get_field_names(self, declared_fields, info):
-        user = self.context['request'].user
-        f = super().get_field_names(declared_fields, info)
-        if user.is_worker:
-            return [
-                'id', 'phone_number', 'first_name', 'last_name', 'role', 'shift',
-                'pharmacy', 'director', 'bio', 'photo',
-                'address', 'email', 'date_joined',
-            ]
-        return f
 
 
 class RetrieveUpdateDestroySerializer(serializers.ModelSerializer):
