@@ -82,8 +82,8 @@ class WorkerUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
         user = self.request.user
         return Worker.objects.filter(director_id=user.director_id).order_by('-date_joined')
 
-# director_id 18
-# director +998974068633   18
-# manager +998974068000   22
-# worker +998974068681   22
-# print(CustomUser.objects.last().id)
+# director_id 1
+# company_id 1
+# director +998974068633   2
+# manager +998974068000   3
+# worker +998974068681   4

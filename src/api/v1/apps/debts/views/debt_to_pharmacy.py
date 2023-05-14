@@ -4,15 +4,32 @@ from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 
 from api.v1.apps.accounts.permissions import NotProjectOwner
+from api.v1.apps.companies.permissions import WorkerTodayObject
 
 from ..models import DebtToPharmacy, DebtRepayFromPharmacy
 from ..serializers import debt_to_pharmacy, debt_repay_from_pharmacy
 
 
 class DebtToPharmacyAPIView(ModelViewSet):
-    permission_classes = [IsAuthenticated, NotProjectOwner]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['is_paid']
+    filterset_fields = ['is_paid', 'report_date']
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        if user.is_worker:
+            serializer.save(
+                report_date=date.today(),
+                to_pharmacy_id=user.pharmacy_id,
+                shift=user.shift
+            )
+        else:
+            serializer.save()
+
+    def get_permissions(self):
+        permission_classes = [IsAuthenticated, NotProjectOwner]
+        if self.request.user.is_worker and self.action not in ['list', 'retrieve']:
+            permission_classes += [WorkerTodayObject]
+        return [permission() for permission in self.permission_classes]
 
     def get_serializer_class(self):
         if self.request.user.is_worker:
@@ -29,7 +46,14 @@ class DebtToPharmacyAPIView(ModelViewSet):
 
 
 class DebtRepayFromPharmacyAPIView(ModelViewSet):
-    permission_classes = [IsAuthenticated, NotProjectOwner]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['report_date']
+
+    def get_permissions(self):
+        permission_classes = [IsAuthenticated, NotProjectOwner]
+        if self.request.user.is_worker and self.action not in ['list', 'retrieve']:
+            permission_classes += [WorkerTodayObject]
+        return [permission() for permission in self.permission_classes]
 
     def perform_destroy(self, instance):
         to_debt = instance.to_debt

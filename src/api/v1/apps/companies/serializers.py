@@ -1,17 +1,18 @@
 from rest_framework import serializers
 
-from .models import Company
+from .models import Company, TransferMoneyType
+
+
+class TransferMoneyTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TransferMoneyType
+        exclude = ('director',)
 
 
 class CompanySerializer(serializers.ModelSerializer):
-    detail = serializers.HyperlinkedRelatedField(source='pk',
-                                                 view_name='company-detail',
-                                                 read_only=True)
-    director_name = serializers.StringRelatedField(read_only=True)
-    director_detail = serializers.HyperlinkedRelatedField(source='director',
-                                                          view_name='user-detail',
-                                                          read_only=True)
+    director_name = serializers.StringRelatedField(source='director', read_only=True)
 
     class Meta:
         model = Company
-        exclude = ['director']
+        fields = '__all__'
+        read_only_fields = ('director',)

@@ -1,12 +1,13 @@
 from django.db import models
 
 from api.v1.apps.pharmacies.models import Pharmacy
-from api.v1.apps.general.models import AbstractIncomeExpense, TransferMoneyType
-from api.v1.apps.general.validators import uzb_phone_number_validation
+from api.v1.apps.companies.validators import uzb_phone_number_validation
+from api.v1.apps.companies.models import AbstractIncomeExpense, TransferMoneyType
 
 
 class DebtToPharmacy(AbstractIncomeExpense):  # aptekaga qarz berdi
     from_who = models.CharField(max_length=500)
+    phone_number = models.CharField(max_length=13, blank=True, validators=[uzb_phone_number_validation])
     to_pharmacy = models.ForeignKey(Pharmacy, on_delete=models.PROTECT)
     is_paid = models.BooleanField(default=False)
     remaining_debt = models.IntegerField()

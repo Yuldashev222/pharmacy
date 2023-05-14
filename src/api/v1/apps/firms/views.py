@@ -1,11 +1,11 @@
 from datetime import date
-from random import randint
 
 from rest_framework import status
 from rest_framework.mixins import CreateModelMixin
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet, GenericViewSet
 from rest_framework.permissions import IsAuthenticated
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet, GenericViewSet
 
 from api.v1.apps.accounts.permissions import NotProjectOwner, IsDirector, IsManager
 
@@ -33,6 +33,8 @@ class FirmAPIViewSet(ModelViewSet):
 
 class FirmIncomeAPIViewSet(ModelViewSet):
     serializer_class = serializers.FirmIncomeSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['is_paid', 'report_date']
 
     def get_permissions(self):
         permission_classes = [IsAuthenticated, NotProjectOwner]
@@ -43,9 +45,7 @@ class FirmIncomeAPIViewSet(ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def get_queryset(self):
-        user = self.request.user
-        queryset = FirmIncome.objects.filter(from_firm__director_id=user.director_id)
-        return queryset.order_by('-created_at')
+        return FirmIncome.objects.filter(from_firm__director_id=self.request.user.director_id).order_by('-created_at')
 
 
 class FirmExpenseAPIViewSet(CreateModelMixin, ReadOnlyModelViewSet):

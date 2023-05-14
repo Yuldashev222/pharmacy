@@ -1,9 +1,36 @@
+from datetime import date
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
 
-from api.v1.apps.general.services import text_normalize
-from api.v1.apps.general.validators import uzb_phone_number_validation
+from .validators import uzb_phone_number_validation
+from .services import text_normalize, company_logo_upload_location
 
-from .services import company_logo_upload_location
+
+class TransferMoneyType(models.Model):
+    name = models.CharField(max_length=150)
+    director = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, null=True)
+
+    def __str__(self):
+        return self.name
+
+
+class AbstractIncomeExpense(models.Model):
+    creator = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True)
+    report_date = models.DateField(validators=[MaxValueValidator(date.today())])
+    created_at = models.DateTimeField(auto_now_add=True)
+    price = models.PositiveIntegerField()
+    shift = models.PositiveSmallIntegerField(validators=[MaxValueValidator(3), MinValueValidator(1)])
+    transfer_type = models.ForeignKey(TransferMoneyType, on_delete=models.PROTECT)
+    desc = models.CharField(max_length=500, blank=True)
+    second_name = models.CharField(max_length=100, blank=True)
+
+    def save(self, *args, **kwargs):
+        self.desc = text_normalize(self.desc)
+        self.second_name = text_normalize(self.second_name)
+        super().save(*args, **kwargs)
+
+    class Meta:
+        abstract = True
 
 
 class Company(models.Model):

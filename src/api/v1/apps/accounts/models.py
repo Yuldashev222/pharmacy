@@ -4,8 +4,8 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 
 from api.v1.apps.firms.models import Firm
 from api.v1.apps.pharmacies.models import Pharmacy
-from api.v1.apps.general.services import text_normalize
-from api.v1.apps.general.validators import uzb_phone_number_validation
+from api.v1.apps.companies.services import text_normalize
+from api.v1.apps.companies.validators import uzb_phone_number_validation
 
 from .enums import UserRole
 from .services import user_photo_upload_location
@@ -32,7 +32,7 @@ class CustomUser(AbstractUser):
     bio = models.CharField(max_length=500, blank=True)
     photo = models.ImageField(upload_to=user_photo_upload_location, blank=True, null=True)
     address = models.CharField(max_length=500, blank=True)
-  
+
     def __str__(self):
         return self.get_full_name()
 

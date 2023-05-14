@@ -74,7 +74,6 @@ INSTALLED_APPS = [
     'corsheaders',
 
     # apps
-    'api.v1.apps.general.apps.GeneralConfig',
     'api.v1.apps.accounts.apps.AccountsConfig',
     'api.v1.apps.companies.apps.CompaniesConfig',
     'api.v1.apps.pharmacies.apps.PharmaciesConfig',

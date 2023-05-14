@@ -1,17 +1,35 @@
+from datetime import date
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 
 from api.v1.apps.accounts.permissions import NotProjectOwner
+from api.v1.apps.companies.permissions import WorkerTodayObject
 
 from ..models import DebtFromPharmacy, DebtRepayToPharmacy
 from ..serializers import debt_from_pharmacy, debt_repay_to_pharmacy
 
 
 class DebtFromPharmacyAPIView(ModelViewSet):
-    permission_classes = [IsAuthenticated, NotProjectOwner]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['is_paid']
+    filterset_fields = ['is_paid', 'report_date']
+
+    def get_permissions(self):
+        permission_classes = [IsAuthenticated, NotProjectOwner]
+        if self.request.user.is_worker and self.action not in ['list', 'retrieve']:
+            permission_classes += [WorkerTodayObject]
+        return [permission() for permission in self.permission_classes]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        if user.is_worker:
+            serializer.save(
+                report_date=date.today(),
+                from_pharmacy_id=user.pharmacy_id,
+                shift=user.shift
+            )
+        else:
+            serializer.save()
 
     def get_serializer_class(self):
         if self.request.user.is_worker:
@@ -28,8 +46,21 @@ class DebtFromPharmacyAPIView(ModelViewSet):
 
 
 class DebtRepayToPharmacyAPIView(ModelViewSet):
-    queryset = DebtRepayToPharmacy.objects.all()
-    permission_classes = [IsAuthenticated, NotProjectOwner]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['report_date']
+
+    def get_permissions(self):
+        permission_classes = [IsAuthenticated, NotProjectOwner]
+        if self.request.user.is_worker and self.action not in ['list', 'retrieve']:
+            permission_classes += [WorkerTodayObject]
+        return [permission() for permission in self.permission_classes]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        if user.is_worker:
+            serializer.save(report_date=date.today(), shift=user.shift)
+        else:
+            serializer.save()
 
     def perform_destroy(self, instance):
         from_debt = instance.from_debt

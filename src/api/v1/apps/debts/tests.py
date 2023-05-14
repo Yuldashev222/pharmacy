@@ -53,4 +53,3 @@ while digit >= 1:
     ten_power //= 10
     digit -= 1
 
-print(result)

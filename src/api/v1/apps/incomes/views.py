@@ -1,16 +1,13 @@
 from datetime import date
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.viewsets import ModelViewSet, GenericViewSet
-from rest_framework.mixins import ListModelMixin, RetrieveModelMixin, DestroyModelMixin
+from rest_framework.viewsets import ModelViewSet
 
-from api.v1.apps.accounts.permissions import NotProjectOwner, IsDirector, IsManager
-from api.v1.apps.reports.models import Report
+from api.v1.apps.accounts.permissions import NotProjectOwner
 
 from .models import PharmacyIncome
 from .serializers import (
     DirectorManagerPharmacyIncomeSerializer,
-    WorkerPharmacyIncomeSerializer,
-#    PharmacyIncomeHistorySerializer
+    WorkerPharmacyIncomeSerializer
 )
 
 
@@ -21,9 +18,9 @@ class PharmacyIncomeAPIViewSet(ModelViewSet):
         user = self.request.user
         if user.is_worker:
             serializer.save(
-                   shift=user.shift,
-                   report_date=date.today(),
-                   to_pharmacy_id=user.pharmacy_id
+                shift=user.shift,
+                report_date=date.today(),
+                to_pharmacy_id=user.pharmacy_id
             )
         else:
             serializer.save()
@@ -45,17 +42,3 @@ class PharmacyIncomeAPIViewSet(ModelViewSet):
         else:
             queryset = PharmacyIncome.objects.filter(to_pharmacy__director_id=user.director_id)
         return queryset.order_by('-created_at')
-
-
-#class PharmacyIncomeHistoryAPIView(ListModelMixin,
-#                                   RetrieveModelMixin,
-#                                   DestroyModelMixin,
-#                                   GenericViewSet):
-#    permission_classes = [IsAuthenticated, (IsDirector | IsManager)]
-#    serializer_class = PharmacyIncomeHistorySerializer
-#
-#    def get_queryset(self):
-#        user = self.request.user
-#        return PharmacyIncomeHistory.objects.filter(
-#            pharmacy_income__to_pharmacy__director_id=user.director_id
-#        ).order_by('-id')

@@ -7,26 +7,12 @@ from ..models import DebtRepayFromPharmacy
 
 
 class DebtRepayFromPharmacySerializer(serializers.ModelSerializer):
-    detail = serializers.HyperlinkedRelatedField(source='pk',
-                                                 view_name='debt_repay_from_pharmacy-detail', read_only=True)
     creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
     creator_name = serializers.StringRelatedField(source='creator', read_only=True)
-    creator_detail = serializers.HyperlinkedRelatedField(source='creator',
-                                                         view_name='user-detail', read_only=True)
     to_debt_name = serializers.StringRelatedField(source='to_debt', read_only=True)
-    to_debt_detail = serializers.HyperlinkedRelatedField(source='to_debt',
-                                                         view_name='debt_to_pharmacy-detail', read_only=True)
     from_user_name = serializers.StringRelatedField(source='from_user', read_only=True)
-    from_user_detail = serializers.HyperlinkedRelatedField(source='from_user',
-                                                           view_name='user-detail', read_only=True)
-
     transfer_type_name = serializers.StringRelatedField(source='transfer_type', read_only=True)
-    transfer_type_detail = serializers.HyperlinkedRelatedField(source='transfer_type',
-                                                               view_name='transfer_type-detail', read_only=True)
-
     expense_type_name = serializers.StringRelatedField(source='expense_type', read_only=True)
-    expense_type_detail = serializers.HyperlinkedRelatedField(source='expense_type',
-                                                              view_name='expense_type-detail', read_only=True)
 
     def create(self, validated_data):
         to_debt = validated_data['to_debt']
@@ -64,19 +50,9 @@ class DebtRepayFromPharmacySerializer(serializers.ModelSerializer):
 
 
 class DirectorManagerDebtRepayFromPharmacySerializer(DebtRepayFromPharmacySerializer):
-    r_date = serializers.DateField(write_only=True, required=False, validators=[MaxValueValidator(date.today())])
-
     class Meta:
         model = DebtRepayFromPharmacy
         fields = '__all__'
-        extra_kwargs = {
-            'report_date': {'required': False}
-        }
-
-    def create(self, validated_data):
-        if not validated_data.get('report_date'):
-            raise ValidationError({'report_date': 'required'})
-        return super().create(validated_data)
 
     def validate(self, attrs):
         user = self.context['request'].user
@@ -90,7 +66,7 @@ class WorkerDebtRepayFromPharmacySerializer(DebtRepayFromPharmacySerializer):
     class Meta:
         model = DebtRepayFromPharmacy
         fields = '__all__'
-        read_only_fields = ('shift',)
+        read_only_fields = ('shift', 'report_date')
 
     def validate(self, attrs):
         user = self.context['request'].user

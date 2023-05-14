@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils import timezone
 
-from api.v1.apps.general.enums import Month
+from api.v1.apps.companies.enums import Month
 
 
 class Wage(models.Model):

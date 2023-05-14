@@ -3,8 +3,8 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
-from api.v1.apps.general.routers import router
-from api.v1.apps.general.views import company_details
+from api.v1.apps.companies.routers import router
+from api.v1.apps.companies.views import company_details
 
 from .yasg import urlpatterns as doc_urls
 

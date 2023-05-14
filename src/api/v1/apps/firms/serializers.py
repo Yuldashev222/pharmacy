@@ -1,6 +1,4 @@
-from datetime import date
 from rest_framework import serializers
-from django.core.validators import MaxValueValidator
 from rest_framework.exceptions import ValidationError
 
 from .models import Firm, FirmIncome, FirmExpense
@@ -9,15 +7,7 @@ from .models import Firm, FirmIncome, FirmExpense
 class FirmSerializer(serializers.ModelSerializer):
     creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
     creator_name = serializers.StringRelatedField(source='creator', read_only=True)
-    creator_detail = serializers.HyperlinkedRelatedField(source='creator',
-                                                         view_name='user-detail', read_only=True)
-    detail = serializers.HyperlinkedRelatedField(source='id',
-                                                 view_name='firm-detail',
-                                                 read_only=True)
     director_name = serializers.StringRelatedField(source='director', read_only=True)
-    director_detail = serializers.HyperlinkedRelatedField(source='director',
-                                                          view_name='user-detail',
-                                                          read_only=True)
 
     class Meta:
         model = Firm
@@ -27,35 +17,13 @@ class FirmSerializer(serializers.ModelSerializer):
 class FirmIncomeSerializer(serializers.ModelSerializer):
     creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
     creator_name = serializers.StringRelatedField(source='creator', read_only=True)
-    creator_detail = serializers.HyperlinkedRelatedField(source='creator',
-                                                         view_name='user-detail', read_only=True)
-    detail = serializers.HyperlinkedRelatedField(source='id',
-                                                 view_name='firm_income-detail',
-                                                 read_only=True)
-
     to_pharmacy_name = serializers.StringRelatedField(source='to_pharmacy', read_only=True)
-    to_pharmacy_detail = serializers.HyperlinkedRelatedField(source='to_pharmacy',
-                                                             view_name='pharmacy-detail', read_only=True)
     from_firm_name = serializers.StringRelatedField(source='from_firm', read_only=True)
-    from_firm_detail = serializers.HyperlinkedRelatedField(source='from_firm',
-                                                           view_name='firm-detail', read_only=True)
-
-    r_date = serializers.DateField(write_only=True, required=False, validators=[MaxValueValidator(date.today())])
 
     class Meta:
         model = FirmIncome
-        exclude = ('report',)
+        fields = '__all__'
         read_only_fields = ('paid_on_time', 'is_paid')
-        extra_kwargs = {
-            'to_pharmacy': {'write_only': True},
-            'from_firm': {'write_only': True},
-            'report_date': {'required': False},
-        }
-
-    def create(self, validated_data):
-        if not validated_data.get('report_date'):
-            raise ValidationError({'report_date': 'This field is required.'})
-        return super().create(validated_data)
 
     def validate(self, attrs):
         user = self.context['request'].user
@@ -72,28 +40,10 @@ class FirmIncomeSerializer(serializers.ModelSerializer):
 class FirmExpenseSerializer(serializers.ModelSerializer):
     creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
     creator_name = serializers.StringRelatedField(source='creator', read_only=True)
-    creator_detail = serializers.HyperlinkedRelatedField(source='creator',
-                                                         view_name='user-detail', read_only=True)
-
     from_pharmacy_name = serializers.StringRelatedField(source='from_pharmacy', read_only=True)
-    from_pharmacy_detail = serializers.HyperlinkedRelatedField(source='from_pharmacy',
-                                                               view_name='pharmacy-detail', read_only=True)
     to_firm_name = serializers.StringRelatedField(source='to_firm', read_only=True)
-    to_firm_detail = serializers.HyperlinkedRelatedField(source='to_firm',
-                                                         view_name='firm-detail', read_only=True)
-
     from_debt_name = serializers.StringRelatedField(source='from_debt', read_only=True)
-    from_debt_detail = serializers.HyperlinkedRelatedField(source='from_debt',
-                                                           view_name='debt_to_pharmacy-detail', read_only=True)
-
     from_user_name = serializers.StringRelatedField(source='from_user', read_only=True)
-    from_user_detail = serializers.HyperlinkedRelatedField(source='from_user',
-                                                           view_name='user-detail', read_only=True)
-
-    report_date = serializers.StringRelatedField(source='report', read_only=True)
-
-    # report_detail = serializers.HyperlinkedRelatedField(source='report',
-    #                                                     view_name='report-detail', read_only=True)  # last
 
     def validate(self, attrs):
         user = self.context['request'].user
@@ -115,7 +65,7 @@ class FirmExpenseSerializer(serializers.ModelSerializer):
 class DirectorManagerFirmExpenseSerializer(FirmExpenseSerializer):
     class Meta:
         model = FirmExpense
-        exclude = ('verified_code', 'report')
+        exclude = ('verified_code',)
         read_only_fields = ('is_verified',)
 
     def validate(self, attrs):
@@ -133,7 +83,7 @@ class DirectorManagerFirmExpenseSerializer(FirmExpenseSerializer):
 class WorkerFirmExpenseSerializer(FirmExpenseSerializer):
     class Meta:
         model = FirmExpense
-        exclude = ('verified_code', 'report')
+        exclude = ('verified_code',)
         read_only_fields = ('is_verified', 'from_pharmacy', 'shift')
 
     def validate(self, attrs):
@@ -158,7 +108,6 @@ class FirmExpenseVerifySerializer(serializers.Serializer):
             firm_expense = FirmExpense.objects.get(pk=firm_expense_id)
         except FirmExpense.DoesNotExist:
             raise ValidationError({'firm_expense_id': 'not found'})
-        print(firm_expense.verified_code)
         if firm_expense.verified_code != code:
             firm_expense.delete()
             raise ValidationError({'code': 'Not Valid'})

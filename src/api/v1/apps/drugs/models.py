@@ -1,12 +1,12 @@
 from django.db import models
 
 from api.v1.apps.accounts.models import CustomUser
-from api.v1.apps.general.services import text_normalize
+from api.v1.apps.pharmacies.models import Pharmacy
+from api.v1.apps.companies.services import text_normalize
 
 
 class Drug(models.Model):
-    director = models.ForeignKey('accounts.CustomUser',
-                                 related_name='drugs', on_delete=models.CASCADE)
+    pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE)
     name = models.CharField(max_length=150)
     price = models.IntegerField(blank=True, null=True)
     manufacturer = models.CharField(max_length=200, blank=True)

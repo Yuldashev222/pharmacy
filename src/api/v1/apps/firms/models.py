@@ -5,22 +5,18 @@ from django.core.validators import MinValueValidator
 
 from api.v1.apps.pharmacies.models import Pharmacy
 from api.v1.apps.debts.models import DebtToPharmacy
-from api.v1.apps.general.services import text_normalize
-from api.v1.apps.general.validators import uzb_phone_number_validation
-from api.v1.apps.general.models import AbstractIncomeExpense
+from api.v1.apps.companies.services import text_normalize
+from api.v1.apps.companies.validators import uzb_phone_number_validation
+from api.v1.apps.companies.models import AbstractIncomeExpense
 
 from .services import firm_logo_upload_location
 
 
 class Firm(models.Model):
     name = models.CharField(max_length=400)
-    # total_amount_purchased = models.PositiveIntegerField(default=0)
-    # total_amount_given = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
-    director = models.ForeignKey('accounts.CustomUser',
-                                 related_name='firms', on_delete=models.PROTECT)
+    director = models.ForeignKey('accounts.CustomUser', related_name='firms', on_delete=models.PROTECT)
     creator = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True)
-
     phone_number1 = models.CharField(max_length=13, validators=[uzb_phone_number_validation], blank=True)
     phone_number2 = models.CharField(max_length=13, validators=[uzb_phone_number_validation], blank=True)
     phone_number3 = models.CharField(max_length=13, validators=[uzb_phone_number_validation], blank=True)
