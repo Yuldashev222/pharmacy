@@ -31,7 +31,7 @@ router.register('pharmacies/expenses', PharmacyExpenseAPIViewSet, basename='phar
 router.register('pharmacies', PharmacyAPIViewSet, basename='pharmacy')
 
 router.register('firms/expenses/verify', FirmExpenseVerify, basename='firm_expense_verify')
-router.register('firms/expenses/from-pharmacies', FirmFromPharmacyExpenseAPIViewSet,
+router.register('firms/expenses/from-pharmacy', FirmFromPharmacyExpenseAPIViewSet,
                 basename='firm_expense_from_pharmacy')
 router.register('firms/expenses/from-debt', FirmFromDebtExpenseAPIViewSet, basename='firm_expense_from_debt')
 router.register('firms/incomes', FirmIncomeAPIViewSet, basename='firm_income')
