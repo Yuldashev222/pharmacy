@@ -1,6 +1,9 @@
 import os
 from pathlib import Path
 from datetime import timedelta
+from dotenv import load_dotenv
+
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -14,15 +17,22 @@ STATIC_URL = 'static/'
 LANGUAGE_CODE = 'en-us'
 ROOT_URLCONF = 'config.urls'
 TIME_ZONE = 'Asia/Tashkent'
-DEBUG = int(os.environ.get('DEBUG', 1))
+DEBUG = int(os.getenv('DEBUG', 1))
 WSGI_APPLICATION = 'config.wsgi.application'
 MEDIA_ROOT = os.path.join(BASE_DIR.joinpath('media'))
 STATIC_ROOT = os.path.join(BASE_DIR.joinpath('static'))
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-SECRET_KEY = os.environ.get('SECRET_KEY', 'asgdygHAGDHGSH435464655^%$^%^&$%')
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost zbesstudio.uz 127.0.0.1 [::1]').split(' ')
+SECRET_KEY = os.getenv('SECRET_KEY')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(' ') + [os.getenv('DOMAIN')]
 AUTH_USER_MODEL = 'accounts.CustomUser'
 LOGIN_REDIRECT_URL = 'profile'
+
+ESKIZ_UZ_EMAIL = os.getenv('ESKIZ_UZ_EMAIL')
+ESKIZ_UZ_PASSWORD = os.getenv('ESKIZ_UZ_PASSWORD')
+ESKIZ_UZ_TOKEN_URL = os.getenv('ESKIZ_UZ_TOKEN_URL')
+ESKIZ_UZ_SEND_SMS_URL = os.getenv('ESKIZ_UZ_SEND_SMS_URL')
+ESKIZ_UZ_ALPHA_NICK = os.getenv('ESKIZ_UZ_ALPHA_NICK', '4546')
+ESKIZ_UZ_CALLBACK_URL = os.getenv('ESKIZ_UZ_CALLBACK_URL', None)
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -87,14 +97,20 @@ INSTALLED_APPS = [
     'api.v1.apps.drugs.apps.DrugsConfig',
 ]
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': os.getenv()('POSTGRES_DB_ENGINE', 'django.db.backends.sqlite3'),
+#         'NAME': os.getenv()('POSTGRES_DB_NAME', BASE_DIR.joinpath('db.sqlite3')),
+#         'USER': os.getenv()('POSTGRES_DB_USER', 'user'),
+#         'PASSWORD': os.getenv()('POSTGRES_DB_PASSWORD', 'password'),
+#         'HOST': os.getenv()('POSTGRES_DB_HOST', 'localhost'),
+#         'PORT': os.getenv()('POSTGRES_DB_PORT', '5432'),
+#     },
+# }
 DATABASES = {
     'default': {
-        'ENGINE': os.environ.get('POSTGRES_DB_ENGINE', 'django.db.backends.sqlite3'),
-        'NAME': os.environ.get('POSTGRES_DB_NAME', BASE_DIR.joinpath('db.sqlite3')),
-        'USER': os.environ.get('POSTGRES_DB_USER', 'user'),
-        'PASSWORD': os.environ.get('POSTGRES_DB_PASSWORD', 'password'),
-        'HOST': os.environ.get('POSTGRES_DB_HOST', 'localhost'),
-        'PORT': os.environ.get('POSTGRES_DB_PORT', '5432'),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR.joinpath('db.sqlite3'),
     },
 }
 

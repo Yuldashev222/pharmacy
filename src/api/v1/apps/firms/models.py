@@ -9,7 +9,7 @@ from api.v1.apps.companies.services import text_normalize
 from api.v1.apps.companies.validators import uzb_phone_number_validation
 from api.v1.apps.companies.models import AbstractIncomeExpense
 
-from .services import firm_logo_upload_location
+from .services import firm_logo_upload_location, EskizUz
 
 
 class Firm(models.Model):
@@ -62,23 +62,20 @@ class FirmExpense(models.Model):
         self.verified_firm_worker_name = text_normalize(self.verified_firm_worker_name).title()
         if not self.pk:
             self.verified_code = randint(10000, 99999)
-
-            # import requests
-            #
-            # url = "notify.eskiz.uz/api/message/sms/send"
-            # price_string = ''  # last
-            # message = f'Hurmatli {self.verified_firm_worker_name} sizga tasdiqlash kodi yuborildi. \
-            #      Ushbu kod orqali "{self.from_pharmacy}" aptekasidan {self.price} ({price_string}) \
-            #      so\'m olganligingiz to\'g\'riligini tasdiqlaysiz. Kod: {self.verified_code}'
-            #
-            # payload = {
-            #     'mobile_phone': self.verified_phone_number[1:],
-            #     'message': message,
-            #     'from': '4546'
-            #     # 'callback_url': 'http://0000.uz/test.php'  # last
-            # }
-            # requests.request("POST", url, data=payload)
-
+            # message = EskizUz.verify_code_message(
+            #     verify_code=self.verified_code,
+            #     firm_name=self.to_firm.name,
+            #     pharmacy_name=kwargs['pharmacy_name'],
+            #     price=kwargs['price_amount'],
+            #     firm_worker_name=self.verified_firm_worker_name
+            # )
+            # status = EskizUz.send_sms(phone_number=self.verified_phone_number[1:], message=message)
+            # if status == 200:  # last
+            #     message = EskizUz.success_message(
+            #         firm_worker_name=self.verified_firm_worker_name,
+            #         price=kwargs['price_amount']
+            #     )
+            #     EskizUz.send_sms(phone_number=self.verified_phone_number[1:], message=message)
         super().save(*args, **kwargs)
 
 
@@ -92,6 +89,8 @@ class FirmFromPharmacyExpense(FirmExpense, AbstractIncomeExpense):
         FirmFromPharmacyExpense.objects.filter(
             is_verified=False, created_at__lt=timedelta(minutes=5) + date.today()
         ).delete()
+        kwargs['pharmacy_name'] = self.from_pharmacy.name
+        kwargs['price_amount'] = self.price
         super().save(*args, **kwargs)
 
 
@@ -106,4 +105,6 @@ class FirmFromDebtExpense(FirmExpense, models.Model):
         if expenses.exists():
             DebtToPharmacy.objects.filter(id__in=expenses.values_list('from_debt_id', flat=True).distinct()).delete()
             expenses.delete()
+        kwargs['pharmacy_name'] = self.from_debt.to_pharmacy.name
+        kwargs['price_amount'] = self.from_debt.price
         super().save(*args, **kwargs)
