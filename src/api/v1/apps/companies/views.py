@@ -38,8 +38,10 @@ def company_details(request, *args, **kwargs):
     data = {
         'transfer_types': TransferMoneyType.objects.filter(
             director_id=user.director_id).values('id', 'name').order_by('-id'),
-        'expense_types': ExpenseType.objects.filter(
-            director_id=user.director_id).values('id', 'name').order_by('-id'),
+        'account_expense_types': ExpenseType.objects.filter(
+            director_id=user.director_id, is_user_expense=True).values('id', 'name').order_by('-id'),
+        'pharmacy_expense_types': ExpenseType.objects.filter(
+            director_id=user.director_id, is_user_expense=False).values('id', 'name').order_by('-id'),
         'employees': CustomUser.objects.filter(
             director_id=user.director_id).values('id', 'first_name', 'last_name', 'role').order_by('-id'),
         'firms': Firm.objects.filter(director_id=user.director_id).values('id', 'name').order_by('-id')

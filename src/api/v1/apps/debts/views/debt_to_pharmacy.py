@@ -1,4 +1,5 @@
 from datetime import date
+from rest_framework import filters
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
@@ -11,8 +12,9 @@ from ..serializers import debt_to_pharmacy, debt_repay_from_pharmacy
 
 
 class DebtToPharmacyAPIView(ModelViewSet):
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['is_paid', 'report_date']
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['is_paid', 'report_date', 'shift']
+    search_fields = ['from_who', 'desc']
 
     def perform_create(self, serializer):
         user = self.request.user
@@ -47,7 +49,7 @@ class DebtToPharmacyAPIView(ModelViewSet):
 
 class DebtRepayFromPharmacyAPIView(ModelViewSet):
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['report_date']
+    filterset_fields = ['report_date', 'shift']
 
     def get_permissions(self):
         permission_classes = [IsAuthenticated, NotProjectOwner]

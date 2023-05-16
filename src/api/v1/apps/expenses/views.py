@@ -1,5 +1,4 @@
 from datetime import date
-
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
@@ -39,13 +38,16 @@ class UserExpenseTypeAPIViewSet(ExpenseTypeAPIViewSet):
 
     def get_queryset(self):
         return ExpenseType.objects.filter(
-            director_id=self.request.user.director_id,
-            is_user_expense=True
+            director_id=self.request.user.director_id, is_user_expense=True
         ).order_by('-id')
 
 
 class UserExpenseAPIViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated, NotProjectOwner]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = {
+       'expense_type': ['exact', 'gte']
+    }
 
     def perform_create(self, serializer):
         user = self.request.user
@@ -70,6 +72,10 @@ class UserExpenseAPIViewSet(ModelViewSet):
 
 class PharmacyExpenseAPIViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated, NotProjectOwner]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = {
+       'expense_type': ['exact', 'gte']
+    }
 
     def perform_create(self, serializer):
         user = self.request.user
