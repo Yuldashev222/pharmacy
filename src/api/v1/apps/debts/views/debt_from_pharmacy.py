@@ -1,4 +1,5 @@
 from datetime import date
+from rest_framework import filters
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
@@ -11,8 +12,9 @@ from ..serializers import debt_from_pharmacy, debt_repay_to_pharmacy
 
 
 class DebtFromPharmacyAPIView(ModelViewSet):
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['is_paid', 'report_date']
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['is_paid', 'report_date', 'shift']
+    search_fields = ['to_who', 'desc']
 
     def get_permissions(self):
         permission_classes = [IsAuthenticated, NotProjectOwner]
@@ -47,7 +49,7 @@ class DebtFromPharmacyAPIView(ModelViewSet):
 
 class DebtRepayToPharmacyAPIView(ModelViewSet):
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['report_date']
+    filterset_fields = ['report_date', 'shift']
 
     def get_permissions(self):
         permission_classes = [IsAuthenticated, NotProjectOwner]
@@ -82,3 +84,4 @@ class DebtRepayToPharmacyAPIView(ModelViewSet):
         else:
             queryset = DebtRepayToPharmacy.objects.filter(from_debt__from_pharmacy__director_id=user.director_id)
         return queryset.order_by('-created_at')
+
