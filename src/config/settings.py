@@ -17,6 +17,7 @@ STATIC_URL = 'static/'
 LANGUAGE_CODE = 'en-us'
 ROOT_URLCONF = 'config.urls'
 TIME_ZONE = 'Asia/Tashkent'
+CELERY_TIMEZONE = 'Asia/Tashkent'
 # DEBUG = int(os.getenv('DEBUG', 1))
 DEBUG = 1
 WSGI_APPLICATION = 'config.wsgi.application'
@@ -211,3 +212,16 @@ SIMPLE JWT CONFIGURATIONS
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 CORS_ORIGIN_ALLOW_ALL = True
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+CELERY CONFIGURATIONS
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_TIMEZONE = 'Asia/Tashkent'
+CELERY_ENABLE_UTC = False
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+CELERY CONFIGURATIONS
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""

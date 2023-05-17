@@ -11,6 +11,7 @@ from api.v1.apps.accounts.permissions import NotProjectOwner, IsDirector, IsMana
 
 from . import serializers
 from .models import FirmIncome, FirmExpense
+from .tasks import send_sms_to_director
 
 
 class FirmAPIViewSet(ModelViewSet):
@@ -73,7 +74,7 @@ class FirmExpenseAPIViewSet(CreateModelMixin, ReadOnlyModelViewSet):
             )
         else:
             queryset = FirmExpense.objects.filter(creator__director_id=user.director_id)
-        return queryset.filter().order_by('-created_at')
+        return queryset.filter(is_verified=True).order_by('-created_at')
 
 
 class FirmExpenseVerify(CreateModelMixin, GenericViewSet):
