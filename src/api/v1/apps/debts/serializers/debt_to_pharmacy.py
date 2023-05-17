@@ -23,6 +23,18 @@ class DebtToPharmacySerializer(serializers.ModelSerializer):
                 instance.is_paid = False
         return super().update(instance, validated_data)
 
+    def validate(self, attrs):
+        user = self.context['request'].user
+        to_firm_expense = attrs.get('to_firm_expense')
+
+        if attrs['to_pharmacy'].director_id != user.director_id:
+            raise ValidationError({'to_pharmacy': 'not found'})
+
+        if to_firm_expense and to_firm_expense.creator.director_id != user.director_id:
+            raise ValidationError({'to_firm_expense': 'not found'})
+
+        return attrs
+
 
 class DirectorManagerDebtToPharmacySerializer(DebtToPharmacySerializer):
     class Meta:
@@ -34,7 +46,7 @@ class DirectorManagerDebtToPharmacySerializer(DebtToPharmacySerializer):
         user = self.context['request'].user
         if attrs['to_pharmacy'].director_id != user.director_id:
             raise ValidationError({'to_pharmacy': 'not found'})
-        return attrs
+        return super().validate(attrs)
 
 
 class WorkerDebtToPharmacySerializer(DebtToPharmacySerializer):

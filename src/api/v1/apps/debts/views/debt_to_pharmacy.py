@@ -20,9 +20,7 @@ class DebtToPharmacyAPIView(ModelViewSet):
         user = self.request.user
         if user.is_worker:
             serializer.save(
-                report_date=date.today(),
-                to_pharmacy_id=user.pharmacy_id,
-                shift=user.shift
+                report_date=date.today(), to_pharmacy_id=user.pharmacy_id, shift=user.shift
             )
         else:
             serializer.save()

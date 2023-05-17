@@ -7,7 +7,7 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 DJANGO CONFIGURATIONS
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
 USE_TZ = True
@@ -17,7 +17,8 @@ STATIC_URL = 'static/'
 LANGUAGE_CODE = 'en-us'
 ROOT_URLCONF = 'config.urls'
 TIME_ZONE = 'Asia/Tashkent'
-DEBUG = int(os.getenv('DEBUG', 1))
+# DEBUG = int(os.getenv('DEBUG', 1))
+DEBUG = 1
 WSGI_APPLICATION = 'config.wsgi.application'
 MEDIA_ROOT = os.path.join(BASE_DIR.joinpath('media'))
 STATIC_ROOT = os.path.join(BASE_DIR.joinpath('static'))

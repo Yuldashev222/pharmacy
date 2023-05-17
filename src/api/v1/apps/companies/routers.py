@@ -7,8 +7,7 @@ from api.v1.apps.expenses.views import PharmacyExpenseAPIViewSet, PharmacyExpens
 from api.v1.apps.debts.views import debt_from_pharmacy, debt_to_pharmacy
 from api.v1.apps.incomes.views import PharmacyIncomeAPIViewSet
 from api.v1.apps.firms.views import (
-    FirmAPIViewSet, FirmIncomeAPIViewSet, FirmFromPharmacyExpenseAPIViewSet,
-    FirmFromDebtExpenseAPIViewSet, FirmExpenseVerify
+    FirmAPIViewSet, FirmIncomeAPIViewSet, FirmExpenseAPIViewSet, FirmExpenseVerify
 )
 
 from .views import TransferMoneyTypeAPIViewSet, CompanyAPIViewSet
@@ -20,20 +19,15 @@ router.register('pharmacies/debts/repay', debt_to_pharmacy.DebtRepayFromPharmacy
 router.register('pharmacies/to-debts/repay', debt_from_pharmacy.DebtRepayToPharmacyAPIView,
                 basename='debt_repay_to_pharmacy')
 
+router.register('pharmacies/expenses/types', PharmacyExpenseTypeAPIViewSet, basename='pharmacy_expense_type')
+router.register('pharmacies/incomes', PharmacyIncomeAPIViewSet, basename='pharmacy_income')
+router.register('pharmacies/expenses', PharmacyExpenseAPIViewSet, basename='pharmacy_expense')
 router.register('pharmacies/to-debts', debt_from_pharmacy.DebtFromPharmacyAPIView, basename='debt_from_pharmacy')
 router.register('pharmacies/debts', debt_to_pharmacy.DebtToPharmacyAPIView, basename='debt_to_pharmacy')
-
-router.register('pharmacies/incomes', PharmacyIncomeAPIViewSet, basename='pharmacy_income')
-
-router.register('pharmacies/expenses/types', PharmacyExpenseTypeAPIViewSet, basename='pharmacy_expense_type')
-router.register('pharmacies/expenses', PharmacyExpenseAPIViewSet, basename='pharmacy_expense')
-
 router.register('pharmacies', PharmacyAPIViewSet, basename='pharmacy')
 
 router.register('firms/expenses/verify', FirmExpenseVerify, basename='firm_expense_verify')
-router.register('firms/expenses/from-pharmacy', FirmFromPharmacyExpenseAPIViewSet,
-                basename='firm_expense_from_pharmacy')
-router.register('firms/expenses/from-debt', FirmFromDebtExpenseAPIViewSet, basename='firm_expense_from_debt')
+router.register('firms/expenses', FirmExpenseAPIViewSet, basename='firm_expense')
 router.register('firms/incomes', FirmIncomeAPIViewSet, basename='firm_income')
 router.register('firms', FirmAPIViewSet, basename='firm')
 
