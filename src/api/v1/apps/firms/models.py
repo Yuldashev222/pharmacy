@@ -39,11 +39,17 @@ class FirmIncome(AbstractIncomeExpense):
     from_firm = models.ForeignKey(Firm, on_delete=models.PROTECT)
     to_pharmacy = models.ForeignKey(Pharmacy, on_delete=models.PROTECT)
     deadline_date = models.DateField(validators=[MinValueValidator(date.today())], blank=True, null=True)
+    remaining_debt = models.IntegerField(default=0)  # last
     paid_on_time = models.BooleanField(default=False)
     is_paid = models.BooleanField(default=False)
 
     def __str__(self):
         return str(self.from_firm)
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            self.remaining_debt = self.price
+        super().save(*args, **kwargs)
 
 
 class FirmExpense(AbstractIncomeExpense):
@@ -69,12 +75,28 @@ class FirmExpense(AbstractIncomeExpense):
         self.verified_firm_worker_name = text_normalize(self.verified_firm_worker_name).title()
         if not self.pk:
             self.verified_code = randint(10000, 99999)
-            message = EskizUz.verify_code_message(
-                verify_code=self.verified_code,
-                firm_name=self.to_firm.name,
-                pharmacy_name=self.from_pharmacy.name,
-                price=self.price,
-                firm_worker_name=self.verified_firm_worker_name
-            )
-            EskizUz.send_sms(phone_number=self.verified_phone_number[1:], message=message)
+
+            incomes = self.to_firm.firmincome_set.filter(is_paid=False).order_by('created_at')
+            temp_price = self.price
+            for income in incomes:
+                if temp_price > 0:
+                    if income.price <= temp_price:
+                        income.is_paid = True
+                        temp_price -= income.price
+                        income.remaining_debt = 0
+                    else:
+                        income.remaining_debt -= temp_price
+                    income.save()
+
+            try:
+                message = EskizUz.verify_code_message(
+                    verify_code=self.verified_code,
+                    firm_name=self.to_firm.name,
+                    pharmacy_name=self.from_pharmacy.name,
+                    price=self.price,
+                    firm_worker_name=self.verified_firm_worker_name
+                )
+                EskizUz.send_sms(phone_number=self.verified_phone_number[1:], message=message)
+            except Exception as e:
+                print(e)
         super().save(*args, **kwargs)

@@ -48,7 +48,7 @@ class FirmExpenseSerializer(serializers.ModelSerializer):
     class Meta:
         model = FirmExpense
         exclude = ('verified_code',)
-        read_only_fields = ('is_verified', 'report_date')
+        read_only_fields = ('is_verified', 'report_date', 'remaining_debt')
 
     def validate(self, attrs):
         user = self.context['request'].user

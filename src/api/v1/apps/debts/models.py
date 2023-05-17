@@ -10,7 +10,7 @@ class DebtToPharmacy(AbstractIncomeExpense):  # aptekaga qarz berdi
     from_who = models.CharField(max_length=500)
     phone_number = models.CharField(max_length=13, blank=True, validators=[uzb_phone_number_validation])
     to_pharmacy = models.ForeignKey(Pharmacy, on_delete=models.PROTECT)
-    to_firm_expense = models.ForeignKey(FirmExpense, on_delete=models.PROTECT, blank=True, null=True)
+    to_firm_expense = models.ForeignKey(FirmExpense, on_delete=models.CASCADE, blank=True, null=True)
     is_paid = models.BooleanField(default=False)
     remaining_debt = models.IntegerField()
 
@@ -24,7 +24,7 @@ class DebtToPharmacy(AbstractIncomeExpense):  # aptekaga qarz berdi
 
 
 class DebtRepayFromPharmacy(AbstractIncomeExpense):  # apteka qarzini qaytardi
-    to_debt = models.ForeignKey(DebtToPharmacy, on_delete=models.PROTECT)
+    to_debt = models.ForeignKey(DebtToPharmacy, on_delete=models.CASCADE)
     from_user = models.ForeignKey('accounts.CustomUser', on_delete=models.PROTECT,
                                   related_name='debt_repays', blank=True, null=True)
 

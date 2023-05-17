@@ -11,6 +11,7 @@ from api.v1.apps.accounts.permissions import NotProjectOwner, IsDirector, IsMana
 
 from . import serializers
 from .models import FirmIncome, FirmExpense
+from .tasks import send_sms_to_director
 
 
 class FirmAPIViewSet(ModelViewSet):
