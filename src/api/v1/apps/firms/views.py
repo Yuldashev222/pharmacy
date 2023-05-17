@@ -73,7 +73,7 @@ class FirmExpenseAPIViewSet(CreateModelMixin, ReadOnlyModelViewSet):
             )
         else:
             queryset = FirmExpense.objects.filter(creator__director_id=user.director_id)
-        return queryset.filter().order_by('-created_at')
+        return queryset.filter(is_verified=True).order_by('-created_at')
 
 
 class FirmExpenseVerify(CreateModelMixin, GenericViewSet):

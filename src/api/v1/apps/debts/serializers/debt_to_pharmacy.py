@@ -27,9 +27,6 @@ class DebtToPharmacySerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         to_firm_expense = attrs.get('to_firm_expense')
 
-        if attrs['to_pharmacy'].director_id != user.director_id:
-            raise ValidationError({'to_pharmacy': 'not found'})
-
         if to_firm_expense and to_firm_expense.creator.director_id != user.director_id:
             raise ValidationError({'to_firm_expense': 'not found'})
 

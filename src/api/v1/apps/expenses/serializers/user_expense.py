@@ -13,12 +13,6 @@ class UserExpenseSerializer(serializers.ModelSerializer):
     transfer_type_name = serializers.StringRelatedField(source='transfer_type', read_only=True)
     expense_type_name = serializers.StringRelatedField(source='expense_type', read_only=True)
 
-    def validate(self, attrs):
-        to_user = attrs.get('to_user')
-        if to_user and attrs['from_user'].id == to_user.id:
-            raise ValidationError({'to_user': 'not found'})
-        return attrs
-
 
 class WorkerUserExpenseSerializer(UserExpenseSerializer):
     class Meta:
