@@ -100,3 +100,5 @@ class FirmExpense(AbstractIncomeExpense):
             except Exception as e:
                 print(e)
         super().save(*args, **kwargs)
+
+
