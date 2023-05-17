@@ -42,6 +42,7 @@ class FirmIncome(AbstractIncomeExpense):
     remaining_debt = models.IntegerField(default=0)  # last
     paid_on_time = models.BooleanField(default=False)
     is_paid = models.BooleanField(default=False)
+    is_transfer_return = models.BooleanField(default=True)
 
     def __str__(self):
         return str(self.from_firm)
@@ -102,3 +103,18 @@ class FirmExpense(AbstractIncomeExpense):
         super().save(*args, **kwargs)
 
 
+class FirmReport(models.Model):
+    income = models.ForeignKey(FirmIncome, on_delete=models.CASCADE, blank=True, null=True)
+    expense = models.ForeignKey(FirmExpense, on_delete=models.CASCADE, blank=True, null=True)
+    firm_worker = models.CharField(max_length=50)
+    pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE)
+    firm = models.ForeignKey(Firm, on_delete=models.CASCADE)
+    creator = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE)
+    firm_worker_phone_number = models.CharField(max_length=13, blank=True)
+    report_date = models.DateField()
+    created_at = models.DateTimeField()
+    price = models.IntegerField()
+    is_transfer = models.BooleanField()
+
+    def __str__(self):
+        return str(self.firm)
