@@ -1,11 +1,9 @@
 from collections import OrderedDict
-
-from django.db.models import Sum
-from rest_framework import filters
 from rest_framework import serializers
-from rest_framework.pagination import LimitOffsetPagination
+from django.db.models import Sum
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
+from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
 
 from api.v1.apps.firms.models import FirmReport
@@ -21,11 +19,10 @@ class FirmReportSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class CustomLimitOffsetPagination(LimitOffsetPagination):
-
+class CustomPageNumberPagination(PageNumberPagination):
     def get_paginated_response(self, data, dct):
         return Response(OrderedDict([
-            ('count', self.count),
+            ('count', self.page.paginator.count),
             ('income_not_transfer_total_price', dct['income_not_transfer_total_price']),
             ('income_transfer_total_price', dct['income_transfer_total_price']),
             ('expense_not_transfer_total_price', dct['expense_not_transfer_total_price']),
@@ -36,7 +33,7 @@ class CustomLimitOffsetPagination(LimitOffsetPagination):
 
 
 class FirmReportAPIView(ReadOnlyModelViewSet):
-    pagination_class = CustomLimitOffsetPagination
+    pagination_class = CustomPageNumberPagination
     serializer_class = FirmReportSerializer
     queryset = FirmReport.objects.all()
     filter_backends = [DjangoFilterBackend]

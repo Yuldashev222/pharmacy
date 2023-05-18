@@ -1,3 +1,5 @@
+from datetime import date
+
 from rest_framework import mixins
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -8,6 +10,7 @@ from api.v1.apps.firms.models import Firm
 from api.v1.apps.accounts.models import CustomUser
 from api.v1.apps.expenses.models import ExpenseType
 from api.v1.apps.pharmacies.models import Pharmacy
+from api.v1.apps.pharmacies.services import get_remainder
 from api.v1.apps.accounts.permissions import IsDirector, NotProjectOwner, IsManager
 
 from .models import Company, TransferMoneyType
@@ -47,6 +50,7 @@ def company_details(request, *args, **kwargs):
         'firms': Firm.objects.filter(director_id=user.director_id).values('id', 'name').order_by('-id')
     }
     if user.is_worker:
+        data['remainder'] = get_remainder(report_date=date.today(), shift=user.shift, pharmacy_id=user.pharmacy_id)
         data['pharmacies'] = Pharmacy.objects.filter(id=user.pharmacy_id).values('id', 'name').order_by('-id')
     else:
         data['pharmacies'] = Pharmacy.objects.filter(director_id=user.director_id).values('id', 'name').order_by('-id')

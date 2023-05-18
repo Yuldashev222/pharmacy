@@ -39,7 +39,7 @@ class DebtToPharmacyAPIView(ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.is_worker:
-            queryset = DebtToPharmacy.objects.filter(to_pharmacy_id=user.pharmacy_id)
+            queryset = DebtToPharmacy.objects.filter(to_pharmacy_id=user.pharmacy_id, is_paid=False)
         else:
             queryset = DebtToPharmacy.objects.filter(to_pharmacy__director_id=user.director_id)
         queryset = queryset.exclude(

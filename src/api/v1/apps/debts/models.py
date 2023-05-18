@@ -1,7 +1,6 @@
 from django.db import models
 
 from api.v1.apps.firms.models import FirmExpense
-from api.v1.apps.pharmacies.models import Pharmacy
 from api.v1.apps.companies.validators import uzb_phone_number_validation
 from api.v1.apps.companies.models import AbstractIncomeExpense, TransferMoneyType
 
@@ -9,7 +8,7 @@ from api.v1.apps.companies.models import AbstractIncomeExpense, TransferMoneyTyp
 class DebtToPharmacy(AbstractIncomeExpense):  # aptekaga qarz berdi
     from_who = models.CharField(max_length=500)
     phone_number = models.CharField(max_length=13, blank=True, validators=[uzb_phone_number_validation])
-    to_pharmacy = models.ForeignKey(Pharmacy, on_delete=models.PROTECT)
+    to_pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.PROTECT)
     to_firm_expense = models.ForeignKey(FirmExpense, on_delete=models.CASCADE, blank=True, null=True)
     is_paid = models.BooleanField(default=False)
     remaining_debt = models.IntegerField()
@@ -35,7 +34,7 @@ class DebtRepayFromPharmacy(AbstractIncomeExpense):  # apteka qarzini qaytardi
 class DebtFromPharmacy(AbstractIncomeExpense):  # apteka qarz berdi
     is_paid = models.BooleanField(default=False)
     is_client = models.BooleanField(default=True)
-    from_pharmacy = models.ForeignKey(Pharmacy, on_delete=models.PROTECT)
+    from_pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.PROTECT)
     to_who = models.CharField(max_length=500)
     phone_number = models.CharField(max_length=13, blank=True, validators=[uzb_phone_number_validation])
     remaining_debt = models.IntegerField()

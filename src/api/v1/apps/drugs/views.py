@@ -1,3 +1,5 @@
+from rest_framework import filters
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 
@@ -8,6 +10,10 @@ from .serializers import WorkerDrugSerializer, DirectorManagerDrugSerializer
 
 
 class DrugAPIViewSet(ModelViewSet):
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['pharmacy']
+    search_fields = ['name', 'manufacturer', 'desc']
+
     def perform_create(self, serializer):
         user = self.request.user
         if user.is_worker:

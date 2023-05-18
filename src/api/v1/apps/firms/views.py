@@ -1,10 +1,11 @@
 from datetime import date
 from rest_framework import status
 from rest_framework.mixins import CreateModelMixin
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet, GenericViewSet
+from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet, GenericViewSet
+from rest_framework.filters import SearchFilter
 
 from api.v1.apps.accounts.permissions import NotProjectOwner, IsDirector, IsManager
 
@@ -13,6 +14,8 @@ from .models import FirmIncome, FirmExpense
 
 
 class FirmAPIViewSet(ModelViewSet):
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['name', 'phone_number1', 'phone_number2', 'phone_number3', 'address', 'desc']
     serializer_class = serializers.FirmSerializer
 
     def perform_create(self, serializer):
@@ -34,6 +37,11 @@ class FirmIncomeAPIViewSet(ModelViewSet):
     serializer_class = serializers.FirmIncomeSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['is_paid', 'report_date']
+
+    def get_serializer_class(self):
+        if self.action in ('update', 'partial_update'):
+            return serializers.FirmIncomeUpdateSerializer
+        return serializers.FirmIncomeSerializer
 
     def get_permissions(self):
         permission_classes = [IsAuthenticated, NotProjectOwner]

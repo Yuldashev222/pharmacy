@@ -20,3 +20,4 @@ def send_sms_to_director():
                       f'{income.price - income.remaining_debt} so\'m qoldi. ' \
                       f'Qarzni to\'liq qaytarish muddatiga 3 kun qoldi.'
             EskizUz.send_sms(phone_number=director.phone_number, message=message)
+

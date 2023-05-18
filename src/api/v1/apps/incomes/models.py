@@ -1,14 +1,12 @@
 from django.db import models
 
-from api.v1.apps.accounts.models import CustomUser
-from api.v1.apps.pharmacies.models import Pharmacy
 from api.v1.apps.companies.models import TransferMoneyType, AbstractIncomeExpense
 
 
 class PharmacyIncome(AbstractIncomeExpense):
-    to_pharmacy = models.ForeignKey(Pharmacy, on_delete=models.PROTECT)
+    to_pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.PROTECT)
     to_user = models.ForeignKey(
-        CustomUser, on_delete=models.PROTECT,
+        'accounts.CustomUser', on_delete=models.PROTECT,
         related_name='pharmacy_incomes', blank=True, null=True
     )
 

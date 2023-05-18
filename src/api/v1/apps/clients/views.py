@@ -1,3 +1,5 @@
+from rest_framework import filters
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 
@@ -8,7 +10,9 @@ from .serializers import ClientSerializer
 
 
 class ClientAPIViewSet(ModelViewSet):
-    queryset = Client.objects.all()
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['pharmacy']
+    search_fields = ['phone_number1', 'phone_number2', 'first_name', 'last_name', 'bio', 'birthdate', 'address']
     serializer_class = ClientSerializer
 
     def perform_create(self, serializer):

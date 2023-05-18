@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from .models import Firm, FirmIncome, FirmExpense
+from .models import Firm, FirmIncome, FirmExpense, FirmReport
 from .services import EskizUz
 
 
@@ -24,7 +24,7 @@ class FirmIncomeSerializer(serializers.ModelSerializer):
     class Meta:
         model = FirmIncome
         fields = '__all__'
-        read_only_fields = ('paid_on_time', 'is_paid')
+        read_only_fields = ('is_paid', 'remaining_debt')
 
     def validate(self, attrs):
         user = self.context['request'].user
@@ -35,6 +35,34 @@ class FirmIncomeSerializer(serializers.ModelSerializer):
         if attrs['to_pharmacy'].director_id != user.director_id:
             raise ValidationError({'to_pharmacy': 'not found'})
 
+        return attrs
+
+
+class FirmIncomeUpdateSerializer(FirmIncomeSerializer):
+    class Meta:
+        model = FirmIncome
+        fields = '__all__'
+        read_only_fields = ('is_paid', 'remaining_debt', 'from_firm', 'to_pharmacy')
+
+    def update(self, instance, validated_data):
+        if validated_data:
+            firm_report = FirmReport.objects.get(income_id=instance.id)
+            firm_report.shift = validated_data.get('shift', instance.shift)
+            firm_report.report_date = validated_data.get('report_date', instance.report_date)
+            firm_report.is_transfer = validated_data.get('is_transfer_return', instance.is_transfer_return)
+
+            new_price = validated_data.get('price')
+            if new_price and instance.price != new_price:
+                instance.remaining_debt += new_price - instance.price
+                if instance.remaining_debt <= 0:
+                    instance.is_paid = True
+                else:
+                    instance.is_paid = False
+                firm_report.price = new_price
+            firm_report.save()
+        return super().update(instance, validated_data)
+
+    def validate(self, attrs):
         return attrs
 
 
