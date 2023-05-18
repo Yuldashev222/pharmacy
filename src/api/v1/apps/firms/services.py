@@ -2,7 +2,7 @@ import math
 import requests
 from django.db import models
 from django.conf import settings
-
+print(settings.ESKIZ_UZ_PASSWORD, settings.ESKIZ_UZ_EMAIL)
 
 def firm_logo_upload_location(obj, logo):
     return f'firms/{obj.name[:200]}/logos/{logo}'
@@ -119,4 +119,4 @@ class EskizUz:
                 headers={'AUTHORIZATION': 'Bearer ' + cls.ESKIZ_UZ_TOKEN},
                 data=data
             )
-        return response.status_code
+        return response.text

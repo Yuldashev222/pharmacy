@@ -13,7 +13,7 @@ from ..serializers import debt_from_pharmacy, debt_repay_to_pharmacy
 
 class DebtFromPharmacyAPIView(ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    filterset_fields = ['is_paid', 'report_date', 'shift']
+    filterset_fields = ['is_paid', 'report_date', 'shift', 'is_client']
     search_fields = ['to_who', 'desc']
 
     def get_permissions(self):
@@ -49,7 +49,7 @@ class DebtFromPharmacyAPIView(ModelViewSet):
 
 class DebtRepayToPharmacyAPIView(ModelViewSet):
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['report_date', 'shift']
+    filterset_fields = ['report_date', 'shift', 'from_debt__is_client']
 
     def get_permissions(self):
         permission_classes = [IsAuthenticated, NotProjectOwner]
