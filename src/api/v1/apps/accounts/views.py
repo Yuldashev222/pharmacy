@@ -1,3 +1,4 @@
+from rest_framework import filters
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from django_filters.rest_framework import DjangoFilterBackend
@@ -35,10 +36,11 @@ class WorkerCreateAPIView(CreateAPIView):
 
 
 class UserReadOnlyAPIView(ReadOnlyModelViewSet):
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['role', 'shift', 'pharmacy']
+    search_fields = ['first_name', 'last_name', 'bio', 'address']
     serializer_class = user_serializers.UserReadOnlySerializer
     permission_classes = [IsAuthenticated]
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['role', 'shift', 'pharmacy', 'director']
 
     def get_queryset(self):
         user = self.request.user

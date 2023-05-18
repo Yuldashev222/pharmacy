@@ -1,3 +1,5 @@
+from rest_framework import filters
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 
@@ -8,6 +10,8 @@ from .serializers import PharmacySerializer
 
 
 class PharmacyAPIViewSet(ModelViewSet):
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    search_fields = ['name', 'desc']
     serializer_class = PharmacySerializer
 
     def perform_create(self, serializer):

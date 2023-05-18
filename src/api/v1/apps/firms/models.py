@@ -3,7 +3,6 @@ from django.db import models
 from datetime import date, timedelta, datetime
 from django.core.validators import MinValueValidator
 
-from api.v1.apps.pharmacies.models import Pharmacy
 from api.v1.apps.companies.services import text_normalize
 from api.v1.apps.companies.validators import uzb_phone_number_validation
 from api.v1.apps.companies.models import AbstractIncomeExpense
@@ -37,10 +36,9 @@ class FirmIncome(AbstractIncomeExpense):
     transfer_type = None
 
     from_firm = models.ForeignKey(Firm, on_delete=models.PROTECT)
-    to_pharmacy = models.ForeignKey(Pharmacy, on_delete=models.PROTECT)
+    to_pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.PROTECT)
     deadline_date = models.DateField(validators=[MinValueValidator(date.today())], blank=True, null=True)
     remaining_debt = models.IntegerField(default=0)  # last
-    paid_on_time = models.BooleanField(default=False)
     is_paid = models.BooleanField(default=False)
     is_transfer_return = models.BooleanField(default=True)
 
@@ -55,7 +53,7 @@ class FirmIncome(AbstractIncomeExpense):
 
 class FirmExpense(AbstractIncomeExpense):
     to_firm = models.ForeignKey(Firm, on_delete=models.PROTECT)
-    from_pharmacy = models.ForeignKey(Pharmacy, on_delete=models.PROTECT)
+    from_pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.PROTECT)
     is_verified = models.BooleanField(default=False)
     verified_code = models.PositiveIntegerField()
     verified_phone_number = models.CharField(max_length=13, validators=[uzb_phone_number_validation])
@@ -107,7 +105,7 @@ class FirmReport(models.Model):
     income = models.ForeignKey(FirmIncome, on_delete=models.CASCADE, blank=True, null=True)
     expense = models.ForeignKey(FirmExpense, on_delete=models.CASCADE, blank=True, null=True)
     firm_worker = models.CharField(max_length=50)
-    pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE)
+    pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE)
     firm = models.ForeignKey(Firm, on_delete=models.CASCADE)
     creator = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE)
     firm_worker_phone_number = models.CharField(max_length=13, blank=True)

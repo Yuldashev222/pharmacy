@@ -1,6 +1,4 @@
-from datetime import date
 from rest_framework import serializers
-from django.core.validators import MaxValueValidator
 from rest_framework.exceptions import ValidationError
 
 from ..models import DebtToPharmacy
@@ -14,6 +12,12 @@ class DebtToPharmacySerializer(serializers.ModelSerializer):
     expense_type_name = serializers.StringRelatedField(source='expense_type', read_only=True)
 
     def update(self, instance, validated_data):
+
+        if validated_data.get('to_pharmacy'):
+            del validated_data['to_pharmacy']
+        if validated_data.get('to_firm_expense'):
+            del validated_data['to_firm_expense']
+
         new_price = validated_data.get('price')
         if new_price and instance.price != new_price:
             instance.remaining_debt += new_price - instance.price
