@@ -25,18 +25,3 @@ class Pharmacy(models.Model):
     class Meta:
         verbose_name = 'Pharmacy'
         verbose_name_plural = 'Pharmacies'
-
-
-class Check(models.Model):
-    price = models.IntegerField(default=0)
-    pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE)
-    report_date = models.DateField()
-    shift = models.IntegerField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    creator = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True)
-
-    class Meta:
-        unique_together = ['pharmacy', 'shift', 'pharmacy']
-
-    def __str__(self):
-        return str(self.price)

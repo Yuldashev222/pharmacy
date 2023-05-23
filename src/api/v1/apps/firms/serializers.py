@@ -73,6 +73,7 @@ class FirmExpenseSerializer(serializers.ModelSerializer):
     to_firm_name = serializers.StringRelatedField(source='to_firm', read_only=True)
     from_user_name = serializers.StringRelatedField(source='from_user', read_only=True)
     transfer_type_name = serializers.StringRelatedField(source='transfer_type', read_only=True)
+
     class Meta:
         model = FirmExpense
         exclude = ('verified_code',)
@@ -121,8 +122,10 @@ class FirmExpenseVerifySerializer(serializers.Serializer):
             firm_expense.delete()
             raise ValidationError({'code': 'Not Valid'})
 
+        verified_firm_worker_name = ' '.join([i for i in firm_expense.verified_firm_worker_name if i.isalpha()])
+
         message = EskizUz.success_message(
-            firm_worker_name=firm_expense.verified_firm_worker_name,
+            firm_worker_name=verified_firm_worker_name,
             price=firm_expense.price
         )
         EskizUz.send_sms(phone_number=firm_expense.verified_phone_number[1:], message=message)

@@ -7,9 +7,10 @@ from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework.decorators import api_view, permission_classes
 
 from api.v1.apps.firms.models import Firm
+from api.v1.apps.receipts.models import Receipt
 from api.v1.apps.accounts.models import CustomUser
 from api.v1.apps.expenses.models import ExpenseType
-from api.v1.apps.pharmacies.models import Pharmacy, Check
+from api.v1.apps.pharmacies.models import Pharmacy
 from api.v1.apps.pharmacies.services import get_remainder
 from api.v1.apps.accounts.permissions import IsDirector, NotProjectOwner, IsManager
 
@@ -54,9 +55,9 @@ def company_details(request, *args, **kwargs):
         data['pharmacies'] = Pharmacy.objects.filter(id=user.pharmacy_id).values('id', 'name').order_by('-id')
 
         try:
-            check = Check.objects.get(report_date=date.today(), shift=user.shift, pharmacy_id=user.pharmacy_id)
+            check = Receipt.objects.get(report_date=date.today(), shift=user.shift, pharmacy_id=user.pharmacy_id)
             data['check'] = check.price
-        except Check.DoesNotExist:
+        except Receipt.DoesNotExist:
             data['check'] = 0
     else:
         report_date = request.query_params.get('report_date')
@@ -67,9 +68,9 @@ def company_details(request, *args, **kwargs):
             data['remainder'] = get_remainder(report_date=report_date, shift=shift, pharmacy_id=pharmacy_id)
 
             try:
-                check = Check.objects.get(report_date=report_date, shift=shift, pharmacy_id=pharmacy_id)
+                check = Receipt.objects.get(report_date=report_date, shift=shift, pharmacy_id=pharmacy_id)
                 data['check'] = check.price
-            except Check.DoesNotExist:
+            except Receipt.DoesNotExist:
                 data['check'] = 0
 
         data['pharmacies'] = Pharmacy.objects.filter(director_id=user.director_id).values('id', 'name').order_by('-id')

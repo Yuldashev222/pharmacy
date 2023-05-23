@@ -98,6 +98,7 @@ INSTALLED_APPS = [
     'api.v1.apps.reports.apps.ReportsConfig',
     'api.v1.apps.clients.apps.ClientsConfig',
     'api.v1.apps.drugs.apps.DrugsConfig',
+    'api.v1.apps.receipts.apps.ReceiptsConfig',
 ]
 
 # DATABASES = {
@@ -228,5 +229,3 @@ CELERY_TASK_SERIALIZER = 'json'
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""
 CELERY CONFIGURATIONS
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-print(DEBUG)

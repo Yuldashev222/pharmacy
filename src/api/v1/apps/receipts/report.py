@@ -1,28 +1,20 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import serializers
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from api.v1.apps.accounts.permissions import IsDirector, IsManager
-from api.v1.apps.pharmacies.models import Check
+
+from .models import Receipt
+from .serializers import ReceiptReportSerializer
 
 
-class CheckReportSerializer(serializers.Serializer):
-    report_date = serializers.DateField()
-    price = serializers.IntegerField()
-    total_amount = serializers.SerializerMethodField()
-
-    def get_total_amount(self):
-        return 
-
-
-class CheckReportAPIViewSet(ReadOnlyModelViewSet):
+class ReceiptReportAPIViewSet(ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated, (IsDirector | IsManager)]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['report_date', 'shift', 'pharmacy']
-    serializer_class = CheckReportSerializer
+    serializer_class = ReceiptReportSerializer
 
     def get_queryset(self):
         user = self.request.user
-        queryset = Check.objects.filter(creator__director_id=user.director_id)
+        queryset = Receipt.objects.filter(creator__director_id=user.director_id)
         return queryset

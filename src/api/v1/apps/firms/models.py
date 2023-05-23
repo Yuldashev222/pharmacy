@@ -52,6 +52,7 @@ class FirmIncome(AbstractIncomeExpense):
 
 
 class FirmExpense(AbstractIncomeExpense):
+    from_pharmacy_transfer = models.BooleanField(default=False)
     to_firm = models.ForeignKey(Firm, on_delete=models.PROTECT)
     from_pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.PROTECT)
     is_verified = models.BooleanField(default=False)
@@ -70,11 +71,11 @@ class FirmExpense(AbstractIncomeExpense):
         FirmExpense.objects.filter(
             is_verified=False, created_at__lt=datetime.now() - timedelta(minutes=5)
         ).delete()
-
         self.verified_firm_worker_name = text_normalize(self.verified_firm_worker_name).title()
-        if not self.pk:
-            self.verified_code = randint(10000, 99999)
 
+        if not (self.pk or self.from_pharmacy_transfer):
+            self.verified_code = randint(10000, 99999)
+            verified_firm_worker_name = ' '.join([i for i in self.verified_firm_worker_name if i.isalpha()])
             incomes = self.to_firm.firmincome_set.filter(is_paid=False).order_by('created_at')
             temp_price = self.price
             for income in incomes:
@@ -88,16 +89,20 @@ class FirmExpense(AbstractIncomeExpense):
                     income.save()
 
             try:
+                firm_name = ' '.join([i for i in self.to_firm.name if i.isalpha()])
+                pharmacy_name = ' '.join([i for i in self.from_pharmacy.name if i.isalpha()])
+
                 message = EskizUz.verify_code_message(
                     verify_code=self.verified_code,
-                    firm_name=self.to_firm.name,
-                    pharmacy_name=self.from_pharmacy.name,
+                    firm_name=firm_name,
+                    pharmacy_name=pharmacy_name,
                     price=self.price,
-                    firm_worker_name=self.verified_firm_worker_name
+                    firm_worker_name=verified_firm_worker_name
                 )
                 EskizUz.send_sms(phone_number=self.verified_phone_number[1:], message=message)
             except Exception as e:
                 print(e)
+
         super().save(*args, **kwargs)
 
 
