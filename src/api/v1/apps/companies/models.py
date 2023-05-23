@@ -1,7 +1,7 @@
 from datetime import date
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
-
+from django.utils.timezone import now
 from .validators import uzb_phone_number_validation
 from .services import text_normalize, company_logo_upload_location
 
@@ -16,7 +16,7 @@ class TransferMoneyType(models.Model):
 
 class AbstractIncomeExpense(models.Model):
     creator = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True)
-    report_date = models.DateField(validators=[MaxValueValidator(date.today())])
+    report_date = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
     price = models.PositiveIntegerField()
     shift = models.PositiveSmallIntegerField(validators=[MaxValueValidator(3), MinValueValidator(1)])

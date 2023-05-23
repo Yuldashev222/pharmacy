@@ -22,15 +22,13 @@ class WorkerUserExpenseSerializer(UserExpenseSerializer):
 
     def validate(self, attrs):
         user = self.context['request'].user
-        from_user = attrs['from_user']
+        from_user = attrs.get('from_user')
         to_user = attrs.get('to_user')
 
-        if from_user.director_id != user.director_id:
+        if from_user and from_user.director_id != user.director_id:
             raise ValidationError({'from_user': 'not found'})
 
-        if not to_user:
-            attrs['to_pharmacy'] = user.pharmacy
-        elif to_user.director_id != user.director_id:
+        elif to_user and to_user.director_id != user.director_id:
             raise ValidationError({'to_user': 'not found'})
         return super().validate(attrs)
 
@@ -42,18 +40,12 @@ class DirectorManagerUserExpenseSerializer(UserExpenseSerializer):
 
     def validate(self, attrs):
         user = self.context['request'].user
-        from_user = attrs['from_user']
+        from_user = attrs.get('from_user')
         to_user = attrs.get('to_user')
         to_pharmacy = attrs.get('to_pharmacy')
 
-        if user.director_id != from_user.director_id:
+        if from_user and user.director_id != from_user.director_id:
             raise ValidationError({'from_user': 'not found'})
-
-        if not (to_user or to_pharmacy):
-            raise ValidationError('to_user or to_pharmacy field is required.')
-
-        if to_user and to_pharmacy:
-            raise ValidationError('select one of the two fields. (to_user or to_pharmacy )')
 
         if to_user and to_user.director_id != user.director_id:
             raise ValidationError({'to_user': 'not found'})

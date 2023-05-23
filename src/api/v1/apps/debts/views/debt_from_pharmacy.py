@@ -1,4 +1,5 @@
 from datetime import date
+from rest_framework.response import Response
 from rest_framework import filters
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
@@ -13,12 +14,13 @@ from ..serializers import debt_from_pharmacy, debt_repay_to_pharmacy
 
 class DebtFromPharmacyAPIView(ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    filterset_fields = ['is_paid', 'report_date', 'shift', 'is_client']
+    filterset_fields = ['is_paid', 'from_pharmacy', 'report_date', 'shift', 'is_client']
     search_fields = ['to_who', 'desc']
 
     def get_permissions(self):
         permission_classes = [IsAuthenticated, NotProjectOwner]
-        if self.request.user.is_worker and self.action not in ['list', 'retrieve']:  # last
+        user = self.request.user
+        if user.is_authenticated and user.is_worker and self.action not in ['list', 'retrieve']:  # last
             permission_classes += [WorkerTodayObject]
         return [permission() for permission in self.permission_classes]
 
@@ -34,7 +36,8 @@ class DebtFromPharmacyAPIView(ModelViewSet):
             serializer.save()
 
     def get_serializer_class(self):
-        if self.request.user.is_worker:
+        user = self.request.user
+        if user.is_authenticated and user.is_worker:
             return debt_from_pharmacy.WorkerDebtFromPharmacySerializer
         return debt_from_pharmacy.DirectorManagerDebtFromPharmacySerializer
 
@@ -47,13 +50,27 @@ class DebtFromPharmacyAPIView(ModelViewSet):
         return queryset.order_by('-created_at')
 
 
+class TodayDebtFromPharmacyAPIView(DebtFromPharmacyAPIView):
+    pagination_class = None
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'results': serializer.data})
+
+
 class DebtRepayToPharmacyAPIView(ModelViewSet):
+    pagination_class = None
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['report_date', 'shift', 'from_debt__is_client']
+    filterset_fields = ['report_date', 'shift', 'from_debt__is_client', 'from_debt__from_pharmacy']
 
     def get_permissions(self):
         permission_classes = [IsAuthenticated, NotProjectOwner]
-        if self.request.user.is_worker and self.action not in ['list', 'retrieve']:
+        user = self.request.user
+        if user.is_authenticated and user.is_worker and self.action not in ['list', 'retrieve']:
             permission_classes += [WorkerTodayObject]
         return [permission() for permission in self.permission_classes]
 
@@ -73,7 +90,8 @@ class DebtRepayToPharmacyAPIView(ModelViewSet):
         instance.delete()
 
     def get_serializer_class(self):
-        if self.request.user.is_worker:
+        user = self.request.user
+        if user.is_authenticated and user.is_worker:
             return debt_repay_to_pharmacy.WorkerDebtRepayToPharmacySerializer
         return debt_repay_to_pharmacy.DirectorManagerDebtRepayToPharmacySerializer
 
@@ -85,3 +103,10 @@ class DebtRepayToPharmacyAPIView(ModelViewSet):
             queryset = DebtRepayToPharmacy.objects.filter(from_debt__from_pharmacy__director_id=user.director_id)
         return queryset.order_by('-created_at')
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'results': serializer.data})

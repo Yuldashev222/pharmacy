@@ -36,7 +36,7 @@ class FirmAPIViewSet(ModelViewSet):
 class FirmIncomeAPIViewSet(ModelViewSet):
     serializer_class = serializers.FirmIncomeSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['is_paid', 'report_date']
+    filterset_fields = ['is_paid', 'report_date', 'shift', 'to_pharmacy']
 
     def get_serializer_class(self):
         if self.action in ('update', 'partial_update'):
@@ -57,6 +57,8 @@ class FirmIncomeAPIViewSet(ModelViewSet):
 
 class FirmExpenseAPIViewSet(CreateModelMixin, ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated, NotProjectOwner]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['report_date', 'shift', 'from_pharmacy']
 
     def get_serializer_class(self):
         if self.request.user.is_worker:

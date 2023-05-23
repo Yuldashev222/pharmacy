@@ -26,7 +26,7 @@ class UserExpense(AbstractIncomeExpense):
     # select
     to_user = models.ForeignKey('accounts.CustomUser', on_delete=models.PROTECT,
                                 related_name='to_user_expenses', null=True, blank=True)
-    to_pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.PROTECT, blank=True, null=True)
+    to_pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.PROTECT, null=True)  # last
     # -------
 
     def __str__(self):
