@@ -11,7 +11,7 @@ schema_view = get_schema_view(
         license=openapi.License(name='BSD Licence'),
     ),
     public=True,
-    permission_classes=[permissions.IsAuthenticatedOrReadOnly]
+    permission_classes=[permissions.IsAuthenticated]
 )
 
 urlpatterns = [

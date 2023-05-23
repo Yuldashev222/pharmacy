@@ -1,7 +1,8 @@
 from datetime import date
+from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
-
+from django_filters.rest_framework import DjangoFilterBackend
 from api.v1.apps.accounts.permissions import NotProjectOwner
 
 from .models import PharmacyIncome
@@ -12,7 +13,10 @@ from .serializers import (
 
 
 class PharmacyIncomeAPIViewSet(ModelViewSet):
+    pagination_class = None
     permission_classes = [IsAuthenticated, NotProjectOwner]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['report_date', 'shift', 'to_pharmacy']
 
     def perform_create(self, serializer):
         user = self.request.user
@@ -42,3 +46,11 @@ class PharmacyIncomeAPIViewSet(ModelViewSet):
         else:
             queryset = PharmacyIncome.objects.filter(to_pharmacy__director_id=user.director_id)
         return queryset.order_by('-created_at')
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'results': serializer.data})

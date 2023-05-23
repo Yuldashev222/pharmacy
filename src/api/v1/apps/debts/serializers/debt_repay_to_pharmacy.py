@@ -45,7 +45,7 @@ class DirectorManagerDebtRepayToPharmacySerializer(DebtRepayToPharmacySerializer
 
     def validate(self, attrs):
         user = self.context['request'].user
-        if attrs['from_debt'].from_pharmacy.director_id != user.director_id:
+        if attrs.get('from_debt') and attrs['from_debt'].from_pharmacy.director_id != user.director_id:
             raise ValidationError({'from_pharmacy': 'not found'})
         return super().validate(attrs)
 

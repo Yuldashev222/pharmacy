@@ -72,7 +72,7 @@ class FirmExpenseSerializer(serializers.ModelSerializer):
     from_pharmacy_name = serializers.StringRelatedField(source='from_pharmacy', read_only=True)
     to_firm_name = serializers.StringRelatedField(source='to_firm', read_only=True)
     from_user_name = serializers.StringRelatedField(source='from_user', read_only=True)
-
+    transfer_type_name = serializers.StringRelatedField(source='transfer_type', read_only=True)
     class Meta:
         model = FirmExpense
         exclude = ('verified_code',)

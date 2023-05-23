@@ -50,7 +50,7 @@ def company_details(request, *args, **kwargs):
         'firms': Firm.objects.filter(director_id=user.director_id).values('id', 'name').order_by('-id')
     }
     if user.is_worker:
-        data['remainder'] = get_remainder(report_date=date.today(), shift=user.shift, pharmacy_id=user.pharmacy_id)
+        data['remainder'] = get_remainder(report_date=str(date.today()), shift=user.shift, pharmacy_id=user.pharmacy_id)
         data['pharmacies'] = Pharmacy.objects.filter(id=user.pharmacy_id).values('id', 'name').order_by('-id')
 
         try:

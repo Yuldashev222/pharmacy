@@ -50,8 +50,8 @@ class DirectorManagerPharmacyExpenseSerializer(PharmacyExpenseSerializer):
     def validate(self, attrs):
         user = self.context['request'].user
         to_user = attrs.get('to_user')
-
-        if attrs['from_pharmacy'].director_id != user.director_id:
+        from_pharmacy = attrs.get('from_pharmacy')
+        if from_pharmacy and from_pharmacy.director_id != user.director_id:
             raise ValidationError({'from_pharmacy': 'not found'})
 
         if to_user and to_user.director_id != user.director_id:

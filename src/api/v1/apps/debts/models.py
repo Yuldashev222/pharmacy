@@ -1,6 +1,7 @@
 from django.db import models
 
 from api.v1.apps.firms.models import FirmExpense
+from api.v1.apps.expenses.models import UserExpense, PharmacyExpense
 from api.v1.apps.companies.validators import uzb_phone_number_validation
 from api.v1.apps.companies.models import AbstractIncomeExpense, TransferMoneyType
 
@@ -12,6 +13,8 @@ class DebtToPharmacy(AbstractIncomeExpense):  # aptekaga qarz berdi
     to_firm_expense = models.ForeignKey(FirmExpense, on_delete=models.CASCADE, blank=True, null=True)
     is_paid = models.BooleanField(default=False)
     remaining_debt = models.IntegerField()
+    user_expense = models.ForeignKey(UserExpense, on_delete=models.SET_NULL, blank=True, null=True)
+    pharmacy_expense = models.ForeignKey(PharmacyExpense, on_delete=models.SET_NULL, blank=True, null=True)
 
     def save(self, *args, **kwargs):
         if not self.pk:
