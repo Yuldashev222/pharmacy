@@ -1,31 +1,24 @@
-import math
+import requests
 
-birlar = {
-    1: 'bir ',
-    2: 'ikki ',
-    3: 'uch ',
-    4: 'to\'rt ',
-    5: 'besh ',
-    6: 'olti ',
-    7: 'yetti ',
-    8: 'sakkiz ',
-    9: 'to\'qqiz ',
-}
 
-unlar = {
-    1: 'o\'n ',
-    2: 'yigirma ',
-    3: 'o\'ttiz ',
-    4: 'qirq ',
-    5: 'ellik ',
-    6: 'oltmish ',
-    7: 'yetmish ',
-    8: 'sakson ',
-    9: 'to\'qson ',
-}
+message = 'Eslatma: "Navqiron Farm" MCHJ tomonidan 10.10.2022 kuni olingan 50000000 so\'m tovardan qarzingiz 15000000 so\'m qoldi. Qarzni to\'liq qaytarish muddatiga 3 kun qoldi.'
 
-dct = {
-    4: 'ming ',
-    7: 'million ',
-    10: 'milliard ',
+payload = {
+    'email': 'diamondstones81@gmail.com',
+    'password': 'aLOGmzKi5gxD4hNriNaCRfwGxfQMEqM1vOtDzxKe'
 }
+token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOjM5OTMsInJvbGUiOiJ1c2VyIiwiZGF0YSI6eyJpZCI6Mzk5MywibmFtZSI6Ilx1MDQyZlx1MDQyMlx1MDQyMiBYQVlSSVlFVkEgRElMT1JBIFpBUklQT1ZOQSIsImVtYWlsIjoiZGlhbW9uZHN0b25lczgxQGdtYWlsLmNvbSIsInJvbGUiOiJ1c2VyIiwiYXBpX3Rva2VuIjpudWxsLCJzdGF0dXMiOiJhY3RpdmUiLCJzbXNfYXBpX2xvZ2luIjoiZXNraXoyIiwic21zX2FwaV9wYXNzd29yZCI6ImUkJGsheiIsInV6X3ByaWNlIjo1MCwidWNlbGxfcHJpY2UiOjExNSwidGVzdF91Y2VsbF9wcmljZSI6bnVsbCwiYmFsYW5jZSI6Mjk4ODIwLCJpc192aXAiOjAsImhvc3QiOiJzZXJ2ZXIxIiwiY3JlYXRlZF9hdCI6IjIwMjMtMDUtMTJUMTA6NDg6NDguMDAwMDAwWiIsInVwZGF0ZWRfYXQiOiIyMDIzLTA1LTE4VDA1OjU1OjAzLjAwMDAwMFoiLCJ3aGl0ZWxpc3QiOm51bGx9LCJpYXQiOjE2ODQzOTA5ODAsImV4cCI6MTY4Njk4Mjk4MH0.jfny3d-TRE-P__GGxElZhc-33okiMhtUBmyIsilbBxI'
+token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOjM5MjIsInJvbGUiOm51bGwsImRhdGEiOnsiaWQiOjM5MjIsIm5hbWUiOiJPeWJlayBZdWxkYXNoZXYgRmF4cmlkZGluIG8nZydsaSIsImVtYWlsIjoib3liZWt5dWxkYXNob3Y1NEBnbWFpbC5jb20iLCJyb2xlIjpudWxsLCJhcGlfdG9rZW4iOm51bGwsInN0YXR1cyI6ImluZGVidGVkIiwic21zX2FwaV9sb2dpbiI6ImVza2l6MiIsInNtc19hcGlfcGFzc3dvcmQiOiJlJCRrIXoiLCJ1el9wcmljZSI6NTAsInVjZWxsX3ByaWNlIjoxMTUsInRlc3RfdWNlbGxfcHJpY2UiOm51bGwsImJhbGFuY2UiOi0xNzUsImlzX3ZpcCI6MCwiaG9zdCI6InNlcnZlcjEiLCJjcmVhdGVkX2F0IjoiMjAyMy0wNC0yOFQyMToxNjo1MC4wMDAwMDBaIiwidXBkYXRlZF9hdCI6IjIwMjMtMDUtMThUMDU6Mjk6MDUuMDAwMDAwWiIsIndoaXRlbGlzdCI6bnVsbH0sImlhdCI6MTY4NDM5MTI1NiwiZXhwIjoxNjg2OTgzMjU2fQ.j3QXol4BJH5gKCIBtfCRCIDEnb1GmaonoUxjC4aw3dw'
+
+url = "https://notify.eskiz.uz/api/message/sms/send"
+
+payload = {
+    'mobile_phone': '998974068686',
+    'message': 'Eskiz Test',
+    'from': '4546'
+}
+headers = {'AUTHORIZATION': f'Bearer {token}'}
+
+response = requests.request("POST", url, headers=headers, data=payload)
+
+print(response.text)
