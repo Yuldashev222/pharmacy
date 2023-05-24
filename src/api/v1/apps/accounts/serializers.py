@@ -14,7 +14,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = [
-            'phone_number', 'password', 'email', 'first_name',
+            'phone_number', 'password', 'email', 'first_name', 'wage',
             'last_name', 'is_active', 'photo', 'bio', 'address', 'role', 'creator'
         ]
         extra_kwargs = {
@@ -114,7 +114,7 @@ class WorkerUpdateDestroySerializer(DirectorUpdateDestroySerializer):
     class Meta:
         model = CustomUser
         fields = [
-            'id', 'phone_number', 'is_active', 'shift', 'password'
+            'id', 'phone_number', 'is_active', 'shift', 'password', 'wage'
         ]
 
 
