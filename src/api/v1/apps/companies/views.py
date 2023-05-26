@@ -70,6 +70,10 @@ def company_details(request, *args, **kwargs):
             data['employees'] = CustomUser.objects.filter(
                 Q(director_id=user.director_id) & Q(pharmacy__isnull=True) | Q(pharmacy_id=pharmacy_id)
             ).values('id', 'first_name', 'last_name', 'role').order_by('-id')
+        else:
+            data['employees'] = CustomUser.objects.filter(
+                director_id=user.director_id
+            ).values('id', 'first_name', 'last_name', 'role').order_by('-id')
 
         if report_date and shift and pharmacy_id:
             data['remainder'] = get_remainder(report_date=report_date, shift=shift, pharmacy_id=pharmacy_id)
