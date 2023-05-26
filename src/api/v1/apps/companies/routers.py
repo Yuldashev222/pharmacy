@@ -9,7 +9,7 @@ from api.v1.apps.firms.report import FirmReportAPIView
 from api.v1.apps.clients.views import ClientAPIViewSet
 from api.v1.apps.incomes.views import PharmacyIncomeAPIViewSet
 from api.v1.apps.receipts.views import ReceiptCreateUpdateAPIView
-from api.v1.apps.incomes.report import PharmacyIncomeReportDayAPIView
+from api.v1.apps.incomes.report import PharmacyIncomeReportDayAPIView, PharmacyIncomeReportMonthAPIView
 from api.v1.apps.expenses.views import PharmacyExpenseAPIViewSet, PharmacyExpenseTypeAPIViewSet
 from api.v1.apps.pharmacies.views import PharmacyAPIViewSet
 
@@ -24,7 +24,10 @@ router.register('pharmacies/to-debts/repay', debt_from_pharmacy.DebtRepayToPharm
 
 router.register('pharmacies/expenses/types', PharmacyExpenseTypeAPIViewSet, basename='pharmacy_expense_type')
 router.register('pharmacies/receipts', ReceiptCreateUpdateAPIView, basename='pharmacy_receipt')
-router.register('pharmacies/incomes/report', PharmacyIncomeReportDayAPIView, basename='pharmacy_income_report')
+router.register('pharmacies/incomes/reports/days', PharmacyIncomeReportDayAPIView,
+                basename='pharmacy_income_report_day')
+router.register('pharmacies/incomes/reports/months', PharmacyIncomeReportMonthAPIView,
+                basename='pharmacy_income_report_month')
 router.register('pharmacies/incomes', PharmacyIncomeAPIViewSet, basename='pharmacy_income')
 router.register('pharmacies/expenses', PharmacyExpenseAPIViewSet, basename='pharmacy_expense')
 router.register('pharmacies/to-debts/not-pagination', debt_from_pharmacy.TodayDebtFromPharmacyAPIView,

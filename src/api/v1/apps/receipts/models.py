@@ -1,6 +1,6 @@
 from django.db import models
 
-from api.v1.apps.incomes.models import PharmacyIncomeReportDay
+from api.v1.apps.incomes.models import PharmacyIncomeReportDay, PharmacyIncomeReportMonth
 from api.v1.apps.pharmacies.models import Pharmacy
 
 
@@ -20,10 +20,20 @@ class Receipt(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        receipt_price = Receipt.objects.filter(report_date=self.report_date).aggregate(s=models.Sum('price'))['s']
+        receipt_price = Receipt.objects.filter(
+            report_date=self.report_date).aggregate(s=models.Sum('price'))['s']
         PharmacyIncomeReportDay.objects.get_or_create(
             pharmacy_id=self.pharmacy_id,
             report_date=self.report_date,
+            receipt_price=receipt_price,
+            director_id=self.creator.director_id
+        )
+        receipt_price = Receipt.objects.filter(
+            report_date__month=self.report_date.month).aggregate(s=models.Sum('price'))['s']
+        PharmacyIncomeReportMonth.objects.get_or_create(
+            pharmacy_id=self.pharmacy_id,
+            year=self.report_date.year,
+            month=self.report_date.month,
             receipt_price=receipt_price,
             director_id=self.creator.director_id
         )

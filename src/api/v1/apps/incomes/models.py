@@ -14,6 +14,18 @@ class PharmacyIncomeReportDay(models.Model):
         return f'{self.pharmacy}: {self.price}'
 
 
+class PharmacyIncomeReportMonth(models.Model):
+    pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.PROTECT)
+    year = models.IntegerField()
+    month = models.IntegerField()
+    price = models.IntegerField(default=0)
+    receipt_price = models.IntegerField(default=0)
+    director = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.pharmacy}: {self.price}'
+
+
 class PharmacyIncome(AbstractIncomeExpense):
     to_pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.PROTECT)
     to_user = models.ForeignKey(
@@ -27,6 +39,15 @@ class PharmacyIncome(AbstractIncomeExpense):
         PharmacyIncomeReportDay.objects.get_or_create(
             pharmacy_id=self.to_pharmacy_id,
             report_date=self.report_date,
+            price=price,
+            director_id=self.creator.director_id
+        )
+        price = PharmacyIncome.objects.filter(
+            report_date__month=self.report_date.month).aggregate(s=models.Sum('price'))['s']
+        PharmacyIncomeReportMonth.objects.get_or_create(
+            pharmacy_id=self.to_pharmacy_id,
+            year=self.report_date.year,
+            month=self.report_date.month,
             price=price,
             director_id=self.creator.director_id
         )
