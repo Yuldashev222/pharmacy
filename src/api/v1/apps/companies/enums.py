@@ -1,6 +1,12 @@
 from enum import Enum
 
 
+class StaticEnv(Enum):
+    workers_id = 1
+    return_product_id = 2
+    discount_id = 3
+
+
 class Month(Enum):
     jan = "January"
     feb = "February"

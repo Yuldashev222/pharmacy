@@ -1,7 +1,9 @@
 from django.db import models
 
+from api.v1.apps.companies.enums import StaticEnv
 from api.v1.apps.companies.services import text_normalize
 from api.v1.apps.companies.models import AbstractIncomeExpense
+from api.v1.apps.expenses.reports.models import ReturnProductReportMonth
 
 
 class ExpenseType(models.Model):
@@ -27,6 +29,7 @@ class UserExpense(AbstractIncomeExpense):
     to_user = models.ForeignKey('accounts.CustomUser', on_delete=models.PROTECT,
                                 related_name='to_user_expenses', null=True, blank=True)
     to_pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.PROTECT, null=True)  # last
+
     # -------
 
     def __str__(self):
@@ -41,3 +44,20 @@ class PharmacyExpense(AbstractIncomeExpense):
 
     def __str__(self):
         return f'{self.expense_type}: {self.price}'
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.expense_type_id == StaticEnv.return_product_id:
+            price = PharmacyExpense.objects.filter(
+                from_pharmacy_id=self.from_pharmacy_id,
+                report_date__year=self.report_date.year,
+                report_date__month=self.report_date.month
+            ).aggregate(s=models.Sum('price'))['s']
+            obj = ReturnProductReportMonth.objects.get_or_create(
+                pharmacy_id=self.from_pharmacy_id,
+                year=self.report_date.year,
+                month=self.report_date.month,
+                director_id=self.from_pharmacy.director_id
+            )[0]
+            obj.price = price if price else 0
+            obj.save()

@@ -12,31 +12,31 @@ from api.v1.apps.receipts.views import ReceiptCreateUpdateAPIView
 from api.v1.apps.incomes.report import PharmacyIncomeReportDayAPIView, PharmacyIncomeReportMonthAPIView
 from api.v1.apps.expenses.views import PharmacyExpenseAPIViewSet, PharmacyExpenseTypeAPIViewSet
 from api.v1.apps.pharmacies.views import PharmacyAPIViewSet
+from api.v1.apps.expenses.reports.returns import ReturnProductAPIView
 
-from .report import AllPharmacyIncomeReportMonthAPIView
+from .reports.incomes import AllPharmacyIncomeReportMonthAPIView
+from .reports.returns import AllReturnProductReportMonthAPIView
 from .views import TransferMoneyTypeAPIViewSet, CompanyAPIViewSet
 
 router = DefaultRouter()
 
-router.register('pharmacies/debts/repay', debt_to_pharmacy.DebtRepayFromPharmacyAPIView,
-                basename='debt_repay_from_pharmacy')
-router.register('pharmacies/to-debts/repay', debt_from_pharmacy.DebtRepayToPharmacyAPIView,
-                basename='debt_repay_to_pharmacy')
-
-router.register('pharmacies/expenses/types', PharmacyExpenseTypeAPIViewSet, basename='pharmacy_expense_type')
-router.register('pharmacies/receipts', ReceiptCreateUpdateAPIView, basename='pharmacy_receipt')
-router.register('pharmacies/incomes/reports/days', PharmacyIncomeReportDayAPIView,
-                basename='pharmacy_income_report_day')
-router.register('pharmacies/incomes/reports/months', PharmacyIncomeReportMonthAPIView,
-                basename='pharmacy_income_report_month')
-router.register('pharmacies/incomes', PharmacyIncomeAPIViewSet, basename='pharmacy_income')
-router.register('pharmacies/expenses', PharmacyExpenseAPIViewSet, basename='pharmacy_expense')
-router.register('pharmacies/to-debts/not-pagination', debt_from_pharmacy.TodayDebtFromPharmacyAPIView,
-                basename='today_debt_from_pharmacy')
-router.register('pharmacies/to-debts', debt_from_pharmacy.DebtFromPharmacyAPIView, basename='debt_from_pharmacy')
-router.register('pharmacies/debts/not-pagination', debt_to_pharmacy.TodayDebtToPharmacyAPIView,
-                basename='today_debt_to_pharmacy')
+router.register('pharmacies/debts/not-pagination', debt_to_pharmacy.TodayDebtToPharmacyAPIView, basename='today_debt_to_pharmacy')
+router.register('pharmacies/debts/repay', debt_to_pharmacy.DebtRepayFromPharmacyAPIView, basename='debt_repay_from_pharmacy')
 router.register('pharmacies/debts', debt_to_pharmacy.DebtToPharmacyAPIView, basename='debt_to_pharmacy')
+
+router.register('pharmacies/to-debts/not-pagination', debt_from_pharmacy.TodayDebtFromPharmacyAPIView, basename='today_debt_from_pharmacy')
+router.register('pharmacies/to-debts/repay', debt_from_pharmacy.DebtRepayToPharmacyAPIView, basename='debt_repay_to_pharmacy')
+router.register('pharmacies/to-debts', debt_from_pharmacy.DebtFromPharmacyAPIView, basename='debt_from_pharmacy')
+
+router.register('pharmacies/expenses/reports/returns', ReturnProductAPIView, basename='pharmacy_expense_returns')
+router.register('pharmacies/expenses/types', PharmacyExpenseTypeAPIViewSet, basename='pharmacy_expense_type')
+router.register('pharmacies/expenses', PharmacyExpenseAPIViewSet, basename='pharmacy_expense')
+
+router.register('pharmacies/incomes/reports/days', PharmacyIncomeReportDayAPIView, basename='pharmacy_income_report_day')
+router.register('pharmacies/incomes/reports/months', PharmacyIncomeReportMonthAPIView, basename='pharmacy_income_report_month')
+router.register('pharmacies/incomes', PharmacyIncomeAPIViewSet, basename='pharmacy_income')
+
+router.register('pharmacies/receipts', ReceiptCreateUpdateAPIView, basename='pharmacy_receipt')
 router.register('pharmacies', PharmacyAPIViewSet, basename='pharmacy')
 
 router.register('firms/expenses/verify', FirmExpenseVerify, basename='firm_expense_verify')
@@ -45,10 +45,10 @@ router.register('firms/report', FirmReportAPIView, basename='firm_report')
 router.register('firms/incomes', FirmIncomeAPIViewSet, basename='firm_income')
 router.register('firms', FirmAPIViewSet, basename='firm')
 
-router.register('companies/reports/incomes/months', AllPharmacyIncomeReportMonthAPIView,
-                basename='company_income_report_month')
+router.register('companies/reports/expenses/returns', AllReturnProductReportMonthAPIView, basename='company_return_product_report')
+router.register('companies/reports/incomes', AllPharmacyIncomeReportMonthAPIView, basename='company_income_report')
 router.register('companies', CompanyAPIViewSet, basename='company')
+
 router.register('clients', ClientAPIViewSet, basename='client')
 router.register('drugs', DrugAPIViewSet, basename='drug')
-
 router.register('transfers/types', TransferMoneyTypeAPIViewSet, basename='transfer_type')

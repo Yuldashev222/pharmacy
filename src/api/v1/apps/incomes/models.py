@@ -1,6 +1,7 @@
 from django.db import models
 
-from api.v1.apps.companies.models import TransferMoneyType, AbstractIncomeExpense, AllPharmacyIncomeReportMonth
+from api.v1.apps.companies.reports.models import AllPharmacyIncomeReportMonth
+from api.v1.apps.companies.models import TransferMoneyType, AbstractIncomeExpense
 
 
 class PharmacyIncomeReportMonth(models.Model):

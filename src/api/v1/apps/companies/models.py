@@ -4,14 +4,6 @@ from .validators import uzb_phone_number_validation
 from .services import text_normalize, company_logo_upload_location
 
 
-class AllPharmacyIncomeReportMonth(models.Model):
-    year = models.IntegerField()
-    month = models.IntegerField()
-    price = models.IntegerField(default=0)
-    receipt_price = models.IntegerField(default=0)
-    director = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE)
-
-
 class TransferMoneyType(models.Model):
     name = models.CharField(max_length=150)
     director = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, null=True)
