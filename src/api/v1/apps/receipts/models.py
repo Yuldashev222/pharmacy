@@ -1,5 +1,6 @@
 from django.db import models
 
+from api.v1.apps.incomes.models import PharmacyIncomeReportDay
 from api.v1.apps.pharmacies.models import Pharmacy
 
 
@@ -16,3 +17,13 @@ class Receipt(models.Model):
 
     def __str__(self):
         return str(self.price)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        receipt_price = Receipt.objects.filter(report_date=self.report_date).aggregate(s=models.Sum('price'))['s']
+        PharmacyIncomeReportDay.objects.get_or_create(
+            pharmacy_id=self.pharmacy_id,
+            report_date=self.report_date,
+            receipt_price=receipt_price,
+            director_id=self.creator.director_id
+        )
