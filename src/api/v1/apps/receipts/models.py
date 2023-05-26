@@ -22,18 +22,20 @@ class Receipt(models.Model):
         super().save(*args, **kwargs)
         receipt_price = Receipt.objects.filter(
             report_date=self.report_date).aggregate(s=models.Sum('price'))['s']
-        PharmacyIncomeReportDay.objects.get_or_create(
+        obj = PharmacyIncomeReportDay.objects.get_or_create(
             pharmacy_id=self.pharmacy_id,
             report_date=self.report_date,
-            receipt_price=receipt_price,
             director_id=self.creator.director_id
-        )
+        )[0]
+        obj.receipt_price = receipt_price
+        obj.save()
         receipt_price = Receipt.objects.filter(
             report_date__month=self.report_date.month).aggregate(s=models.Sum('price'))['s']
-        PharmacyIncomeReportMonth.objects.get_or_create(
+        obj = PharmacyIncomeReportMonth.objects.get_or_create(
             pharmacy_id=self.pharmacy_id,
             year=self.report_date.year,
             month=self.report_date.month,
-            receipt_price=receipt_price,
             director_id=self.creator.director_id
-        )
+        )[0]
+        obj.receipt_price = receipt_price
+        obj.save()
