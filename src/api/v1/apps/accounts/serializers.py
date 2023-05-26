@@ -50,14 +50,14 @@ class WorkerCreateSerializer(UserCreateSerializer):
 class UserReadOnlySerializer(serializers.ModelSerializer):
     creator = serializers.StringRelatedField(read_only=True)
     director = serializers.StringRelatedField(read_only=True)
-    pharmacy = serializers.StringRelatedField(read_only=True)
+    pharmacy_name = serializers.StringRelatedField(source='pharmacy', read_only=True)
     role = serializers.CharField(source='get_role_display', read_only=True)
 
     class Meta:
         model = CustomUser
         fields = [
             'id', 'phone_number', 'first_name', 'last_name', 'role', 'shift',
-            'creator', 'pharmacy', 'director',
+            'creator', 'pharmacy', 'director', 'pharmacy_name',
             'wage', 'bio', 'photo', 'address', 'email', 'is_active',
             'date_joined',
         ]
