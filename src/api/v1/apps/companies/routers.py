@@ -13,6 +13,7 @@ from api.v1.apps.incomes.report import PharmacyIncomeReportDayAPIView, PharmacyI
 from api.v1.apps.expenses.views import PharmacyExpenseAPIViewSet, PharmacyExpenseTypeAPIViewSet
 from api.v1.apps.pharmacies.views import PharmacyAPIViewSet
 
+from .report import AllPharmacyIncomeReportMonthAPIView
 from .views import TransferMoneyTypeAPIViewSet, CompanyAPIViewSet
 
 router = DefaultRouter()
@@ -44,6 +45,8 @@ router.register('firms/report', FirmReportAPIView, basename='firm_report')
 router.register('firms/incomes', FirmIncomeAPIViewSet, basename='firm_income')
 router.register('firms', FirmAPIViewSet, basename='firm')
 
+router.register('companies/incomes/reports/months', AllPharmacyIncomeReportMonthAPIView,
+                basename='company_income_report_month')
 router.register('companies', CompanyAPIViewSet, basename='company')
 router.register('clients', ClientAPIViewSet, basename='client')
 router.register('drugs', DrugAPIViewSet, basename='drug')

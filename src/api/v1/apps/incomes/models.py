@@ -1,6 +1,6 @@
 from django.db import models
 
-from api.v1.apps.companies.models import TransferMoneyType, AbstractIncomeExpense
+from api.v1.apps.companies.models import TransferMoneyType, AbstractIncomeExpense, AllPharmacyIncomeReportMonth
 
 
 class PharmacyIncomeReportMonth(models.Model):
@@ -21,9 +21,10 @@ class PharmacyIncomeReportMonth(models.Model):
             rs=models.Sum('receipt_price')
         )
         price, receipt_price = data['s'], data['rs']
-        obj = PharmacyIncomeReportMonth.objects.get_or_create(
-            pharmacy_id=self.pharmacy_id, year=self.report_date.year,
-            month=self.report_date.month, director_id=self.director_id
+        obj = AllPharmacyIncomeReportMonth.objects.get_or_create(
+            year=self.year,
+            month=self.month,
+            director_id=self.director_id
         )[0]
         obj.price = price if price else 0
         obj.receipt_price = receipt_price if receipt_price else 0
