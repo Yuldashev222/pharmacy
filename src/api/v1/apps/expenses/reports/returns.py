@@ -70,8 +70,6 @@ class ReturnProductAPIView(ReadOnlyModelViewSet):
 
 
 class ReturnProductReportMonthSerializer(serializers.ModelSerializer):
-    creator = serializers.StringRelatedField()
-
     class Meta:
         model = ReturnProductReportMonth
         fields = ['month', 'price']
@@ -86,5 +84,5 @@ class ReturnProductReportMonthAPIView(ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = ReturnProductReportMonth.objects.filter(director_id=user.director_id, )
+        queryset = ReturnProductReportMonth.objects.filter(director_id=user.director_id)
         return queryset.order_by('month')
