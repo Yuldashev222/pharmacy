@@ -20,7 +20,7 @@ class PharmacyIncomeReportDayAPIView(ReadOnlyModelViewSet):
     serializer_class = PharmacyIncomeReportDaySerializer
     filterset_fields = {
         'report_date': ['year', 'month'],
-        'pharmacy': ['exact']
+        'pharmacy': ['exact'],
     }
 
     def get_queryset(self):
