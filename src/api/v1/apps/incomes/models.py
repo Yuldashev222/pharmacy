@@ -68,7 +68,7 @@ class PharmacyIncome(AbstractIncomeExpense):
         super().save(*args, **kwargs)
         price = PharmacyIncome.objects.filter(
             report_date=self.report_date,
-            pharmacy_id=self.to_pharmacy_id
+            to_pharmacy_id=self.to_pharmacy_id
         ).aggregate(s=models.Sum('price'))['s']
         obj = PharmacyIncomeReportDay.objects.get_or_create(
             pharmacy_id=self.to_pharmacy_id,
