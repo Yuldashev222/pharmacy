@@ -7,7 +7,10 @@ from .models import PharmacyIncome, PharmacyIncomeReportDay
 
 @receiver(post_delete, sender=PharmacyIncome)
 def update_report(instance, *args, **kwargs):
-    price = PharmacyIncome.objects.filter(report_date=instance.report_date).aggregate(s=Sum('price'))['s']
+    price = PharmacyIncome.objects.filter(
+        report_date=instance.report_date,
+        to_pharmacy_id=instance.to_pharmacy_id
+    ).aggregate(s=Sum('price'))['s']
     obj = PharmacyIncomeReportDay.objects.get_or_create(
         pharmacy_id=instance.to_pharmacy_id,
         report_date=instance.report_date,

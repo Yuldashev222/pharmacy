@@ -21,7 +21,9 @@ class Receipt(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         receipt_price = Receipt.objects.filter(
-            report_date=self.report_date).aggregate(s=models.Sum('price'))['s']
+            report_date=self.report_date,
+            pharmacy_id=self.pharmacy_id
+        ).aggregate(s=models.Sum('price'))['s']
         obj = PharmacyIncomeReportDay.objects.get_or_create(
             pharmacy_id=self.pharmacy_id,
             report_date=self.report_date,
