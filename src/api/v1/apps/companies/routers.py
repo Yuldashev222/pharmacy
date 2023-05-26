@@ -45,7 +45,7 @@ router.register('firms/report', FirmReportAPIView, basename='firm_report')
 router.register('firms/incomes', FirmIncomeAPIViewSet, basename='firm_income')
 router.register('firms', FirmAPIViewSet, basename='firm')
 
-router.register('companies/incomes/reports/months', AllPharmacyIncomeReportMonthAPIView,
+router.register('companies/reports/incomes/months', AllPharmacyIncomeReportMonthAPIView,
                 basename='company_income_report_month')
 router.register('companies', CompanyAPIViewSet, basename='company')
 router.register('clients', ClientAPIViewSet, basename='client')

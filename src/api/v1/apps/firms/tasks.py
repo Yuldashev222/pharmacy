@@ -14,14 +14,14 @@ def send_sms_to_director():
     for income in incomes:
         if income.deadline_date - timedelta(days=3) == today_date:
             director = CustomUser.objects.get(id=income.creator.director_id)
-            firm_name = ' '.join(
+            firm_name = ''.join(
                 [i for i in str(income.from_firm) if i.isalpha() or i.isdigit() or i in ' \'']
             )
 
             message = f'Eslatma: "{firm_name}" MCHJ tomonidan ' \
                       f'{income.created_at.strftime("%d.%m.%Y")} kuni olingan ' \
                       f'{income.price} so\'m tovardan qarzingiz ' \
-                      f'{income.price - income.remaining_debt} so\'m qoldi. ' \
+                      f'{income.remaining_debt} so\'m qoldi. ' \
                       f'Qarzni to\'liq qaytarish muddatiga 3 kun qoldi.'
-            EskizUz.send_sms(phone_number=director.phone_number, message=message)
+            EskizUz.send_sms(phone_number=director.phone_number[1:], message=message)
 
