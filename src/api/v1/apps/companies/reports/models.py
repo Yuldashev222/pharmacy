@@ -14,3 +14,10 @@ class AllReturnProductReportMonth(models.Model):
     month = models.IntegerField()
     price = models.IntegerField(default=0)
     director = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE)
+
+
+class AllDiscountProductReportMonth(models.Model):
+    year = models.IntegerField()
+    month = models.IntegerField()
+    price = models.IntegerField(default=0)
+    director = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE)
