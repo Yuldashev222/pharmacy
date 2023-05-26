@@ -47,7 +47,7 @@ class PharmacyExpense(AbstractIncomeExpense):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        if self.expense_type_id == StaticEnv.return_product_id:
+        if self.expense_type_id == StaticEnv.return_product_id.value:
             price = PharmacyExpense.objects.filter(
                 from_pharmacy_id=self.from_pharmacy_id,
                 report_date__year=self.report_date.year,
