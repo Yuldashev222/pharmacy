@@ -3,7 +3,7 @@ from django.db import models
 from api.v1.apps.companies.enums import StaticEnv
 from api.v1.apps.companies.services import text_normalize
 from api.v1.apps.companies.models import AbstractIncomeExpense
-from api.v1.apps.expenses.reports.models import ReturnProductReportMonth
+from api.v1.apps.expenses.reports.models import ReturnProductReportMonth, DiscountProductReportMonth
 
 
 class ExpenseType(models.Model):
@@ -54,6 +54,21 @@ class PharmacyExpense(AbstractIncomeExpense):
                 report_date__month=self.report_date.month
             ).aggregate(s=models.Sum('price'))['s']
             obj = ReturnProductReportMonth.objects.get_or_create(
+                pharmacy_id=self.from_pharmacy_id,
+                year=self.report_date.year,
+                month=self.report_date.month,
+                director_id=self.from_pharmacy.director_id
+            )[0]
+            obj.price = price if price else 0
+            obj.save()
+
+        elif self.expense_type_id == StaticEnv.discount_id.value:
+            price = PharmacyExpense.objects.filter(
+                from_pharmacy_id=self.from_pharmacy_id,
+                report_date__year=self.report_date.year,
+                report_date__month=self.report_date.month
+            ).aggregate(s=models.Sum('price'))['s']
+            obj = DiscountProductReportMonth.objects.get_or_create(
                 pharmacy_id=self.from_pharmacy_id,
                 year=self.report_date.year,
                 month=self.report_date.month,
