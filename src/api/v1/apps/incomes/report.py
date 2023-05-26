@@ -17,8 +17,11 @@ class PharmacyIncomeReportDayAPIView(ReadOnlyModelViewSet):
     pagination_class = None
     permission_classes = [IsAuthenticated, (IsDirector | IsManager)]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['report_date__month', 'report_date__year', 'pharmacy']
     serializer_class = PharmacyIncomeReportDaySerializer
+    filterset_fields = {
+        'report_date': ['year', 'month'],
+        'pharmacy': ['exact']
+    }
 
     def get_queryset(self):
         user = self.request.user
