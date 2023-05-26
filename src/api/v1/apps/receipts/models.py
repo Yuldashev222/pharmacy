@@ -27,15 +27,5 @@ class Receipt(models.Model):
             report_date=self.report_date,
             director_id=self.creator.director_id
         )[0]
-        obj.receipt_price = receipt_price
-        obj.save()
-        receipt_price = Receipt.objects.filter(
-            report_date__month=self.report_date.month).aggregate(s=models.Sum('price'))['s']
-        obj = PharmacyIncomeReportMonth.objects.get_or_create(
-            pharmacy_id=self.pharmacy_id,
-            year=self.report_date.year,
-            month=self.report_date.month,
-            director_id=self.creator.director_id
-        )[0]
-        obj.receipt_price = receipt_price
+        obj.receipt_price = receipt_price if receipt_price else 0
         obj.save()
