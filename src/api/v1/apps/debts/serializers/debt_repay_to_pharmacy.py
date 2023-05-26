@@ -13,6 +13,8 @@ class DebtRepayToPharmacySerializer(serializers.ModelSerializer):
     transfer_type_name = serializers.StringRelatedField(source='transfer_type', read_only=True)
     expense_type_name = serializers.StringRelatedField(source='expense_type', read_only=True)
     is_client = serializers.BooleanField(source='from_debt.is_client', read_only=True)
+    remaining_debt = serializers.IntegerField(source='from_debt.remaining_debt', read_only=True)
+    total_debt = serializers.IntegerField(source='from_debt.price', read_only=True)
 
     def create(self, validated_data):
         from_debt = validated_data['from_debt']

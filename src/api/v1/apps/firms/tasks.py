@@ -12,9 +12,11 @@ def send_sms_to_director():
     incomes = FirmIncome.objects.filter(deadline_date__isnull=False, is_paid=False)
     today_date = date.today()
     for income in incomes:
-        if income.deadline_date - timedelta(days=1) == today_date:
+        if income.deadline_date - timedelta(days=3) == today_date:
             director = CustomUser.objects.get(id=income.creator.director_id)
-            firm_name = ' '.join([i for i in str(income.from_firm) if i.isalpha()])
+            firm_name = ' '.join(
+                [i for i in str(income.from_firm) if i.isalpha() or i.isdigit() or i in ' \'']
+            )
 
             message = f'Eslatma: "{firm_name}" MCHJ tomonidan ' \
                       f'{income.created_at.strftime("%d.%m.%Y")} kuni olingan ' \
@@ -22,3 +24,4 @@ def send_sms_to_director():
                       f'{income.price - income.remaining_debt} so\'m qoldi. ' \
                       f'Qarzni to\'liq qaytarish muddatiga 3 kun qoldi.'
             EskizUz.send_sms(phone_number=director.phone_number, message=message)
+
