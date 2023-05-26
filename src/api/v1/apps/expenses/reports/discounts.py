@@ -52,7 +52,10 @@ class DiscountProductAPIView(ReadOnlyModelViewSet):
         year = request.query_params.get('report_date__year')
         total_month_price = None
         if month and year:
-            total_month_price = DiscountProductReportMonth.objects.get(month=month, year=year).price
+            try:
+                total_month_price = DiscountProductReportMonth.objects.get(month=month, year=year).price
+            except DiscountProductReportMonth.DoesNotExist:
+                total_month_price = None
 
         data = {
             'total_month_price': total_month_price,
