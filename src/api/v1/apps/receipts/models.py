@@ -12,7 +12,7 @@ class Receipt(models.Model):
     creator = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True)
 
     class Meta:
-        unique_together = ['pharmacy', 'shift', 'pharmacy']
+        unique_together = ['pharmacy', 'shift', 'report_date']
 
     def __str__(self):
         return str(self.price)

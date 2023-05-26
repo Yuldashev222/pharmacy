@@ -73,35 +73,43 @@ class FirmExpense(AbstractIncomeExpense):
         ).delete()
         self.verified_firm_worker_name = text_normalize(self.verified_firm_worker_name).title()
 
-        if not (self.pk or self.from_pharmacy_transfer):
+        if not self.pk:
             self.verified_code = randint(10000, 99999)
-            verified_firm_worker_name = ' '.join([i for i in self.verified_firm_worker_name if i.isalpha()])
-            incomes = self.to_firm.firmincome_set.filter(is_paid=False).order_by('created_at')
-            temp_price = self.price
-            for income in incomes:
-                if temp_price > 0:
-                    if income.price <= temp_price:
-                        income.is_paid = True
-                        temp_price -= income.price
-                        income.remaining_debt = 0
-                    else:
-                        income.remaining_debt -= temp_price
-                    income.save()
 
-            try:
-                firm_name = ' '.join([i for i in self.to_firm.name if i.isalpha()])
-                pharmacy_name = ' '.join([i for i in self.from_pharmacy.name if i.isalpha()])
-
-                message = EskizUz.verify_code_message(
-                    verify_code=self.verified_code,
-                    firm_name=firm_name,
-                    pharmacy_name=pharmacy_name,
-                    price=self.price,
-                    firm_worker_name=verified_firm_worker_name
+            if not self.from_pharmacy_transfer:
+                verified_firm_worker_name = ''.join(
+                    [i for i in self.verified_firm_worker_name if i.isalpha() or i in ' \'']
                 )
-                EskizUz.send_sms(phone_number=self.verified_phone_number[1:], message=message)
-            except Exception as e:
-                print(e)
+                incomes = self.to_firm.firmincome_set.filter(is_paid=False).order_by('created_at')
+                temp_price = self.price
+                for income in incomes:
+                    if temp_price > 0:
+                        if income.price <= temp_price:
+                            income.is_paid = True
+                            temp_price -= income.price
+                            income.remaining_debt = 0
+                        else:
+                            income.remaining_debt -= temp_price
+                        income.save()
+
+                try:
+                    firm_name = ''.join(
+                        [i for i in self.to_firm.name if i.isalpha() or i.isdigit() or i in ' \'']
+                    )
+                    pharmacy_name = ''.join(
+                        [i for i in self.from_pharmacy.name if i.isalpha() or i.isdigit() or i in ' \'']
+                    )
+
+                    message = EskizUz.verify_code_message(
+                        verify_code=self.verified_code,
+                        firm_name=firm_name,
+                        pharmacy_name=pharmacy_name,
+                        price=self.price,
+                        firm_worker_name=verified_firm_worker_name
+                    )
+                    EskizUz.send_sms(phone_number=self.verified_phone_number[1:], message=message)
+                except Exception as e:
+                    print(e)
 
         super().save(*args, **kwargs)
 
@@ -121,3 +129,4 @@ class FirmReport(models.Model):
 
     def __str__(self):
         return str(self.firm)
+

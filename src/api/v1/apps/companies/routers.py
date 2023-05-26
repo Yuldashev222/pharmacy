@@ -1,5 +1,6 @@
 from rest_framework.routers import DefaultRouter
 
+from api.v1.apps.receipts.views import ReceiptCreateUpdateAPIView
 from api.v1.apps.clients.views import ClientAPIViewSet
 from api.v1.apps.drugs.views import DrugAPIViewSet
 from api.v1.apps.pharmacies.views import PharmacyAPIViewSet
@@ -21,6 +22,7 @@ router.register('pharmacies/to-debts/repay', debt_from_pharmacy.DebtRepayToPharm
                 basename='debt_repay_to_pharmacy')
 
 router.register('pharmacies/expenses/types', PharmacyExpenseTypeAPIViewSet, basename='pharmacy_expense_type')
+router.register('pharmacies/receipts', ReceiptCreateUpdateAPIView, basename='pharmacy_receipt')
 router.register('pharmacies/incomes', PharmacyIncomeAPIViewSet, basename='pharmacy_income')
 router.register('pharmacies/expenses', PharmacyExpenseAPIViewSet, basename='pharmacy_expense')
 router.register('pharmacies/to-debts/not-pagination', debt_from_pharmacy.TodayDebtFromPharmacyAPIView, basename='today_debt_from_pharmacy')
