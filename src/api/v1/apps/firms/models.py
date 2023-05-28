@@ -8,6 +8,7 @@ from api.v1.apps.companies.validators import uzb_phone_number_validation
 from api.v1.apps.companies.models import AbstractIncomeExpense
 
 from .services import firm_logo_upload_location, EskizUz
+from ..accounts.reports.models import WorkerReport
 
 
 class Firm(models.Model):
@@ -36,6 +37,12 @@ class Firm(models.Model):
         super().save(*args, **kwargs)
 
 
+class FirmDebtByDate(models.Model):
+    price = models.IntegerField(default=0)
+    report_date = models.DateField()
+    firm = models.ForeignKey(Firm, on_delete=models.CASCADE)
+
+
 class FirmIncome(AbstractIncomeExpense):
     transfer_type = None
 
@@ -52,7 +59,15 @@ class FirmIncome(AbstractIncomeExpense):
         if not self.pk:
             self.remaining_debt = self.price
         super().save(*args, **kwargs)
-        FirmReport.objects.create(income_id=self.id)
+        firm_report, _ = FirmReport.objects.get_or_create(income_id=self.id)
+
+        firm_report.creator_id = self.creator_id
+        firm_report.firm_id = self.from_firm_id
+        firm_report.created_at = self.created_at
+        firm_report.report_date = self.report_date
+        firm_report.price = self.price
+        firm_report.is_transfer = self.is_transfer_return
+        firm_report.save()
 
         not_transfer_debt = FirmIncome.objects.filter(
             is_paid=False, is_transfer_return=False, from_firm_id=self.from_firm_id
@@ -60,10 +75,15 @@ class FirmIncome(AbstractIncomeExpense):
         transfer_debt = FirmIncome.objects.filter(
             is_paid=False, is_transfer_return=True, from_firm_id=self.from_firm_id
         ).aggregate(s=models.Sum('remaining_debt'))['s']
+        not_transfer_debt = not_transfer_debt if not_transfer_debt else 0
+        transfer_debt = transfer_debt if transfer_debt else 0
+        firm = Firm.objects.get(id=self.from_firm_id)
+        firm.not_transfer_debt = not_transfer_debt
+        firm.transfer_debt = transfer_debt
+        firm.save()
 
-        obj = Firm.objects.get(id=self.from_firm_id)
-        obj.not_transfer_debt = not_transfer_debt if not_transfer_debt else 0
-        obj.transfer_debt = transfer_debt if transfer_debt else 0
+        obj, _ = FirmDebtByDate.objects.get_or_create(report_date=self.report_date, firm_id=self.from_firm_id)
+        obj.price = not_transfer_debt + transfer_debt
         obj.save()
 
 
@@ -96,18 +116,29 @@ class FirmExpense(AbstractIncomeExpense):
             # incomes remaining debt update
             incomes = self.to_firm.firmincome_set.filter(is_paid=False).order_by('created_at')
             temp_price = self.price
-            i = 0
-            while temp_price > 0:
-                income = incomes[i]
-                i += 1
-                if income.remaining_debt <= temp_price:
-                    income.is_paid = True
-                    income.remaining_debt = 0
-                    temp_price -= income.remaining_debt
+            for income in incomes:
+                if temp_price > 0:
+                    if income.remaining_debt <= temp_price:
+                        income.is_paid = True
+                        income.remaining_debt = 0
+                        temp_price -= income.remaining_debt
+                    else:
+                        income.remaining_debt -= temp_price
+                        temp_price = 0
+                    income.save()
                 else:
-                    income.remaining_debt -= temp_price
-                    temp_price = 0
-                income.save()
+                    break
+            if temp_price > 0:
+                firm = Firm.objects.get(id=self.to_firm_id)
+                if self.from_pharmacy_transfer:
+                    firm.transfer_debt -= temp_price
+                else:
+                    firm.not_transfer_debt -= temp_price
+                firm.save()
+
+                obj, _ = FirmDebtByDate.objects.get_or_create(report_date=self.report_date, firm_id=self.to_firm_id)
+                obj.price -= temp_price
+                obj.save()
             # ----------------------------
 
             # send sms
@@ -127,9 +158,41 @@ class FirmExpense(AbstractIncomeExpense):
             # ----------------------
 
         super().save(*args, **kwargs)
-        FirmReport.objects.create(expense_id=self.id)
+
+        if self.from_user:
+            obj, _ = WorkerReport.objects.get_or_create(firm_expense_id=self.id)
+            obj.report_date = self.report_date,
+            obj.price = self.price,
+            obj.creator = self.creator,
+            obj.worker_id = self.from_pharmacy_id,
+            obj.created_at = self.created_at
+            obj.save()
+        else:
+            WorkerReport.objects.filter(firm_expense_id=self.id).delete()
+
+        firm_report, _ = FirmReport.objects.get_or_create(expense_id=self.id)
+        firm_report.creator_id = self.creator_id
+        firm_report.firm_id = self.to_firm_id
+        firm_report.created_at = self.created_at
+        firm_report.report_date = self.report_date
+        firm_report.price = self.price
+        firm_report.is_transfer = self.from_pharmacy_transfer
+        firm_report.pharmacy_id = self.from_pharmacy_id
+        firm_report.verified_phone_number = self.verified_phone_number
+        firm_report.verified_firm_worker_name = self.verified_firm_worker_name
+        firm_report.save()
 
 
 class FirmReport(models.Model):
     income = models.ForeignKey(FirmIncome, on_delete=models.CASCADE, blank=True, null=True)
     expense = models.ForeignKey(FirmExpense, on_delete=models.CASCADE, blank=True, null=True)
+
+    creator = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True)
+    firm = models.ForeignKey(Firm, on_delete=models.CASCADE, null=True)
+    pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.SET_NULL, null=True)
+    verified_phone_number = models.CharField(max_length=13, blank=True)
+    verified_firm_worker_name = models.CharField(max_length=50, blank=True)
+    created_at = models.DateTimeField(null=True)
+    report_date = models.DateField(null=True)
+    price = models.IntegerField(default=0)
+    is_transfer = models.BooleanField(default=False)

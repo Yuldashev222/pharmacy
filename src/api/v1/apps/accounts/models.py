@@ -9,7 +9,7 @@ from api.v1.apps.companies.validators import uzb_phone_number_validation
 
 from .enums import UserRole
 from .services import user_photo_upload_location
-from .managers import CustomUserManager, WorkerManager, DirectorManager, ManagerManager
+from .managers import CustomUserManager
 
 
 class CustomUser(AbstractUser):
@@ -64,24 +64,3 @@ class CustomUser(AbstractUser):
 
     def firms_all(self):
         return Firm.objects.filter(director_id=self.director_id)
-
-
-class Director(CustomUser):
-    objects = DirectorManager()
-
-    class Meta(CustomUser.Meta):
-        proxy = True
-
-
-class Manager(CustomUser):
-    objects = ManagerManager()
-
-    class Meta(CustomUser.Meta):
-        proxy = True
-
-
-class Worker(CustomUser):
-    objects = WorkerManager()
-
-    class Meta(CustomUser.Meta):
-        proxy = True

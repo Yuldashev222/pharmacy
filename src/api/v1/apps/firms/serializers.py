@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from .models import Firm, FirmIncome, FirmExpense, FirmReport
+from .models import Firm, FirmIncome, FirmExpense
 from .services import EskizUz
 
 
@@ -108,10 +108,9 @@ class FirmExpenseVerifySerializer(serializers.Serializer):
             firm_expense.delete()
             raise ValidationError({'code': 'Not Valid'})
 
-        verified_firm_worker_name = ' '.join([i for i in firm_expense.verified_firm_worker_name if i.isalpha()])
-
+        w_name = ''.join([i for i in firm_expense.verified_firm_worker_name if i.isalpha() or i in ' \''])
         message = EskizUz.success_message(
-            firm_worker_name=verified_firm_worker_name,
+            firm_worker_name=w_name,
             price=firm_expense.price
         )
         EskizUz.send_sms(phone_number=firm_expense.verified_phone_number[1:], message=message)

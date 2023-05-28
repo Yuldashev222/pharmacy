@@ -30,18 +30,3 @@ class CustomUserManager(UserManager):
             raise ValueError("Superuser must have is_superuser=True.")
 
         return self._create_user(phone_number, email, password, **extra_fields)
-
-
-class DirectorManager(CustomUserManager):
-    def get_queryset(self):
-        return super().get_queryset().filter(role='d')
-
-
-class ManagerManager(CustomUserManager):
-    def get_queryset(self):
-        return super().get_queryset().filter(role='m')
-
-
-class WorkerManager(CustomUserManager):
-    def get_queryset(self):
-        return super().get_queryset().filter(role='w')

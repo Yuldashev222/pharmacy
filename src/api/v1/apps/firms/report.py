@@ -6,69 +6,74 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
 
-from api.v1.apps.firms.models import FirmReport
+from api.v1.apps.firms.models import FirmReport, FirmIncome, FirmExpense, FirmDebtByDate
 
 
 class FirmReportSerializer(serializers.ModelSerializer):
-    firm = serializers.StringRelatedField()
-    creator = serializers.StringRelatedField()
-    pharmacy = serializers.StringRelatedField(source='expense.from_pharmacy')
+    is_expense = serializers.BooleanField(source='expense')
 
     class Meta:
         model = FirmReport
-        fields = '__all__'
+        exclude = ['expense', 'income']
 
 
 class CustomPageNumberPagination(PageNumberPagination):
-    def get_paginated_response(self, data, dct):
+    def get_paginated_response(self, data):
         return Response(OrderedDict([
             ('count', self.page.paginator.count),
-            ('income_not_transfer_total_price', dct['income_not_transfer_total_price']),
-            ('income_transfer_total_price', dct['income_transfer_total_price']),
-            ('expense_not_transfer_total_price', dct['expense_not_transfer_total_price']),
-            ('expense_transfer_total_price', dct['expense_transfer_total_price']),
-            ('total_debt', dct['total_debt']),
-            ('results', data)
+            ('total_debt_in_start_date', data['totals']['total_debt_in_start_date']),
+            ('income_not_transfer_total_price', data['totals']['income_not_transfer_total_price']),
+            ('income_transfer_total_price', data['totals']['income_transfer_total_price']),
+            ('expense_not_transfer_total_price', data['totals']['expense_not_transfer_total_price']),
+            ('expense_transfer_total_price', data['totals']['expense_transfer_total_price']),
+            ('results', data['data'])
         ]))
 
 
 class FirmReportAPIView(ReadOnlyModelViewSet):
     pagination_class = CustomPageNumberPagination
     serializer_class = FirmReportSerializer
-    queryset = FirmReport.objects.all()
     filter_backends = [DjangoFilterBackend]
     filterset_fields = {
         'report_date': ['gte', 'lte'],
-        'pharmacy_id': ['exact'],
-        'firm_id': ['exact']
+        'pharmacy': ['exact'],
+        'firm': ['exact']
     }
 
-    def get_paginated_response(self, data, dct):
-        return self.paginator.get_paginated_response(data, dct)
+    def get_queryset(self):
+        user = self.request.user
+        return FirmReport.objects.filter(creator__director_id=user.director_id).order_by('report_date')
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset()).order_by('created_at')
+        queryset = self.filter_queryset(self.get_queryset())
+        start_date = request.query_params.get('report_date__gte')
+        firm_id = request.query_params.get('firm')
+        total_debt_in_start_date = 0
+        if start_date and firm_id:
+            try:
+                total_debt_in_start_date = FirmDebtByDate.objects.get(report_date=start_date, firm_id=firm_id).price
+            except FirmDebtByDate.DoesNotExist:
+                pass
+
         income_not_transfer_total_price = queryset.filter(
-            income__isnull=False, is_transfer=False).aggregate(Sum('price'))
+            income__isnull=False, is_transfer=False).aggregate(s=Sum('price'))['s']
         income_transfer_total_price = queryset.filter(
-            income__isnull=False, is_transfer=True).aggregate(Sum('price'))
+            income__isnull=False, is_transfer=True).aggregate(s=Sum('price'))['s']
         expense_not_transfer_total_price = queryset.filter(
-            expense__isnull=False, is_transfer=False).aggregate(Sum('price'))
+            expense__isnull=False, is_transfer=False).aggregate(s=Sum('price'))['s']
         expense_transfer_total_price = queryset.filter(
-            expense__isnull=False, is_transfer=True).aggregate(Sum('price'))
-        total_debt = queryset.filter(
-            income__isnull=False, income__is_paid=False).aggregate(price__sum=Sum('income__remaining_debt'))
-        dct = {
-            'income_not_transfer_total_price': income_not_transfer_total_price['price__sum'],
-            'income_transfer_total_price': income_transfer_total_price['price__sum'],
-            'expense_not_transfer_total_price': expense_not_transfer_total_price['price__sum'],
-            'expense_transfer_total_price': expense_transfer_total_price['price__sum'],
-            'total_debt': total_debt['price__sum'],
+            expense__isnull=False, is_transfer=True).aggregate(s=Sum('price'))['s']
+        totals = {
+            'total_debt_in_start_date': total_debt_in_start_date,
+            'income_not_transfer_total_price': income_not_transfer_total_price if income_not_transfer_total_price else 0,
+            'income_transfer_total_price': income_transfer_total_price if income_transfer_total_price else 0,
+            'expense_not_transfer_total_price': expense_not_transfer_total_price if expense_not_transfer_total_price else 0,
+            'expense_transfer_total_price': expense_transfer_total_price if expense_transfer_total_price else 0
         }
         page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data, dct)
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        serializer = self.get_serializer(page, many=True)
+        data = {
+            'totals': totals,
+            'data': serializer.data
+        }
+        return self.get_paginated_response(data)

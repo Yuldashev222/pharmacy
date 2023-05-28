@@ -7,7 +7,7 @@ from rest_framework.generics import CreateAPIView, RetrieveAPIView, UpdateAPIVie
 from . import serializers as user_serializers
 
 from .enums import UserRole
-from .models import Director, Manager, CustomUser, Worker
+from .models import CustomUser
 from .permissions import IsProjectOwner, IsDirector, IsManager
 
 
@@ -64,7 +64,7 @@ class DirectorUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated, IsProjectOwner]
 
     def get_queryset(self):
-        queryset = Director.objects.all().order_by('-date_joined')
+        queryset = CustomUser.objects.all(role=UserRole.d.name, ).order_by('-date_joined')
         return queryset
 
 
@@ -73,7 +73,7 @@ class ManagerUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated, IsDirector]
 
     def get_queryset(self):
-        return Manager.objects.filter(director_id=self.request.user.director_id).order_by('-date_joined')
+        return CustomUser.objects.filter(role=UserRole.m.name, director_id=self.request.user.director_id).order_by('-date_joined')
 
 
 class WorkerUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
@@ -82,7 +82,7 @@ class WorkerUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        return Worker.objects.filter(director_id=user.director_id).order_by('-date_joined')
+        return CustomUser.objects.filter(role=UserRole.w.name, director_id=user.director_id).order_by('-date_joined')
 
 # director_id 1
 # company_id 1

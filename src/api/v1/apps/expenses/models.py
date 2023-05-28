@@ -1,5 +1,6 @@
 from django.db import models
 
+from api.v1.apps.accounts.reports.models import WorkerReport
 from api.v1.apps.companies.enums import StaticEnv
 from api.v1.apps.companies.services import text_normalize
 from api.v1.apps.companies.models import AbstractIncomeExpense
@@ -32,6 +33,28 @@ class UserExpense(AbstractIncomeExpense):
 
     # -------
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        obj, _ = WorkerReport.objects.get_or_create(user_expense_id=self.id, worker_id=self.from_user_id)
+        obj.report_date = self.report_date,
+        obj.price = self.price,
+        obj.creator = self.creator,
+        obj.worker_id = self.from_user_id,
+        obj.created_at = self.created_at
+        obj.save()
+
+        if self.to_user:
+            obj, _ = WorkerReport.objects.get_or_create(user_expense_id=self.id, worker_id=self.to_user_id)
+            obj.report_date = self.report_date,
+            obj.price = self.price,
+            obj.creator = self.creator,
+            obj.worker_id = self.to_user_id,
+            obj.created_at = self.created_at
+            obj.is_expense = False
+            obj.save()
+        else:
+            WorkerReport.objects.filter(user_expense_id=self.id, worker_id=self.to_user_id).delete()
+
     def __str__(self):
         return f'{self.expense_type}: {self.price}'
 
@@ -47,6 +70,19 @@ class PharmacyExpense(AbstractIncomeExpense):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
+
+        if self.to_user:
+            obj, _ = WorkerReport.objects.get_or_create(pharmacy_expense_id=self.id, worker_id=self.to_user_id)
+            obj.report_date = self.report_date,
+            obj.price = self.price,
+            obj.creator = self.creator,
+            obj.worker_id = self.to_user_id,
+            obj.created_at = self.created_at
+            obj.is_expense = False
+            obj.save()
+        else:
+            WorkerReport.objects.filter(pharmacy_expense_id=self.id, worker_id=self.to_user_id).delete()
+
         if self.expense_type_id == StaticEnv.return_product_id.value:
             price = PharmacyExpense.objects.filter(
                 from_pharmacy_id=self.from_pharmacy_id,

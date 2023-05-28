@@ -1,5 +1,6 @@
 from django.db import models
 
+from api.v1.apps.accounts.reports.models import WorkerReport
 from api.v1.apps.companies.reports.models import AllPharmacyIncomeReportMonth
 from api.v1.apps.companies.models import TransferMoneyType, AbstractIncomeExpense
 
@@ -67,6 +68,19 @@ class PharmacyIncome(AbstractIncomeExpense):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
+
+        if self.to_user:
+            obj, _ = WorkerReport.objects.get_or_create(pharmacy_income_id=self.id)
+            obj.report_date = self.report_date,
+            obj.price = self.price,
+            obj.creator = self.creator,
+            obj.worker_id = self.to_user_id,
+            obj.created_at = self.created_at
+            obj.is_expense = False
+            obj.save()
+        else:
+            WorkerReport.objects.filter(pharmacy_income_id=self.id).delete()
+
         price = PharmacyIncome.objects.filter(
             report_date=self.report_date,
             to_pharmacy_id=self.to_pharmacy_id
