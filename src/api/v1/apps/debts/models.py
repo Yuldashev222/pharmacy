@@ -41,7 +41,7 @@ class DebtRepayFromPharmacy(AbstractIncomeExpense):  # apteka qarzini qaytardi
             obj, _ = WorkerReport.objects.get_or_create(debt_repay_from_pharmacy_id=self.id)
             obj.report_date = self.report_date,
             obj.price = self.price,
-            obj.creator = self.creator,
+            obj.creator_id = self.creator_id,
             obj.worker_id = self.from_user_id,
             obj.created_at = self.created_at
             obj.save()

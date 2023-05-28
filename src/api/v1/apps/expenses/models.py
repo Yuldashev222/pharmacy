@@ -38,7 +38,7 @@ class UserExpense(AbstractIncomeExpense):
         obj, _ = WorkerReport.objects.get_or_create(user_expense_id=self.id, worker_id=self.from_user_id)
         obj.report_date = self.report_date,
         obj.price = self.price,
-        obj.creator = self.creator,
+        obj.creator_id = self.creator_id,
         obj.worker_id = self.from_user_id,
         obj.created_at = self.created_at
         obj.save()
@@ -47,7 +47,7 @@ class UserExpense(AbstractIncomeExpense):
             obj, _ = WorkerReport.objects.get_or_create(user_expense_id=self.id, worker_id=self.to_user_id)
             obj.report_date = self.report_date,
             obj.price = self.price,
-            obj.creator = self.creator,
+            obj.creator_id = self.creator_id,
             obj.worker_id = self.to_user_id,
             obj.created_at = self.created_at
             obj.is_expense = False
@@ -75,7 +75,7 @@ class PharmacyExpense(AbstractIncomeExpense):
             obj, _ = WorkerReport.objects.get_or_create(pharmacy_expense_id=self.id, worker_id=self.to_user_id)
             obj.report_date = self.report_date,
             obj.price = self.price,
-            obj.creator = self.creator,
+            obj.creator_id = self.creator_id,
             obj.worker_id = self.to_user_id,
             obj.created_at = self.created_at
             obj.is_expense = False

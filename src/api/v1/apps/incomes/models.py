@@ -73,7 +73,7 @@ class PharmacyIncome(AbstractIncomeExpense):
             obj, _ = WorkerReport.objects.get_or_create(pharmacy_income_id=self.id)
             obj.report_date = self.report_date,
             obj.price = self.price,
-            obj.creator = self.creator,
+            obj.creator_id = self.creator_id,
             obj.worker_id = self.to_user_id,
             obj.created_at = self.created_at
             obj.is_expense = False

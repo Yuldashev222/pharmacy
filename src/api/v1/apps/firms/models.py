@@ -163,7 +163,7 @@ class FirmExpense(AbstractIncomeExpense):
             obj, _ = WorkerReport.objects.get_or_create(firm_expense_id=self.id)
             obj.report_date = self.report_date,
             obj.price = self.price,
-            obj.creator = self.creator,
+            obj.creator_id = self.creator_id,
             obj.worker_id = self.from_pharmacy_id,
             obj.created_at = self.created_at
             obj.save()
