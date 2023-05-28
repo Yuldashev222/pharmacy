@@ -24,22 +24,22 @@ class WorkerReport(models.Model):
     worker = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(null=True)
 
-    def save(self, *args, **kwargs):
-        try:
-            obj, _ = WorkerReportMonth.objects.get_or_create(
-                month=self.report_date.month,
-                year=self.report_date.year,
-                worker_id=self.worker_id
-            )
-            expense_price, income_price = (
-                WorkerReport.objects.filter(is_expense=True, report_date__year=obj.year, report_date__month=obj.month
-                                            ).aggregate(s=models.Sum('price'))['s'],
-                WorkerReport.objects.filter(is_expense=False, report_date__year=obj.year, report_date__month=obj.month
-                                            ).aggregate(s=models.Sum('price'))['s']
-            )
-            obj.expense_price = expense_price if expense_price else 0
-            obj.income_price = income_price if income_price else 0
-            obj.save()
-        except AttributeError:
-            pass
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     try:
+    #         obj, _ = WorkerReportMonth.objects.get_or_create(
+    #             month=self.report_date.month,
+    #             year=self.report_date.year,
+    #             worker_id=self.worker_id
+    #         )
+    #         expense_price, income_price = (
+    #             WorkerReport.objects.filter(is_expense=True, report_date__year=obj.year, report_date__month=obj.month
+    #                                         ).aggregate(s=models.Sum('price'))['s'],
+    #             WorkerReport.objects.filter(is_expense=False, report_date__year=obj.year, report_date__month=obj.month
+    #                                         ).aggregate(s=models.Sum('price'))['s']
+    #         )
+    #         obj.expense_price = expense_price if expense_price else 0
+    #         obj.income_price = income_price if income_price else 0
+    #         obj.save()
+    #     except AttributeError:
+    #         pass
+    #     super().save(*args, **kwargs)
