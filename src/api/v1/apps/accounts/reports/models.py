@@ -26,8 +26,8 @@ class WorkerReport(models.Model):
 
     def save(self, *args, **kwargs):
         obj, _ = WorkerReportMonth.objects.get_or_create(
-            report_date__month=self.report_date.month,
-            report_date__year=self.report_date.year,
+            month=self.report_date.month,
+            year=self.report_date.year,
             worker_id=self.worker_id
         )
         expense_price, income_price = (
