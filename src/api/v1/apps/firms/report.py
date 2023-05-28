@@ -10,9 +10,9 @@ from api.v1.apps.firms.models import FirmReport
 
 
 class FirmReportSerializer(serializers.ModelSerializer):
-    pharmacy = serializers.StringRelatedField()
     firm = serializers.StringRelatedField()
     creator = serializers.StringRelatedField()
+    pharmacy = serializers.StringRelatedField(source='expense.from_pharmacy')
 
     class Meta:
         model = FirmReport

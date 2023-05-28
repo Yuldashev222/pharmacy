@@ -7,6 +7,7 @@ from .services import pharmacy_logo_upload_location
 
 class Pharmacy(models.Model):
     name = models.CharField(max_length=100)
+    send_sms_name = models.CharField(max_length=100, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     director = models.ForeignKey('accounts.CustomUser', related_name='pharmacies', on_delete=models.PROTECT)
     logo = models.ImageField(upload_to=pharmacy_logo_upload_location, blank=True, null=True)
@@ -17,6 +18,7 @@ class Pharmacy(models.Model):
         return self.name
 
     def save(self, *args, **kwargs):
+        self.send_sms_name = ''.join([i for i in self.name if i.isalpha() or i.isdigit() or i in ' \''])
         self.name = text_normalize(self.name)
         self.address = text_normalize(self.address)
         self.desc = text_normalize(self.desc)

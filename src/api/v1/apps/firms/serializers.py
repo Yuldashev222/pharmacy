@@ -18,7 +18,6 @@ class FirmSerializer(serializers.ModelSerializer):
 class FirmIncomeSerializer(serializers.ModelSerializer):
     creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
     creator_name = serializers.StringRelatedField(source='creator', read_only=True)
-    to_pharmacy_name = serializers.StringRelatedField(source='to_pharmacy', read_only=True)
     from_firm_name = serializers.StringRelatedField(source='from_firm', read_only=True)
 
     class Meta:
@@ -28,13 +27,8 @@ class FirmIncomeSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         user = self.context['request'].user
-
         if attrs['from_firm'].director_id != user.director_id:
             raise ValidationError({'from_firm': 'not found'})
-
-        if attrs['to_pharmacy'].director_id != user.director_id:
-            raise ValidationError({'to_pharmacy': 'not found'})
-
         return attrs
 
 
@@ -42,24 +36,16 @@ class FirmIncomeUpdateSerializer(FirmIncomeSerializer):
     class Meta:
         model = FirmIncome
         fields = '__all__'
-        read_only_fields = ('is_paid', 'remaining_debt', 'from_firm', 'to_pharmacy')
+        read_only_fields = ('is_paid', 'remaining_debt', 'from_firm')
 
     def update(self, instance, validated_data):
-        if validated_data:
-            firm_report = FirmReport.objects.get(income_id=instance.id)
-            firm_report.shift = validated_data.get('shift', instance.shift)
-            firm_report.report_date = validated_data.get('report_date', instance.report_date)
-            firm_report.is_transfer = validated_data.get('is_transfer_return', instance.is_transfer_return)
-
-            new_price = validated_data.get('price')
-            if new_price and instance.price != new_price:
-                instance.remaining_debt += new_price - instance.price
-                if instance.remaining_debt <= 0:
-                    instance.is_paid = True
-                else:
-                    instance.is_paid = False
-                firm_report.price = new_price
-            firm_report.save()
+        new_price = validated_data.get('price')
+        if new_price and instance.price != new_price:
+            instance.remaining_debt += new_price - instance.price
+            if instance.remaining_debt <= 0:
+                instance.is_paid = True
+            else:
+                instance.is_paid = False
         return super().update(instance, validated_data)
 
     def validate(self, attrs):

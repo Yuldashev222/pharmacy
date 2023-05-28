@@ -1,36 +1,20 @@
-from django.db.models.signals import post_save
+from django.db.models import Sum
+from django.db.models.signals import post_delete
 from django.dispatch import receiver
 
-from .models import FirmReport, FirmIncome, FirmExpense
+from .models import FirmIncome, Firm
 
 
-@receiver(post_save, sender=FirmIncome)
-def create_firm_income_expense_report(instance, created, *args, **kwargs):
-    if created:
-        FirmReport.objects.create(
-            pharmacy_id=instance.to_pharmacy_id,
-            firm_id=instance.from_firm_id,
-            creator_id=instance.creator_id,
-            report_date=instance.report_date,
-            created_at=instance.created_at,
-            price=instance.price,
-            is_transfer=instance.is_transfer_return,
-            income_id=instance.id
-        )
+@receiver(post_delete, sender=FirmIncome)
+def update_firm_remaining_debts(instance, *args, **kwargs):
+    not_transfer_debt = FirmIncome.objects.filter(
+        is_paid=False, is_transfer_return=False, from_firm_id=instance.from_firm_id
+    ).aggregate(s=Sum('remaining_debt'))['s']
+    transfer_debt = FirmIncome.objects.filter(
+        is_paid=False, is_transfer_return=True, from_firm_id=instance.from_firm_id
+    ).aggregate(s=Sum('remaining_debt'))['s']
 
-
-@receiver(post_save, sender=FirmExpense)
-def create_firm_income_expense_report(instance, created, *args, **kwargs):
-    if created:
-        FirmReport.objects.create(
-            expense_id=instance.id,
-            firm_worker=instance.verified_firm_worker_name,
-            pharmacy_id=instance.from_pharmacy_id,
-            firm_id=instance.to_firm_id,
-            creator_id=instance.creator_id,
-            firm_worker_phone_number=instance.verified_phone_number,
-            report_date=instance.report_date,
-            created_at=instance.created_at,
-            price=instance.price,
-            is_transfer=False if instance.transfer_type_id == 1 else True,
-        )
+    obj = Firm.objects.get(id=instance.from_firm_id)
+    obj.not_transfer_debt = not_transfer_debt if not_transfer_debt else 0
+    obj.transfer_debt = transfer_debt if transfer_debt else 0
+    obj.save()
