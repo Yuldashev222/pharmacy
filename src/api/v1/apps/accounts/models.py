@@ -60,6 +60,7 @@ class CustomUser(AbstractUser):
 
 class WorkerReportMonth(models.Model):
     worker = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE)
+    pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.SET_NULL, null=True)
     year = models.IntegerField()
     month = models.IntegerField()
     expense_price = models.IntegerField(default=0)
@@ -75,6 +76,7 @@ class WorkerReport(models.Model):
         'debts.DebtRepayFromPharmacy', on_delete=models.CASCADE, null=True, blank=True)
 
     report_date = models.DateField(null=True)
+    pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE, blank=True, null=True)
     price = models.IntegerField(default=0)
     creator = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True, related_name='reports')
     worker = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True)

@@ -11,7 +11,6 @@ from .serializers import WorkerReceiptCreateUpdateSerializer, DirectorManagerRec
 class ReceiptCreateUpdateAPIView(CreateModelMixin,
                                  UpdateModelMixin,
                                  GenericViewSet):
-    serializer_class = None
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['report_date', 'shift', 'pharmacy']
     permission_classes = [IsAuthenticated]

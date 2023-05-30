@@ -11,14 +11,11 @@ from .models import CustomUser, WorkerReport, WorkerReportMonth
 
 @receiver(post_save, sender=CustomUser)
 def create_company(instance, created, *args, **kwargs):
-    if created:
-        if instance.is_director:
-            Company.objects.create(
-                name=f'Company::{instance.first_name}-{instance.last_name}',
-                director_id=instance.id
-            )
-            instance.director_id = instance.id
-            instance.save()
+    if created and instance.is_director:
+        Company.objects.create(
+            name=f'Company::{instance.first_name}-{instance.last_name}', director_id=instance.id)
+        instance.director_id = instance.id
+        instance.save()
 
 
 @receiver(post_delete, sender=CustomUser)
@@ -30,20 +27,20 @@ def delete_photo(instance, *args, **kwargs):
 
 @receiver(pre_save, sender=WorkerReport)
 def update_user_month_report(instance, *args, **kwargs):
-    if not instance.pk:
-        old_worker = WorkerReport.objects.filter(id=instance.id)
-        if old_worker.exists() and instance.worker and instance.worker != old_worker:
-            old_worker = old_worker.first().worker
+    if instance.pk:
+        old_worker = WorkerReport.objects.get(id=instance.id).worker
+        if old_worker and instance.worker and instance.worker_id != old_worker.id:
             obj, _ = WorkerReportMonth.objects.get_or_create(
-                month=instance.report_date.month, year=instance.report_date.year, worker_id=old_worker.id)
+                month=instance.report_date.month, year=instance.report_date.year, worker_id=old_worker.id,
+                pharmacy=instance.pharmacy)
 
             expense_price, income_price = (
                 WorkerReport.objects.filter(
-                    is_expense=True, report_date__year=obj.year, report_date__month=obj.month, worker_id=obj.worker_id
-                ).aggregate(s=Sum('price'))['s'],
+                    is_expense=True, report_date__year=obj.year, report_date__month=obj.month, worker_id=obj.worker_id,
+                    pharmacy=obj.pharmacy).aggregate(s=Sum('price'))['s'],
                 WorkerReport.objects.filter(
-                    is_expense=False, report_date__year=obj.year, report_date__month=obj.month, worker_id=obj.worker_id
-                ).aggregate(s=Sum('price'))['s']
+                    is_expense=False, report_date__year=obj.year, report_date__month=obj.month, worker_id=obj.worker_id,
+                    pharmacy=obj.pharmacy).aggregate(s=Sum('price'))['s']
             )
             obj.expense_price = expense_price if expense_price else 0
             obj.income_price = income_price if income_price else 0
@@ -54,14 +51,17 @@ def update_user_month_report(instance, *args, **kwargs):
 def update_report(instance, *args, **kwargs):
     if instance.report_date and instance.worker:
         obj, _ = WorkerReportMonth.objects.get_or_create(
-            month=instance.report_date.month, year=instance.report_date.year, worker_id=instance.worker_id)
+            month=instance.report_date.month, year=instance.report_date.year, worker_id=instance.worker_id,
+            pharmacy=instance.pharmacy)
 
         expense_price, income_price = (
             WorkerReport.objects.filter(
-                is_expense=True, report_date__year=obj.year, report_date__month=obj.month, worker_id=obj.worker_id
+                is_expense=True, report_date__year=obj.year, report_date__month=obj.month, worker_id=obj.worker_id,
+                pharmacy=obj.pharmacy
             ).aggregate(s=Sum('price'))['s'],
             WorkerReport.objects.filter(
-                is_expense=False, report_date__year=obj.year, report_date__month=obj.month, worker_id=obj.worker_id
+                is_expense=False, report_date__year=obj.year, report_date__month=obj.month, worker_id=obj.worker_id,
+                pharmacy=obj.pharmacy
             ).aggregate(s=Sum('price'))['s']
         )
         obj.expense_price = expense_price if expense_price else 0

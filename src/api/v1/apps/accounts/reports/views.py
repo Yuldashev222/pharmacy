@@ -14,18 +14,20 @@ from ..permissions import IsDirector, IsManager
 class WorkerReportSerializer(serializers.ModelSerializer):
     worker = serializers.StringRelatedField()
     creator = serializers.StringRelatedField()
+    pharmacy = serializers.StringRelatedField()
 
     class Meta:
         model = WorkerReport
-        fields = ['is_expense', 'report_date', 'price', 'creator', 'worker', 'created_at']
+        fields = ['is_expense', 'report_date', 'price', 'creator', 'worker', 'created_at', 'pharmacy']
 
 
 class WorkerReportMonthSerializer(serializers.ModelSerializer):
     worker = serializers.StringRelatedField()
+    pharmacy = serializers.StringRelatedField()
 
     class Meta:
         model = WorkerReportMonth
-        fields = ['worker', 'year', 'month', 'expense_price', 'income_price']
+        fields = ['worker', 'year', 'month', 'expense_price', 'income_price', 'pharmacy']
 
 
 class WorkerReportMontAPIView(ReadOnlyModelViewSet):
@@ -33,7 +35,7 @@ class WorkerReportMontAPIView(ReadOnlyModelViewSet):
     serializer_class = WorkerReportMonthSerializer
     permission_classes = [IsAuthenticated, (IsDirector | IsManager)]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['worker', 'year', 'month']
+    filterset_fields = ['worker', 'year', 'month', 'pharmacy']
 
     def get_queryset(self):
         return WorkerReportMonth.objects.filter(worker__director_id=self.request.user.director_id).order_by('month')
@@ -60,7 +62,8 @@ class WorkerReportAPIView(ReadOnlyModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = {
         'report_date': ['month', 'year'],
-        'worker': ['exact']
+        'worker': ['exact'],
+        'pharmacy': ['exact'],
     }
 
     def get_queryset(self):
