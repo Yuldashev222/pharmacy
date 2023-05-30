@@ -78,7 +78,7 @@ class PharmacyIncome(AbstractIncomeExpense):
             obj.worker_id = self.to_user_id,
             obj.created_at = self.created_at
             obj.is_expense = False
-            obj.save()
+#            obj.save()
         else:
             WorkerReport.objects.filter(pharmacy_income_id=self.id).delete()
 
