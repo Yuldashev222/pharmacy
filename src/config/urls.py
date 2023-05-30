@@ -10,7 +10,6 @@ from .yasg import urlpatterns as doc_urls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/wages/', include('api.v1.apps.wages.urls')),
     path('api/v1/accounts/', include('api.v1.apps.accounts.urls')),
     path('api/v1/', include(router.urls)),
     path('api/v1/companies/details', company_details, name='company-details'),

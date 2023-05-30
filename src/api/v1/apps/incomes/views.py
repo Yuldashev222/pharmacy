@@ -22,9 +22,7 @@ class PharmacyIncomeAPIViewSet(ModelViewSet):
         user = self.request.user
         if user.is_worker:
             serializer.save(
-                shift=user.shift,
-                report_date=date.today(),
-                to_pharmacy_id=user.pharmacy_id
+                shift=user.shift, report_date=date.today(), to_pharmacy_id=user.pharmacy_id
             )
         else:
             serializer.save()

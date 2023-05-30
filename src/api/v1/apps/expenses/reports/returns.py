@@ -29,7 +29,7 @@ class CustomPageNumberPagination(PageNumberPagination):
         return Response(OrderedDict([
             ('count', self.page.paginator.count),
             ('total_month_price', total_month_price),
-            ('results', data)
+            ('results', data['results'])
         ]))
 
 
