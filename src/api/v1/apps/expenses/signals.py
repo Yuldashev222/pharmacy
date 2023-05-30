@@ -1,10 +1,11 @@
 from django.dispatch import receiver
 from django.db.models import Sum
-from django.db.models.signals import post_delete
+from django.db.models.signals import post_delete, post_save
 
 from api.v1.apps.companies.enums import StaticEnv
+from api.v1.apps.accounts.models import WorkerReport
 
-from .models import PharmacyExpense
+from .models import PharmacyExpense, UserExpense
 from .reports.models import ReturnProductReportMonth, DiscountProductReportMonth
 
 
@@ -39,3 +40,26 @@ def update_report(instance, *args, **kwargs):
         )[0]
         obj.price = price if price else 0
         obj.save()
+
+
+@receiver(post_save, sender=UserExpense)
+def update_user_expense_report(instance, *args, **kwargs):
+    obj, _ = WorkerReport.objects.get_or_create(user_expense_id=instance.id, is_expense=True)
+    obj.report_date = instance.report_date
+    obj.price = instance.price
+    obj.creator_id = instance.creator_id
+    obj.worker_id = instance.from_user_id
+    obj.created_at = instance.created_at
+    obj.save()
+
+    if instance.to_user:
+        obj, _ = WorkerReport.objects.get_or_create(user_expense_id=instance.id, is_expense=False)
+        obj.report_date = instance.report_date
+        obj.price = instance.price
+        obj.creator_id = instance.creator_id
+        obj.worker_id = instance.to_user_id
+        obj.created_at = instance.created_at
+        obj.is_expense = False
+        obj.save()
+    else:
+        WorkerReport.objects.filter(user_expense_id=instance.id, is_expense=False).delete()

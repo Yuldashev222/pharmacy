@@ -19,7 +19,6 @@ LANGUAGE_CODE = 'en-us'
 ROOT_URLCONF = 'config.urls'
 TIME_ZONE = 'Asia/Tashkent'
 CELERY_TIMEZONE = 'Asia/Tashkent'
-# DEBUG = int(os.getenv('DEBUG', 1))
 DEBUG = 1
 WSGI_APPLICATION = 'config.wsgi.application'
 MEDIA_ROOT = os.path.join(BASE_DIR.joinpath('media'))
@@ -94,7 +93,6 @@ INSTALLED_APPS = [
     'api.v1.apps.debts.apps.DebtsConfig',
     'api.v1.apps.expenses.apps.ExpensesConfig',
     'api.v1.apps.incomes.apps.IncomesConfig',
-    'api.v1.apps.wages.apps.WagesConfig',
     'api.v1.apps.reports.apps.ReportsConfig',
     'api.v1.apps.clients.apps.ClientsConfig',
     'api.v1.apps.drugs.apps.DrugsConfig',
@@ -196,7 +194,7 @@ SIMPLE_JWT = {
     "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
     "USER_ID_FIELD": "id",
     "USER_ID_CLAIM": "user_id",
-    "USER_AUTHENTICATION_RULE": "rest_framework_simplejwt.authentication.default_user_authentication_rule",
+    "USER_AUTHENTICATION_RULE": "api.v1.accounts.services.default_user_authentication_rule",
 
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
     "TOKEN_TYPE_CLAIM": "token_type",

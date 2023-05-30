@@ -7,23 +7,48 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from .models import WorkerReport, WorkerReportMonth
+from ..models import WorkerReport, WorkerReportMonth
 from ..permissions import IsDirector, IsManager
 
 
 class WorkerReportSerializer(serializers.ModelSerializer):
+    worker = serializers.StringRelatedField()
+    creator = serializers.StringRelatedField()
+
     class Meta:
         model = WorkerReport
         fields = ['is_expense', 'report_date', 'price', 'creator', 'worker', 'created_at']
 
 
+class WorkerReportMonthSerializer(serializers.ModelSerializer):
+    worker = serializers.StringRelatedField()
+
+    class Meta:
+        model = WorkerReportMonth
+        fields = ['worker', 'year', 'month', 'expense_price', 'income_price']
+
+
+class WorkerReportMontAPIView(ReadOnlyModelViewSet):
+    pagination_class = None
+    serializer_class = WorkerReportMonthSerializer
+    permission_classes = [IsAuthenticated, (IsDirector | IsManager)]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['worker', 'year', 'month']
+
+    def get_queryset(self):
+        return WorkerReportMonth.objects.filter(worker__director_id=self.request.user.director_id).order_by('month')
+
+
 class CustomPageNumberPagination(PageNumberPagination):
     def get_paginated_response(self, data):
-        total_month_price = data['total_month_price']
-        del data['total_month_price']
+        month_income_total_price = data['month_income_total_price']
+        month_expense_total_price = data['month_expense_total_price']
+        del data['month_income_total_price']
+        del data['month_expense_total_price']
         return Response(OrderedDict([
             ('count', self.page.paginator.count),
-            ('total_month_price', total_month_price),
+            ('month_income_total_price', month_income_total_price),
+            ('month_expense_total_price', month_expense_total_price),
             ('results', data['results'])
         ]))
 
@@ -39,7 +64,7 @@ class WorkerReportAPIView(ReadOnlyModelViewSet):
     }
 
     def get_queryset(self):
-        return WorkerReport.objects.filter(creator__director_id=self.request.user.director_id)
+        return WorkerReport.objects.filter(creator__director_id=self.request.user.director_id).order_by('report_date')
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
@@ -47,17 +72,21 @@ class WorkerReportAPIView(ReadOnlyModelViewSet):
         month = request.query_params.get('report_date__month')
         year = request.query_params.get('report_date__year')
         worker = request.query_params.get('worker')
-        total_month_price = 0
+        month_income_total_price = 0
+        month_expense_total_price = 0
         if month and year and worker:
             try:
-                total_month_price = WorkerReportMonth.objects.get(month=month, year=year, worker_id=worker).price
+                obj = WorkerReportMonth.objects.get(month=month, year=year, worker_id=worker)
+                month_income_total_price = obj.income_price
+                month_expense_total_price = obj.expense_price
             except WorkerReportMonth.DoesNotExist:
-                total_month_price = 0
+                pass
 
         page = self.paginate_queryset(queryset)
         serializer = self.get_serializer(page, many=True)
         data = {
-            'total_month_price': total_month_price,
+            'month_income_total_price': month_income_total_price,
+            'month_expense_total_price': month_expense_total_price,
             'results': serializer.data
         }
         return self.get_paginated_response(data)

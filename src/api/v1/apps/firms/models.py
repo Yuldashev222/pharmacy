@@ -1,14 +1,12 @@
 from random import randint
 from django.db import models
-from datetime import date, timedelta, datetime
-from django.core.validators import MinValueValidator
+from datetime import timedelta, datetime
 
 from api.v1.apps.companies.services import text_normalize
 from api.v1.apps.companies.validators import uzb_phone_number_validation
 from api.v1.apps.companies.models import AbstractIncomeExpense
 
 from .services import firm_logo_upload_location, EskizUz
-from ..accounts.reports.models import WorkerReport
 
 
 class Firm(models.Model):
@@ -47,7 +45,7 @@ class FirmIncome(AbstractIncomeExpense):
     transfer_type = None
 
     from_firm = models.ForeignKey(Firm, on_delete=models.PROTECT)
-    deadline_date = models.DateField(validators=[MinValueValidator(date.today())], blank=True, null=True)
+    deadline_date = models.DateField(blank=True, null=True)
     remaining_debt = models.IntegerField()
     is_paid = models.BooleanField(default=False)
     is_transfer_return = models.BooleanField(default=True)
@@ -107,8 +105,7 @@ class FirmExpense(AbstractIncomeExpense):
         self.verified_firm_worker_name = text_normalize(self.verified_firm_worker_name).title()
 
         FirmExpense.objects.filter(
-            is_verified=False, created_at__lt=datetime.now() - timedelta(minutes=5)
-        ).delete()
+            is_verified=False, created_at__lt=datetime.now() - timedelta(minutes=5)).delete()
 
         if not self.pk:
             self.verified_code = randint(10000, 99999)
@@ -146,30 +143,14 @@ class FirmExpense(AbstractIncomeExpense):
                 w_name = ''.join([i for i in self.verified_firm_worker_name if i.isalpha() or i in ' \''])
                 try:
                     message = EskizUz.verify_code_message(
-                        verify_code=self.verified_code,
-                        firm_name=self.to_firm.send_sms_name,
-                        pharmacy_name=self.from_pharmacy.send_sms_name,
-                        price=self.price,
-                        firm_worker_name=w_name
+                        verify_code=self.verified_code, firm_name=self.to_firm.send_sms_name,
+                        pharmacy_name=self.from_pharmacy.send_sms_name, price=self.price, firm_worker_name=w_name
                     )
                     EskizUz.send_sms(phone_number=self.verified_phone_number[1:], message=message)
                 except Exception as e:
                     print(e)
             # ----------------------
-
         super().save(*args, **kwargs)
-
-        if self.from_user:
-            obj, _ = WorkerReport.objects.get_or_create(firm_expense_id=self.id)
-            obj.report_date = self.report_date,
-            obj.price = self.price,
-            obj.creator_id = self.creator_id,
-            obj.worker_id = self.from_pharmacy_id,
-            obj.created_at = self.created_at
-            obj.save()
-        else:
-            WorkerReport.objects.filter(firm_expense_id=self.id).delete()
-
         firm_report, _ = FirmReport.objects.get_or_create(expense_id=self.id)
         firm_report.creator_id = self.creator_id
         firm_report.firm_id = self.to_firm_id

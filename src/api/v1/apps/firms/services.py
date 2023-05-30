@@ -13,16 +13,19 @@ class EskizUzToken(models.Model):
 
 
 class EskizUz:
-    ESKIZ_UZ_TOKEN = EskizUzToken.objects.first().token
 
     @classmethod
     def get_token(cls):
+        token = EskizUzToken.objects.all()
+        if token.exists():
+            return token.first().token
         response = requests.request(
             method='POST',
             url=settings.ESKIZ_UZ_TOKEN_URL,
             data={'email': settings.ESKIZ_UZ_EMAIL, 'password': settings.ESKIZ_UZ_PASSWORD}
         )
         token = response.json()['data']['token']
+        EskizUzToken.objects.create(token=token)
         return token
 
     @classmethod
@@ -106,17 +109,15 @@ class EskizUz:
         response = requests.request(
             method='POST',
             url=settings.ESKIZ_UZ_SEND_SMS_URL,
-            headers={'AUTHORIZATION': 'Bearer ' + str(cls.ESKIZ_UZ_TOKEN)},
+            headers={'AUTHORIZATION': 'Bearer ' + cls.get_token()},
             data=data
         )
         if response.status_code == 401:
-            obj = EskizUzToken.objects.first()
-            obj.token = cls.get_token()
-            obj.save()
+            EskizUzToken.objects.all().delete()
             response = requests.request(
                 method='POST',
                 url=settings.ESKIZ_UZ_SEND_SMS_URL,
-                headers={'AUTHORIZATION': 'Bearer ' + cls.ESKIZ_UZ_TOKEN},
+                headers={'AUTHORIZATION': 'Bearer ' + cls.get_token()},
                 data=data
             )
         return response.text

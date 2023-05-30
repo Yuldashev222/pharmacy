@@ -10,7 +10,7 @@ from rest_framework.filters import SearchFilter
 from api.v1.apps.accounts.permissions import NotProjectOwner, IsDirector, IsManager
 
 from . import serializers
-from .models import FirmIncome, FirmExpense
+from .models import FirmIncome, FirmExpense, Firm
 
 
 class FirmAPIViewSet(ModelViewSet):
@@ -22,7 +22,7 @@ class FirmAPIViewSet(ModelViewSet):
         serializer.save(director_id=self.request.user.director_id)
 
     def get_queryset(self):
-        return self.request.user.firms_all().order_by('-created_at')
+        return Firm.objects.filter(director_id=self.request.user.director_id).order_by('-created_at')
 
     def get_permissions(self):
         permission_classes = [IsAuthenticated, NotProjectOwner]
