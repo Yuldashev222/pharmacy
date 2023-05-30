@@ -4,9 +4,22 @@ from django.db.models.signals import post_delete, post_save
 
 from api.v1.apps.companies.enums import StaticEnv
 from api.v1.apps.accounts.models import WorkerReport
+from api.v1.apps.remainders.models import Remainder
 
 from .models import PharmacyExpense, UserExpense
 from .reports.models import ReturnProductReportMonth, DiscountProductReportMonth
+
+
+@receiver(post_save, sender=PharmacyExpense)
+def update_report(instance, *args, **kwargs):
+    # remainder update
+    if instance.transfer_type_id == 1:
+        obj, _ = Remainder.objects.get_or_create(pharmacy_expense_id=instance.id)
+        obj.report_date = instance.report_date
+        obj.price = -1 * instance.price
+        obj.shift = instance.shift
+        obj.pharmacy_id = instance.from_pharmacy_id
+        obj.save()
 
 
 @receiver(post_delete, sender=PharmacyExpense)
@@ -44,10 +57,22 @@ def update_report(instance, *args, **kwargs):
 
 @receiver(post_save, sender=UserExpense)
 def update_user_expense_report(instance, *args, **kwargs):
+    # remainder update
+    if instance.transfer_type_id == 1 and instance.to_pharmacy:
+        obj, _ = Remainder.objects.get_or_create(user_expense_id=instance.id)
+        obj.is_expense = False
+        obj.report_date = instance.report_date
+        obj.price = instance.price
+        obj.shift = instance.shift
+        obj.pharmacy_id = instance.to_pharmacy_id
+        obj.save()
+
+    # worker reports update
     obj, _ = WorkerReport.objects.get_or_create(user_expense_id=instance.id, is_expense=True)
     obj.report_date = instance.report_date
     obj.price = instance.price
     obj.creator_id = instance.creator_id
+    obj.pharmacy = instance.to_pharmacy
     obj.worker_id = instance.from_user_id
     obj.created_at = instance.created_at
     obj.save()
@@ -57,6 +82,7 @@ def update_user_expense_report(instance, *args, **kwargs):
         obj.report_date = instance.report_date
         obj.price = instance.price
         obj.creator_id = instance.creator_id
+        obj.pharmacy = instance.to_pharmacy
         obj.worker_id = instance.to_user_id
         obj.created_at = instance.created_at
         obj.is_expense = False

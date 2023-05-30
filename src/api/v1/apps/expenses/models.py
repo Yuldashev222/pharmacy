@@ -8,7 +8,6 @@ from api.v1.apps.expenses.reports.models import ReturnProductReportMonth, Discou
 
 class ExpenseType(models.Model):
     name = models.CharField(max_length=300)
-    is_user_expense = models.BooleanField(default=False)
     desc = models.CharField(max_length=600, blank=True)
     director = models.ForeignKey('accounts.CustomUser', on_delete=models.PROTECT, null=True)
 
@@ -28,7 +27,7 @@ class UserExpense(AbstractIncomeExpense):
     # select
     to_user = models.ForeignKey('accounts.CustomUser', on_delete=models.PROTECT,
                                 related_name='to_user_expenses', null=True, blank=True)
-    to_pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.PROTECT, null=True)  # last
+    to_pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE, blank=True, null=True)  # last
 
     # -------
 
