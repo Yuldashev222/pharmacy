@@ -69,8 +69,8 @@ class FirmExpense(AbstractIncomeExpense):
     from_pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.PROTECT)
     is_verified = models.BooleanField(default=False)
     verified_code = models.PositiveIntegerField()
-    verified_phone_number = models.CharField(max_length=13, validators=[uzb_phone_number_validation])
-    verified_firm_worker_name = models.CharField(max_length=50)
+    verified_phone_number = models.CharField(max_length=13, validators=[uzb_phone_number_validation], blank=True)
+    verified_firm_worker_name = models.CharField(max_length=50, blank=True)
 
     from_user = models.ForeignKey(
         'accounts.CustomUser', on_delete=models.PROTECT, blank=True, null=True, related_name='firm_expenses')
@@ -99,6 +99,8 @@ class FirmExpense(AbstractIncomeExpense):
                 except Exception as e:
                     return e
             # ----------------------
+            else:
+                self.is_verified = True
         super().save(*args, **kwargs)
 
         if self.is_verified:

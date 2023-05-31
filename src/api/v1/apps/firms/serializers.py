@@ -68,6 +68,11 @@ class FirmExpenseSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         user = self.context['request'].user
         from_user = attrs.get('from_user')
+        from_pharmacy_transfer = attrs.get('from_pharmacy_transfer')
+        verified_phone_number = attrs.get('verified_phone_number')
+        verified_firm_worker_name = attrs.get('verified_firm_worker_name')
+        if not from_pharmacy_transfer and not (verified_firm_worker_name or verified_phone_number):
+            raise ValidationError('error')
 
         if attrs['to_firm'].director_id != user.director_id:
             raise ValidationError({'to_firm': 'not found'})

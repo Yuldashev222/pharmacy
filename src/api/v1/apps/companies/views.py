@@ -42,14 +42,13 @@ class CompanyAPIViewSet(mixins.RetrieveModelMixin,
 def company_details(request, *args, **kwargs):
     user = request.user
     data = {
+        'firms': Firm.objects.filter(director_id=user.director_id).values('id', 'name').order_by('-id'),
         'transfer_types': TransferMoneyType.objects.filter(
             director_id=user.director_id).values('id', 'name').order_by('-id'),
         'expense_types': ExpenseType.objects.filter(
             director_id=user.director_id).values('id', 'name').order_by('-id'),
         'employees': CustomUser.objects.filter(
             director_id=user.director_id).values('id', 'first_name', 'last_name', 'role').order_by('-id'),
-
-        'firms': Firm.objects.filter(director_id=user.director_id).values('id', 'name').order_by('-id')
     }
 
     if user.is_worker:

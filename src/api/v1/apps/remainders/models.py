@@ -1,13 +1,12 @@
 from datetime import datetime
-
 from django.db import models
 
 
 class Remainder(models.Model):
     debt_to_pharmacy = models.ForeignKey('debts.DebtToPharmacy', on_delete=models.CASCADE, blank=True, null=True)
+    debt_from_pharmacy = models.ForeignKey('debts.DebtFromPharmacy', on_delete=models.CASCADE, blank=True, null=True)
     debt_repay_from_pharmacy = models.ForeignKey('debts.DebtRepayFromPharmacy', on_delete=models.CASCADE, blank=True,
                                                  null=True)
-    debt_from_pharmacy = models.ForeignKey('debts.DebtFromPharmacy', on_delete=models.CASCADE, blank=True, null=True)
     debt_repay_to_pharmacy = models.ForeignKey('debts.DebtRepayToPharmacy', on_delete=models.CASCADE, blank=True,
                                                null=True)
     user_expense = models.ForeignKey('expenses.UserExpense', on_delete=models.CASCADE, blank=True, null=True)
@@ -28,10 +27,10 @@ class Remainder(models.Model):
             pharmacy_id = int(pharmacy_id)
         except Exception as e:
             return 0
-
-        shift -= 1
-        if shift < 1:
-            return 0
-        price = cls.objects.filter(
-            report_date=report_date, shift=shift, pharmacy_id=pharmacy_id).aggregate(s=models.Sum('price'))['s']
-        return price if price else 0
+        objs = cls.objects.filter(pharmacy_id=pharmacy_id, report_date=report_date, shift__lt=shift)
+        if objs.exists():
+            return objs.order_by('-shift').first().price
+        objs = cls.objects.filter(pharmacy_id=pharmacy_id, report_date__lt=report_date)
+        if objs.exists():
+            return objs.order_by('-report_date', '-shift').first().price
+        return 0
