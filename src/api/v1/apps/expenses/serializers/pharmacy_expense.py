@@ -7,6 +7,7 @@ from ..models import PharmacyExpense, ExpenseType
 class ExpenseTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ExpenseType
+        fields = '__all__'
         read_only_fields = ('director',)
 
 
