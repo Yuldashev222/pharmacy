@@ -1,7 +1,8 @@
 from rest_framework.routers import DefaultRouter
 
 from api.v1.apps.firms.views import (
-    FirmAPIViewSet, FirmIncomeAPIViewSet, FirmExpenseAPIViewSet, FirmExpenseVerify
+    FirmAPIViewSet, FirmIncomeAPIViewSet, FirmExpenseAPIViewSet, FirmExpenseVerify, FirmReturnProductAPIViewSet,
+    FirmReturnProductVerify
 )
 from api.v1.apps.drugs.views import DrugAPIViewSet
 from api.v1.apps.debts.views import debt_from_pharmacy, debt_to_pharmacy
@@ -45,6 +46,8 @@ router.register('pharmacies/receipts', ReceiptCreateUpdateAPIView, basename='pha
 router.register('pharmacies', PharmacyAPIViewSet, basename='pharmacy')
 
 router.register('firms/expenses/verify', FirmExpenseVerify, basename='firm_expense_verify')
+router.register('firms/returns/verify', FirmReturnProductVerify, basename='firm_return_verify')
+router.register('firms/returns', FirmReturnProductAPIViewSet, basename='firm_return')
 router.register('firms/expenses', FirmExpenseAPIViewSet, basename='firm_expense')
 router.register('firms/report', FirmReportAPIView, basename='firm_report')
 router.register('firms/incomes', FirmIncomeAPIViewSet, basename='firm_income')

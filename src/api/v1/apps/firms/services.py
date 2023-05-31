@@ -91,10 +91,24 @@ class EskizUz:
         return message
 
     @classmethod
+    def return_product_success_message(cls, firm_worker_name, price):
+        message = f'Hurmatli {firm_worker_name} {price} ({cls.get_str_price(price)}) ' \
+                  f'so\'m miqdoridagi mahsulotlarni qaytarib olganligingiz haqida kodni tasdiqladingiz: Rahmat'
+        return message
+
+    @classmethod
     def verify_code_message(cls, firm_name, pharmacy_name, price, verify_code, firm_worker_name):
         message = f'Hurmatli {firm_worker_name} sizga tasdiqlash kodi yuborildi. ' \
                   f'Ushbu kod orqali "{firm_name}" MCHJ hisobiga, "{pharmacy_name}" ' \
                   f'tomonidan {price} ({cls.get_str_price(price)}) so\'m mablag\' ' \
+                  f'olganligingiz to\'g\'riligini tasdiqlaysiz. Kod: {verify_code}'
+        return message
+
+    @classmethod
+    def return_product_verify_code_message(cls, firm_name, price, verify_code, firm_worker_name, company_name):
+        message = f'Hurmatli {firm_worker_name} sizga tasdiqlash kodi yuborildi. ' \
+                  f'Ushbu kod orqali "{firm_name}" MCHJ hisobiga, "{company_name}" ' \
+                  f'tomonidan {price} ({cls.get_str_price(price)}) so\'m miqdoridagi mahsulotlarni qaytarib ' \
                   f'olganligingiz to\'g\'riligini tasdiqlaysiz. Kod: {verify_code}'
         return message
 

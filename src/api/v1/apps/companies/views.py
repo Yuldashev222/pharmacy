@@ -23,6 +23,7 @@ class CompanyAPIViewSet(mixins.RetrieveModelMixin,
                         mixins.UpdateModelMixin,
                         mixins.ListModelMixin,
                         GenericViewSet):
+    pagination_class = None
     serializer_class = CompanySerializer
 
     def get_permissions(self):
