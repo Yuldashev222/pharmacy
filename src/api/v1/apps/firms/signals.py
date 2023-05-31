@@ -5,22 +5,25 @@ from django.dispatch import receiver
 from api.v1.apps.accounts.models import WorkerReport
 from api.v1.apps.remainders.models import Remainder
 
-from .models import FirmIncome, Firm, FirmExpense
+from .models import FirmIncome, FirmExpense, FirmReport, FirmDebtByDate
 
 
-@receiver(post_delete, sender=FirmIncome)
-def update_firm_remaining_debts(instance, *args, **kwargs):
+@receiver(post_delete, sender=FirmReport)
+def update_firm_report(instance, *args, **kwargs):
+    firm_debt, _ = FirmDebtByDate.objects.get_or_create(firm_id=instance.firm_id, report_date=instance.report_date)
     not_transfer_debt = FirmIncome.objects.filter(
-        is_paid=False, is_transfer_return=False, from_firm_id=instance.from_firm_id
+        is_paid=False, is_transfer_return=False, from_firm_id=firm_debt.id, report_date__lte=firm_debt.report_date
     ).aggregate(s=Sum('remaining_debt'))['s']
     transfer_debt = FirmIncome.objects.filter(
-        is_paid=False, is_transfer_return=True, from_firm_id=instance.from_firm_id
+        is_paid=False, is_transfer_return=True, from_firm_id=firm_debt.id, report_date__lte=firm_debt.report_date
     ).aggregate(s=Sum('remaining_debt'))['s']
 
-    obj = Firm.objects.get(id=instance.from_firm_id)
-    obj.not_transfer_debt = not_transfer_debt if not_transfer_debt else 0
-    obj.transfer_debt = transfer_debt if transfer_debt else 0
-    obj.save()
+    not_transfer_debt = not_transfer_debt if not_transfer_debt else 0
+    transfer_debt = transfer_debt if transfer_debt else 0
+
+    firm_debt.not_transfer_debt = not_transfer_debt
+    firm_debt.transfer_debt = transfer_debt
+    firm_debt.save()
 
 
 @receiver(post_save, sender=FirmExpense)

@@ -1,10 +1,10 @@
 from random import randint
+from datetime import timedelta, datetime, date
 from django.db import models
-from datetime import timedelta, datetime
 
+from api.v1.apps.companies.models import AbstractIncomeExpense, Company
 from api.v1.apps.companies.services import text_normalize
 from api.v1.apps.companies.validators import uzb_phone_number_validation
-from api.v1.apps.companies.models import AbstractIncomeExpense, Company
 
 from .services import firm_logo_upload_location, EskizUz
 
@@ -13,8 +13,6 @@ class Firm(models.Model):
     name = models.CharField(max_length=400)
     send_sms_name = models.CharField(max_length=400, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    transfer_debt = models.IntegerField(default=0)
-    not_transfer_debt = models.IntegerField(default=0)
     director = models.ForeignKey('accounts.CustomUser', related_name='firms', on_delete=models.PROTECT)
     creator = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True)
     phone_number1 = models.CharField(max_length=13, validators=[uzb_phone_number_validation], blank=True)
@@ -33,12 +31,6 @@ class Firm(models.Model):
         self.address = text_normalize(self.address)
         self.desc = text_normalize(self.desc)
         super().save(*args, **kwargs)
-
-
-class FirmDebtByDate(models.Model):
-    price = models.IntegerField(default=0)
-    report_date = models.DateField()
-    firm = models.ForeignKey(Firm, on_delete=models.CASCADE)
 
 
 class FirmIncome(AbstractIncomeExpense):
@@ -61,32 +53,15 @@ class FirmIncome(AbstractIncomeExpense):
             self.remaining_debt = self.price
         super().save(*args, **kwargs)
 
-        # firm_report, _ = FirmReport.objects.get_or_create(income_id=self.id)
-        #
-        # firm_report.creator_id = self.creator_id
-        # firm_report.firm_id = self.from_firm_id
-        # firm_report.created_at = self.created_at
-        # firm_report.report_date = self.report_date
-        # firm_report.price = self.price
-        # firm_report.is_transfer = self.is_transfer_return
-        # firm_report.save()
-        #
-        # not_transfer_debt = FirmIncome.objects.filter(
-        #     is_paid=False, is_transfer_return=False, from_firm_id=self.from_firm_id
-        # ).aggregate(s=models.Sum('remaining_debt'))['s']
-        # transfer_debt = FirmIncome.objects.filter(
-        #     is_paid=False, is_transfer_return=True, from_firm_id=self.from_firm_id
-        # ).aggregate(s=models.Sum('remaining_debt'))['s']
-        # not_transfer_debt = not_transfer_debt if not_transfer_debt else 0
-        # transfer_debt = transfer_debt if transfer_debt else 0
-        # firm = Firm.objects.get(id=self.from_firm_id)
-        # firm.not_transfer_debt = not_transfer_debt
-        # firm.transfer_debt = transfer_debt
-        # firm.save()
-        #
-        # obj, _ = FirmDebtByDate.objects.get_or_create(report_date=self.report_date, firm_id=self.from_firm_id)
-        # obj.price = not_transfer_debt + transfer_debt
-        # obj.save()
+        firm_report, _ = FirmReport.objects.get_or_create(income_id=self.id)
+        firm_report.is_expense = False
+        firm_report.creator_id = self.creator_id
+        firm_report.firm_id = self.from_firm_id
+        firm_report.created_at = self.created_at
+        firm_report.report_date = self.report_date
+        firm_report.price = self.price
+        firm_report.is_transfer = self.is_transfer_return
+        firm_report.save()
 
 
 class FirmExpense(AbstractIncomeExpense):
@@ -110,7 +85,21 @@ class FirmExpense(AbstractIncomeExpense):
         if not self.pk:
             self.verified_code = randint(10000, 99999)
 
-            # incomes remaining debt update
+            # send sms
+            if not self.from_pharmacy_transfer:
+                w_name = ''.join([i for i in self.verified_firm_worker_name if i.isalpha() or i in ' \''])
+                try:
+                    message = EskizUz.verify_code_message(
+                        verify_code=self.verified_code, firm_name=self.to_firm.send_sms_name,
+                        pharmacy_name=self.from_pharmacy.send_sms_name, price=self.price, firm_worker_name=w_name
+                    )
+                    EskizUz.send_sms(phone_number=self.verified_phone_number[1:], message=message)
+                except Exception as e:
+                    return e
+            # ----------------------
+        super().save(*args, **kwargs)
+
+        if self.is_verified:
             incomes = self.to_firm.firmincome_set.filter(is_paid=False).order_by('created_at')
             temp_price = self.price
             for income in incomes:
@@ -126,43 +115,25 @@ class FirmExpense(AbstractIncomeExpense):
                 else:
                     break
             if temp_price > 0:
-                firm = Firm.objects.get(id=self.to_firm_id)
+                firm_debt, _ = FirmDebtByDate.objects.get_or_create(
+                    firm_id=self.to_firm_id, report_date=self.report_date)
                 if self.from_pharmacy_transfer:
-                    firm.transfer_debt -= temp_price
+                    firm_debt.transfer_debt -= temp_price
                 else:
-                    firm.not_transfer_debt -= temp_price
-                firm.save()
+                    firm_debt.not_transfer_debt -= temp_price
+                firm_debt.save()
 
-                # obj, _ = FirmDebtByDate.objects.get_or_create(report_date=self.report_date, firm_id=self.to_firm_id)
-                # obj.price -= temp_price
-                # obj.save()
-            # ----------------------------
-
-            # send sms
-            if not self.from_pharmacy_transfer:
-                w_name = ''.join([i for i in self.verified_firm_worker_name if i.isalpha() or i in ' \''])
-                try:
-                    message = EskizUz.verify_code_message(
-                        verify_code=self.verified_code, firm_name=self.to_firm.send_sms_name,
-                        pharmacy_name=self.from_pharmacy.send_sms_name, price=self.price, firm_worker_name=w_name
-                    )
-                    EskizUz.send_sms(phone_number=self.verified_phone_number[1:], message=message)
-                except Exception as e:
-                    print(e)
-            # ----------------------
-        super().save(*args, **kwargs)
-
-        # firm_report, _ = FirmReport.objects.get_or_create(expense_id=self.id)
-        # firm_report.creator_id = self.creator_id
-        # firm_report.firm_id = self.to_firm_id
-        # firm_report.created_at = self.created_at
-        # firm_report.report_date = self.report_date
-        # firm_report.price = self.price
-        # firm_report.is_transfer = self.from_pharmacy_transfer
-        # firm_report.pharmacy_id = self.from_pharmacy_id
-        # firm_report.verified_phone_number = self.verified_phone_number
-        # firm_report.verified_firm_worker_name = self.verified_firm_worker_name
-        # firm_report.save()
+            firm_report, _ = FirmReport.objects.get_or_create(expense_id=self.id)
+            firm_report.creator_id = self.creator_id
+            firm_report.firm_id = self.to_firm_id
+            firm_report.pharmacy_id = self.from_pharmacy_id
+            firm_report.verified_phone_number = self.verified_phone_number
+            firm_report.verified_firm_worker_name = self.verified_firm_worker_name
+            firm_report.created_at = self.created_at
+            firm_report.report_date = self.report_date
+            firm_report.price = self.price
+            firm_report.is_transfer = bool(self.transfer_type_id != 1)
+            firm_report.save()
 
 
 class FirmReturnProduct(AbstractIncomeExpense):
@@ -180,11 +151,6 @@ class FirmReturnProduct(AbstractIncomeExpense):
         if not self.pk:
             self.verified_code = randint(10000, 99999)
 
-            # obj, _ = FirmDebtByDate.objects.get_or_create(report_date=self.report_date, firm_id=self.to_firm_id)
-            # obj.price -= temp_price
-            # obj.save()
-            # ----------------------------
-
             # send sms
             w_name = ''.join([i for i in self.verified_firm_worker_name if i.isalpha() or i in ' \''])
             try:
@@ -194,35 +160,42 @@ class FirmReturnProduct(AbstractIncomeExpense):
                     company_name=Company.objects.get(director_id=self.creator.director_id).name
                 )
                 EskizUz.send_sms(phone_number=self.verified_phone_number[1:], message=message)
-
-                # income remaining debt update
-                self.firm_income.remaining_debt -= self.price
-                if self.firm_income.remaining_debt == 0:
-                    self.firm_income.is_paid = True
-                self.firm_income.save()
-
             except Exception as e:
-                print(e)
-            # ----------------------
+                return e
+
         super().save(*args, **kwargs)
 
-        # firm_report, _ = FirmReport.objects.get_or_create(expense_id=self.id)
-        # firm_report.creator_id = self.creator_id
-        # firm_report.firm_id = self.to_firm_id
-        # firm_report.created_at = self.created_at
-        # firm_report.report_date = self.report_date
-        # firm_report.price = self.price
-        # firm_report.is_transfer = self.from_pharmacy_transfer
-        # firm_report.pharmacy_id = self.from_pharmacy_id
-        # firm_report.verified_phone_number = self.verified_phone_number
-        # firm_report.verified_firm_worker_name = self.verified_firm_worker_name
-        # firm_report.save()
+        if self.is_verified:
+            self.firm_income.remaining_debt -= self.price
+            if self.firm_income.remaining_debt == 0:
+                self.firm_income.is_paid = True
+            self.firm_income.save()
+
+            firm_report, _ = FirmReport.objects.get_or_create(return_product_id=self.id)
+            firm_report.creator_id = self.creator_id
+            firm_report.firm_id = self.firm_income.from_firm_id
+            firm_report.verified_phone_number = self.verified_phone_number
+            firm_report.verified_firm_worker_name = self.verified_firm_worker_name
+            firm_report.created_at = self.created_at
+            firm_report.report_date = self.report_date
+            firm_report.price = self.price
+            firm_report.is_transfer = self.firm_income.is_transfer_return
+            firm_report.save()
+
+
+class FirmDebtByDate(models.Model):
+    transfer_debt = models.IntegerField(default=0)
+    not_transfer_debt = models.IntegerField(default=0)
+    report_date = models.DateField()
+    firm = models.ForeignKey(Firm, on_delete=models.CASCADE)
 
 
 class FirmReport(models.Model):
     income = models.ForeignKey(FirmIncome, on_delete=models.CASCADE, blank=True, null=True)
     expense = models.ForeignKey(FirmExpense, on_delete=models.CASCADE, blank=True, null=True)
+    return_product = models.ForeignKey(FirmReturnProduct, on_delete=models.CASCADE, blank=True, null=True)
 
+    is_expense = models.BooleanField(default=True)
     creator = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True)
     firm = models.ForeignKey(Firm, on_delete=models.CASCADE, null=True)
     pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.SET_NULL, null=True)
@@ -232,3 +205,21 @@ class FirmReport(models.Model):
     report_date = models.DateField(null=True)
     price = models.IntegerField(default=0)
     is_transfer = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.firm and self.report_date:
+            firm_debt, _ = FirmDebtByDate.objects.get_or_create(firm_id=self.firm_id, report_date=self.report_date)
+            not_transfer_debt = FirmIncome.objects.filter(
+                is_paid=False, is_transfer_return=False, from_firm_id=firm_debt.id,
+                report_date__lte=firm_debt.report_date).aggregate(s=models.Sum('remaining_debt'))['s']
+            transfer_debt = FirmIncome.objects.filter(
+                is_paid=False, is_transfer_return=True, from_firm_id=firm_debt.id,
+                report_date__lte=firm_debt.report_date).aggregate(s=models.Sum('remaining_debt'))['s']
+
+            not_transfer_debt = not_transfer_debt if not_transfer_debt else 0
+            transfer_debt = transfer_debt if transfer_debt else 0
+
+            firm_debt.not_transfer_debt = not_transfer_debt
+            firm_debt.transfer_debt = transfer_debt
+            firm_debt.save()

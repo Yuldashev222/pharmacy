@@ -28,7 +28,7 @@ class PharmacyIncomeReportMonthAPIView(ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = PharmacyIncomeReportMonth.objects.filter(director_id=user.director_id)
+        queryset = PharmacyIncomeReportMonth.objects.filter(pharmacy__director_id=user.director_id)
         return queryset.order_by('month')
 
 
@@ -44,5 +44,5 @@ class PharmacyIncomeReportDayAPIView(ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = PharmacyIncomeReportDay.objects.filter(director_id=user.director_id)
+        queryset = PharmacyIncomeReportDay.objects.filter(pharmacy__director_id=user.director_id)
         return queryset.order_by('report_date')
