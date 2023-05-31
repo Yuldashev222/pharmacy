@@ -187,6 +187,14 @@ class FirmReturnProduct(AbstractIncomeExpense):
             firm_report.save()
 
 
+class FirmDebtByMonth(models.Model):
+    firm = models.ForeignKey(Firm, on_delete=models.CASCADE)
+    year = models.IntegerField()
+    month = models.IntegerField()
+    expense_price = models.IntegerField(default=0)
+    income_price = models.IntegerField(default=0)
+
+
 class FirmDebtByDate(models.Model):
     incomes_transfer_debt_price = models.IntegerField(default=0)
     incomes_not_transfer_debt_price = models.IntegerField(default=0)
@@ -240,3 +248,23 @@ class FirmReport(models.Model):
             firm_debt.incomes_not_transfer_debt_price = incomes_not_transfer_debt_price
             firm_debt.incomes_transfer_debt_price = incomes_transfer_debt_price
             firm_debt.save()
+
+            by_month, _ = FirmDebtByMonth.objects.get_or_create(
+                month=self.report_date.month, year=self.report_date.year, firm_id=self.firm_id)
+
+            expense_price = FirmReport.objects.filter(
+                report_date__year=by_month.year,
+                report_date__month=by_month.month,
+                firm_id=by_month.firm_id,
+                is_expense=True
+            ).aggregate(s=models.Sum('price'))['s']
+
+            income_price = FirmReport.objects.filter(
+                report_date__year=by_month.year,
+                report_date__month=by_month.month,
+                firm_id=by_month.firm_id,
+                is_expense=False
+            ).aggregate(s=models.Sum('price'))['s']
+            by_month.expense_price = expense_price if expense_price else 0
+            by_month.income_price = income_price if income_price else 0
+            by_month.save()
