@@ -49,7 +49,7 @@ router.register('firms/expenses/verify', FirmExpenseVerify, basename='firm_expen
 router.register('firms/returns/verify', FirmReturnProductVerify, basename='firm_return_verify')
 router.register('firms/returns', FirmReturnProductAPIViewSet, basename='firm_return')
 router.register('firms/expenses', FirmExpenseAPIViewSet, basename='firm_expense')
-router.register('firms/report', FirmReportAPIView, basename='firm_report')
+router.register('firms/reports', FirmReportAPIView, basename='firm_report')
 router.register('firms/incomes', FirmIncomeAPIViewSet, basename='firm_income')
 router.register('firms', FirmAPIViewSet, basename='firm')
 
