@@ -1,10 +1,10 @@
 from collections import OrderedDict
 from rest_framework import serializers, filters
 from django.db.models import Sum
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 
 from api.v1.apps.accounts.permissions import IsDirector, IsManager
@@ -67,7 +67,6 @@ class FirmReportAPIView(ReadOnlyModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         start_date = request.query_params.get('report_date__gte')
-        end_date = request.query_params.get('report_date__lte')
         firm_id = request.query_params.get('firm')
         transfer_debt_in_start_date = 0
         not_transfer_debt_in_start_date = 0
