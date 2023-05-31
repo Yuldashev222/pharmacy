@@ -75,11 +75,12 @@ class WorkerReportAPIView(ReadOnlyModelViewSet):
         month = request.query_params.get('report_date__month')
         year = request.query_params.get('report_date__year')
         worker = request.query_params.get('worker')
+        pharmacy = request.query_params.get('pharmacy')
         month_income_total_price = 0
         month_expense_total_price = 0
-        if month and year and worker:
+        if month and year and worker and pharmacy:
             try:
-                obj = WorkerReportMonth.objects.get(month=month, year=year, worker_id=worker)
+                obj = WorkerReportMonth.objects.get(month=month, year=year, worker_id=worker, pharmacy_id=pharmacy)
                 month_income_total_price = obj.income_price
                 month_expense_total_price = obj.expense_price
             except WorkerReportMonth.DoesNotExist:
