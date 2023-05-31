@@ -10,7 +10,7 @@ from rest_framework.filters import SearchFilter
 from api.v1.apps.accounts.permissions import NotProjectOwner, IsDirector, IsManager
 
 from . import serializers
-from .models import FirmIncome, FirmExpense, Firm
+from .models import FirmIncome, FirmExpense, Firm, FirmReturnProduct
 
 
 class FirmAPIViewSet(ModelViewSet):
@@ -43,11 +43,9 @@ class FirmIncomeAPIViewSet(ModelViewSet):
         return serializers.FirmIncomeSerializer
 
     def get_permissions(self):
-        permission_classes = [IsAuthenticated, NotProjectOwner]
-        if self.action not in ['list', 'retrieve']:
-            permission_classes += [(IsDirector | IsManager)]
+        permission_classes = [IsAuthenticated, NotProjectOwner, (IsDirector | IsManager)]
         if self.action == 'destroy':
-            permission_classes += [IsDirector]
+            permission_classes = [IsAuthenticated, NotProjectOwner, IsDirector]
         return [permission() for permission in permission_classes]
 
     def get_queryset(self):
@@ -84,8 +82,38 @@ class FirmExpenseAPIViewSet(CreateModelMixin, ReadOnlyModelViewSet):
         return queryset.filter(is_verified=True).order_by('-created_at')
 
 
+class FirmReturnProductAPIViewSet(CreateModelMixin, ReadOnlyModelViewSet):
+    serializer_class = serializers.FirmReturnProductSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['report_date', 'shift', 'firm_income']
+
+    def get_permissions(self):
+        permission_classes = [IsAuthenticated, NotProjectOwner, (IsDirector | IsManager)]
+        if self.action == 'destroy':
+            permission_classes = [IsAuthenticated, NotProjectOwner, IsDirector]
+        return [permission() for permission in permission_classes]
+
+    def perform_create(self, serializer):
+        serializer.save(report_date=date.today())
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = FirmReturnProduct.objects.filter(creator__director_id=user.director_id)
+        return queryset.filter(is_verified=True).order_by('-created_at')
+
+
 class FirmExpenseVerify(CreateModelMixin, GenericViewSet):
     serializer_class = serializers.FirmExpenseVerifySerializer
+    permission_classes = [IsAuthenticated, NotProjectOwner]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response(status=status.HTTP_201_CREATED)
+
+
+class FirmReturnProductVerify(CreateModelMixin, GenericViewSet):
+    serializer_class = serializers.FirmReturnProductVerifySerializer
     permission_classes = [IsAuthenticated, NotProjectOwner]
 
     def create(self, request, *args, **kwargs):

@@ -12,8 +12,6 @@ from .models import CustomUser, WorkerReport, WorkerReportMonth
 @receiver(post_save, sender=CustomUser)
 def create_company(instance, created, *args, **kwargs):
     if created and instance.is_director:
-        Company.objects.create(
-            name=f'Company::{instance.first_name}-{instance.last_name}', director_id=instance.id)
         instance.director_id = instance.id
         instance.save()
 

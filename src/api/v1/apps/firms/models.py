@@ -4,7 +4,7 @@ from datetime import timedelta, datetime
 
 from api.v1.apps.companies.services import text_normalize
 from api.v1.apps.companies.validators import uzb_phone_number_validation
-from api.v1.apps.companies.models import AbstractIncomeExpense
+from api.v1.apps.companies.models import AbstractIncomeExpense, Company
 
 from .services import firm_logo_upload_location, EskizUz
 
@@ -54,35 +54,39 @@ class FirmIncome(AbstractIncomeExpense):
         return str(self.from_firm)
 
     def save(self, *args, **kwargs):
+        FirmExpense.objects.filter(
+            is_verified=False, created_at__lt=datetime.now() - timedelta(minutes=5)).delete()
+
         if not self.pk:
             self.remaining_debt = self.price
         super().save(*args, **kwargs)
-        firm_report, _ = FirmReport.objects.get_or_create(income_id=self.id)
 
-        firm_report.creator_id = self.creator_id
-        firm_report.firm_id = self.from_firm_id
-        firm_report.created_at = self.created_at
-        firm_report.report_date = self.report_date
-        firm_report.price = self.price
-        firm_report.is_transfer = self.is_transfer_return
-        firm_report.save()
-
-        not_transfer_debt = FirmIncome.objects.filter(
-            is_paid=False, is_transfer_return=False, from_firm_id=self.from_firm_id
-        ).aggregate(s=models.Sum('remaining_debt'))['s']
-        transfer_debt = FirmIncome.objects.filter(
-            is_paid=False, is_transfer_return=True, from_firm_id=self.from_firm_id
-        ).aggregate(s=models.Sum('remaining_debt'))['s']
-        not_transfer_debt = not_transfer_debt if not_transfer_debt else 0
-        transfer_debt = transfer_debt if transfer_debt else 0
-        firm = Firm.objects.get(id=self.from_firm_id)
-        firm.not_transfer_debt = not_transfer_debt
-        firm.transfer_debt = transfer_debt
-        firm.save()
-
-        obj, _ = FirmDebtByDate.objects.get_or_create(report_date=self.report_date, firm_id=self.from_firm_id)
-        obj.price = not_transfer_debt + transfer_debt
-        obj.save()
+        # firm_report, _ = FirmReport.objects.get_or_create(income_id=self.id)
+        #
+        # firm_report.creator_id = self.creator_id
+        # firm_report.firm_id = self.from_firm_id
+        # firm_report.created_at = self.created_at
+        # firm_report.report_date = self.report_date
+        # firm_report.price = self.price
+        # firm_report.is_transfer = self.is_transfer_return
+        # firm_report.save()
+        #
+        # not_transfer_debt = FirmIncome.objects.filter(
+        #     is_paid=False, is_transfer_return=False, from_firm_id=self.from_firm_id
+        # ).aggregate(s=models.Sum('remaining_debt'))['s']
+        # transfer_debt = FirmIncome.objects.filter(
+        #     is_paid=False, is_transfer_return=True, from_firm_id=self.from_firm_id
+        # ).aggregate(s=models.Sum('remaining_debt'))['s']
+        # not_transfer_debt = not_transfer_debt if not_transfer_debt else 0
+        # transfer_debt = transfer_debt if transfer_debt else 0
+        # firm = Firm.objects.get(id=self.from_firm_id)
+        # firm.not_transfer_debt = not_transfer_debt
+        # firm.transfer_debt = transfer_debt
+        # firm.save()
+        #
+        # obj, _ = FirmDebtByDate.objects.get_or_create(report_date=self.report_date, firm_id=self.from_firm_id)
+        # obj.price = not_transfer_debt + transfer_debt
+        # obj.save()
 
 
 class FirmExpense(AbstractIncomeExpense):
@@ -95,17 +99,13 @@ class FirmExpense(AbstractIncomeExpense):
     verified_firm_worker_name = models.CharField(max_length=50)
 
     from_user = models.ForeignKey(
-        'accounts.CustomUser', on_delete=models.PROTECT, blank=True, null=True, related_name='firm_expenses'
-    )
+        'accounts.CustomUser', on_delete=models.PROTECT, blank=True, null=True, related_name='firm_expenses')
 
     def __str__(self):
         return str(self.to_firm)
 
     def save(self, *args, **kwargs):
         self.verified_firm_worker_name = text_normalize(self.verified_firm_worker_name).title()
-
-        FirmExpense.objects.filter(
-            is_verified=False, created_at__lt=datetime.now() - timedelta(minutes=5)).delete()
 
         if not self.pk:
             self.verified_code = randint(10000, 99999)
@@ -133,9 +133,9 @@ class FirmExpense(AbstractIncomeExpense):
                     firm.not_transfer_debt -= temp_price
                 firm.save()
 
-                obj, _ = FirmDebtByDate.objects.get_or_create(report_date=self.report_date, firm_id=self.to_firm_id)
-                obj.price -= temp_price
-                obj.save()
+                # obj, _ = FirmDebtByDate.objects.get_or_create(report_date=self.report_date, firm_id=self.to_firm_id)
+                # obj.price -= temp_price
+                # obj.save()
             # ----------------------------
 
             # send sms
@@ -151,17 +151,72 @@ class FirmExpense(AbstractIncomeExpense):
                     print(e)
             # ----------------------
         super().save(*args, **kwargs)
-        firm_report, _ = FirmReport.objects.get_or_create(expense_id=self.id)
-        firm_report.creator_id = self.creator_id
-        firm_report.firm_id = self.to_firm_id
-        firm_report.created_at = self.created_at
-        firm_report.report_date = self.report_date
-        firm_report.price = self.price
-        firm_report.is_transfer = self.from_pharmacy_transfer
-        firm_report.pharmacy_id = self.from_pharmacy_id
-        firm_report.verified_phone_number = self.verified_phone_number
-        firm_report.verified_firm_worker_name = self.verified_firm_worker_name
-        firm_report.save()
+
+        # firm_report, _ = FirmReport.objects.get_or_create(expense_id=self.id)
+        # firm_report.creator_id = self.creator_id
+        # firm_report.firm_id = self.to_firm_id
+        # firm_report.created_at = self.created_at
+        # firm_report.report_date = self.report_date
+        # firm_report.price = self.price
+        # firm_report.is_transfer = self.from_pharmacy_transfer
+        # firm_report.pharmacy_id = self.from_pharmacy_id
+        # firm_report.verified_phone_number = self.verified_phone_number
+        # firm_report.verified_firm_worker_name = self.verified_firm_worker_name
+        # firm_report.save()
+
+
+class FirmReturnProduct(AbstractIncomeExpense):
+    transfer_type = None
+    firm_income = models.ForeignKey(FirmIncome, on_delete=models.CASCADE)
+
+    is_verified = models.BooleanField(default=False)
+    verified_code = models.PositiveIntegerField()
+    verified_phone_number = models.CharField(max_length=13, validators=[uzb_phone_number_validation])
+    verified_firm_worker_name = models.CharField(max_length=50)
+
+    def save(self, *args, **kwargs):
+        self.verified_firm_worker_name = text_normalize(self.verified_firm_worker_name).title()
+
+        if not self.pk:
+            self.verified_code = randint(10000, 99999)
+
+            # obj, _ = FirmDebtByDate.objects.get_or_create(report_date=self.report_date, firm_id=self.to_firm_id)
+            # obj.price -= temp_price
+            # obj.save()
+            # ----------------------------
+
+            # send sms
+            w_name = ''.join([i for i in self.verified_firm_worker_name if i.isalpha() or i in ' \''])
+            try:
+                message = EskizUz.return_product_verify_code_message(
+                    verify_code=self.verified_code, price=self.price, firm_worker_name=w_name,
+                    firm_name=self.firm_income.from_firm.send_sms_name,
+                    company_name=Company.objects.get(director_id=self.creator.director_id).name
+                )
+                EskizUz.send_sms(phone_number=self.verified_phone_number[1:], message=message)
+
+                # income remaining debt update
+                self.firm_income.remaining_debt -= self.price
+                if self.firm_income.remaining_debt == 0:
+                    self.firm_income.is_paid = True
+                self.firm_income.save()
+
+            except Exception as e:
+                print(e)
+            # ----------------------
+        super().save(*args, **kwargs)
+
+        # firm_report, _ = FirmReport.objects.get_or_create(expense_id=self.id)
+        # firm_report.creator_id = self.creator_id
+        # firm_report.firm_id = self.to_firm_id
+        # firm_report.created_at = self.created_at
+        # firm_report.report_date = self.report_date
+        # firm_report.price = self.price
+        # firm_report.is_transfer = self.from_pharmacy_transfer
+        # firm_report.pharmacy_id = self.from_pharmacy_id
+        # firm_report.verified_phone_number = self.verified_phone_number
+        # firm_report.verified_firm_worker_name = self.verified_firm_worker_name
+        # firm_report.save()
 
 
 class FirmReport(models.Model):
