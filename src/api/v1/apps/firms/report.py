@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 
 from api.v1.apps.accounts.permissions import IsDirector, IsManager
-from api.v1.apps.firms.models import FirmReport, FirmDebtByDate
+from api.v1.apps.firms.models import FirmReport, FirmDebtByDate, FirmDebtByMonth
 
 
 class FirmReportSerializer(serializers.ModelSerializer):
@@ -25,6 +25,14 @@ class FirmDebtByDateSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class FirmDebtByMonthSerializer(serializers.ModelSerializer):
+    firm_name = serializers.StringRelatedField(source='firm')
+
+    class Meta:
+        model = FirmDebtByMonth
+        fields = '__all__'
+
+
 class FirmDebtByDateAPIView(ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated, (IsDirector | IsManager)]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
@@ -33,6 +41,17 @@ class FirmDebtByDateAPIView(ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return FirmDebtByDate.objects.filter(firm__director_id=self.request.user.director_id).order_by('-report_date')
+
+
+class FirmDebtByMonthAPIView(ReadOnlyModelViewSet):
+    pagination_class = None
+    serializer_class = FirmDebtByMonthSerializer
+    permission_classes = [IsAuthenticated, (IsDirector | IsManager)]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['year', 'month', 'firm']
+
+    def get_queryset(self):
+        return FirmDebtByMonth.objects.filter(firm__director_id=self.request.user.director_id).order_by('month')
 
 
 class CustomPageNumberPagination(PageNumberPagination):

@@ -36,7 +36,7 @@ class FirmIncomeUpdateSerializer(FirmIncomeSerializer):
     class Meta:
         model = FirmIncome
         fields = '__all__'
-        read_only_fields = ('is_paid', 'remaining_debt', 'from_firm')
+        read_only_fields = ('is_paid', 'remaining_debt', 'from_firm', 'report_date')
 
     def update(self, instance, validated_data):
         new_price = validated_data.get('price')

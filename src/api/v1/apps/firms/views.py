@@ -43,9 +43,9 @@ class FirmIncomeAPIViewSet(ModelViewSet):
         return serializers.FirmIncomeSerializer
 
     def get_permissions(self):
-        permission_classes = [IsAuthenticated, NotProjectOwner, (IsDirector | IsManager)]
+        permission_classes = [IsAuthenticated, (IsDirector | IsManager)]
         if self.action == 'destroy':
-            permission_classes = [IsAuthenticated, NotProjectOwner, IsDirector]
+            permission_classes = [IsAuthenticated, IsDirector]
         return [permission() for permission in permission_classes]
 
     def get_queryset(self):

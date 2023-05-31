@@ -14,7 +14,7 @@ from ..serializers import debt_to_pharmacy, debt_repay_from_pharmacy
 
 class DebtToPharmacyAPIView(ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    filterset_fields = ['is_paid', 'report_date', 'shift', 'to_pharmacy']
+    filterset_fields = ['is_paid', 'report_date', 'report_date__year', 'report_date__month', 'shift', 'to_pharmacy']
     search_fields = ['from_who', 'desc']
 
     def perform_create(self, serializer):
