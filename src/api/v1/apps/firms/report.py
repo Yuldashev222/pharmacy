@@ -1,11 +1,13 @@
 from collections import OrderedDict
-from rest_framework import serializers
+from rest_framework import serializers, filters
 from django.db.models import Sum
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
 
+from api.v1.apps.accounts.permissions import IsDirector, IsManager
 from api.v1.apps.firms.models import FirmReport, FirmDebtByDate
 
 
@@ -13,6 +15,24 @@ class FirmReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = FirmReport
         exclude = ['expense', 'income', 'return_product']
+
+
+class FirmDebtByDateSerializer(serializers.ModelSerializer):
+    firm_name = serializers.StringRelatedField(source='firm')
+
+    class Meta:
+        model = FirmDebtByDate
+        fields = '__all__'
+
+
+class FirmDebtByDateAPIView(ReadOnlyModelViewSet):
+    permission_classes = [IsAuthenticated, (IsDirector | IsManager)]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    serializer_class = FirmDebtByDateSerializer
+    search_fields = ['firm__name']
+
+    def get_queryset(self):
+        return FirmDebtByDate.objects.filter(firm__director_id=self.request.user.director_id).order_by('-report_date')
 
 
 class CustomPageNumberPagination(PageNumberPagination):
@@ -30,6 +50,7 @@ class CustomPageNumberPagination(PageNumberPagination):
 
 
 class FirmReportAPIView(ReadOnlyModelViewSet):
+    permission_classes = [IsAuthenticated, (IsDirector | IsManager)]
     pagination_class = CustomPageNumberPagination
     serializer_class = FirmReportSerializer
     filter_backends = [DjangoFilterBackend]
@@ -46,6 +67,7 @@ class FirmReportAPIView(ReadOnlyModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         start_date = request.query_params.get('report_date__gte')
+        end_date = request.query_params.get('report_date__lte')
         firm_id = request.query_params.get('firm')
         transfer_debt_in_start_date = 0
         not_transfer_debt_in_start_date = 0
