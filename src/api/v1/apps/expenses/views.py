@@ -11,8 +11,13 @@ from .serializers import user_expense, pharmacy_expense
 
 class ExpenseTypeAPIViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['is_user_expense']
     serializer_class = pharmacy_expense.ExpenseTypeSerializer
+
+    def get_queryset(self):
+        return ExpenseType.objects.filter(director_id=self.request.user.director_id).order_by('-id')
+
+    def perform_create(self, serializer):
+        serializer.save(director_id=self.request.user.director_id)
 
     def get_permissions(self):
         permission_classes = [IsAuthenticated, NotProjectOwner]
@@ -21,37 +26,16 @@ class ExpenseTypeAPIViewSet(ModelViewSet):
         return [permission() for permission in permission_classes]
 
 
-class PharmacyExpenseTypeAPIViewSet(ExpenseTypeAPIViewSet):
-    def perform_create(self, serializer):
-        serializer.save(director_id=self.request.user.director_id, is_user_expense=False)
-
-    def get_queryset(self):
-        return ExpenseType.objects.filter(
-            director_id=self.request.user.director_id,
-            is_user_expense=False
-        ).order_by('-id')
-
-
-class UserExpenseTypeAPIViewSet(ExpenseTypeAPIViewSet):
-    def perform_create(self, serializer):
-        serializer.save(director_id=self.request.user.director_id, is_user_expense=True)
-
-    def get_queryset(self):
-        return ExpenseType.objects.filter(
-            director_id=self.request.user.director_id, is_user_expense=True
-        ).order_by('-id')
-
-
 class UserExpenseAPIViewSet(ModelViewSet):
     pagination_class = None
 
     permission_classes = [IsAuthenticated, NotProjectOwner]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = {
-       'expense_type': ['exact', 'gte'],
-       'report_date': ['exact'],
-       'shift': ['exact'],
-       'to_pharmacy': ['exact']
+        'expense_type': ['exact', 'gte'],
+        'report_date': ['exact'],
+        'shift': ['exact'],
+        'to_pharmacy': ['exact']
     }
 
     def list(self, request, *args, **kwargs):
@@ -89,10 +73,10 @@ class PharmacyExpenseAPIViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated, NotProjectOwner]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = {
-       'expense_type': ['exact', 'gte'],
-       'shift': ['exact'],
-       'report_date': ['exact'],
-       'from_pharmacy': ['exact']
+        'expense_type': ['exact', 'gte'],
+        'shift': ['exact'],
+        'report_date': ['exact'],
+        'from_pharmacy': ['exact']
     }
 
     def list(self, request, *args, **kwargs):

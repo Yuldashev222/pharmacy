@@ -10,7 +10,7 @@ from api.v1.apps.clients.views import ClientAPIViewSet
 from api.v1.apps.incomes.views import PharmacyIncomeAPIViewSet
 from api.v1.apps.receipts.views import ReceiptCreateUpdateAPIView
 from api.v1.apps.incomes.report import PharmacyIncomeReportDayAPIView, PharmacyIncomeReportMonthAPIView
-from api.v1.apps.expenses.views import PharmacyExpenseAPIViewSet, PharmacyExpenseTypeAPIViewSet
+from api.v1.apps.expenses.views import PharmacyExpenseAPIViewSet, ExpenseTypeAPIViewSet
 from api.v1.apps.pharmacies.views import PharmacyAPIViewSet
 from api.v1.apps.expenses.reports.returns import ReturnProductAPIView, ReturnProductReportMonthAPIView
 from api.v1.apps.expenses.reports.discounts import DiscountProductReportMonthAPIView, DiscountProductAPIView
@@ -34,7 +34,7 @@ router.register('pharmacies/expenses/reports/discounts/months', DiscountProductR
 router.register('pharmacies/expenses/reports/returns/months', ReturnProductReportMonthAPIView, basename='pharmacy_expense_returns_months')
 router.register('pharmacies/expenses/reports/discounts', DiscountProductAPIView, basename='pharmacy_expense_discounts')
 router.register('pharmacies/expenses/reports/returns', ReturnProductAPIView, basename='pharmacy_expense_returns')
-router.register('pharmacies/expenses/types', PharmacyExpenseTypeAPIViewSet, basename='pharmacy_expense_type')
+router.register('pharmacies/expenses/types', ExpenseTypeAPIViewSet, basename='expense_type')
 router.register('pharmacies/expenses', PharmacyExpenseAPIViewSet, basename='pharmacy_expense')
 
 router.register('pharmacies/incomes/reports/days', PharmacyIncomeReportDayAPIView, basename='pharmacy_income_report_day')
