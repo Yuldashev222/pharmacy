@@ -12,6 +12,8 @@ from .services import firm_logo_upload_location, EskizUz
 class Firm(models.Model):
     name = models.CharField(max_length=400)
     send_sms_name = models.CharField(max_length=400, blank=True)
+    not_transfer_debt = models.IntegerField(default=0)
+    transfer_debt = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     director = models.ForeignKey('accounts.CustomUser', related_name='firms', on_delete=models.PROTECT)
     creator = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True)
@@ -46,9 +48,6 @@ class FirmIncome(AbstractIncomeExpense):
         return str(self.from_firm)
 
     def save(self, *args, **kwargs):
-        FirmExpense.objects.filter(
-            is_verified=False, created_at__lt=datetime.now() - timedelta(minutes=5)).delete()
-
         if not self.pk:
             self.remaining_debt = self.price
         super().save(*args, **kwargs)
@@ -80,6 +79,9 @@ class FirmExpense(AbstractIncomeExpense):
         return str(self.to_firm)
 
     def save(self, *args, **kwargs):
+        FirmExpense.objects.filter(
+            is_verified=False, created_at__lt=datetime.now() - timedelta(minutes=5)).delete()
+
         self.verified_firm_worker_name = text_normalize(self.verified_firm_worker_name).title()
 
         if not self.pk:
@@ -117,10 +119,10 @@ class FirmExpense(AbstractIncomeExpense):
             if temp_price > 0:
                 firm_debt, _ = FirmDebtByDate.objects.get_or_create(
                     firm_id=self.to_firm_id, report_date=self.report_date)
-                if self.from_pharmacy_transfer:
-                    firm_debt.transfer_debt -= temp_price
+                if self.transfer_type == 1:
+                    firm_debt.expenses_not_transfer_debt_price += temp_price
                 else:
-                    firm_debt.not_transfer_debt -= temp_price
+                    firm_debt.expenses_transfer_debt_price += temp_price
                 firm_debt.save()
 
             firm_report, _ = FirmReport.objects.get_or_create(expense_id=self.id)
@@ -184,10 +186,23 @@ class FirmReturnProduct(AbstractIncomeExpense):
 
 
 class FirmDebtByDate(models.Model):
-    transfer_debt = models.IntegerField(default=0)
-    not_transfer_debt = models.IntegerField(default=0)
+    incomes_transfer_debt_price = models.IntegerField(default=0)
+    incomes_not_transfer_debt_price = models.IntegerField(default=0)
+    expenses_transfer_debt_price = models.IntegerField(default=0)
+    expenses_not_transfer_debt_price = models.IntegerField(default=0)
+    transfer_debt = models.IntegerField()
+    not_transfer_debt = models.IntegerField()
     report_date = models.DateField()
     firm = models.ForeignKey(Firm, on_delete=models.CASCADE)
+
+    def save(self, *args, **kwargs):
+        self.transfer_debt = self.incomes_transfer_debt_price - self.expenses_transfer_debt_price
+        self.not_transfer_debt = self.incomes_not_transfer_debt_price - self.expenses_not_transfer_debt_price
+        super().save(*args, **kwargs)
+        obj = FirmDebtByDate.objects.filter(firm_id=self.firm_id).order_by('-report_date').first()
+        self.firm.transfer_debt = obj.transfer_debt
+        self.firm.not_transfer_debt = obj.not_transfer_debt
+        self.firm.save()
 
 
 class FirmReport(models.Model):
@@ -210,16 +225,16 @@ class FirmReport(models.Model):
         super().save(*args, **kwargs)
         if self.firm and self.report_date:
             firm_debt, _ = FirmDebtByDate.objects.get_or_create(firm_id=self.firm_id, report_date=self.report_date)
-            not_transfer_debt = FirmIncome.objects.filter(
-                is_paid=False, is_transfer_return=False, from_firm_id=firm_debt.id,
+            incomes_not_transfer_debt_price = FirmIncome.objects.filter(
+                is_paid=False, is_transfer_return=False, from_firm_id=firm_debt.firm_id,
                 report_date__lte=firm_debt.report_date).aggregate(s=models.Sum('remaining_debt'))['s']
-            transfer_debt = FirmIncome.objects.filter(
-                is_paid=False, is_transfer_return=True, from_firm_id=firm_debt.id,
+            incomes_transfer_debt_price = FirmIncome.objects.filter(
+                is_paid=False, is_transfer_return=True, from_firm_id=firm_debt.firm_id,
                 report_date__lte=firm_debt.report_date).aggregate(s=models.Sum('remaining_debt'))['s']
 
-            not_transfer_debt = not_transfer_debt if not_transfer_debt else 0
-            transfer_debt = transfer_debt if transfer_debt else 0
+            incomes_not_transfer_debt_price = incomes_not_transfer_debt_price if incomes_not_transfer_debt_price else 0
+            incomes_transfer_debt_price = incomes_transfer_debt_price if incomes_transfer_debt_price else 0
 
-            firm_debt.not_transfer_debt = not_transfer_debt
-            firm_debt.transfer_debt = transfer_debt
+            firm_debt.incomes_not_transfer_debt_price = incomes_not_transfer_debt_price
+            firm_debt.incomes_transfer_debt_price = incomes_transfer_debt_price
             firm_debt.save()

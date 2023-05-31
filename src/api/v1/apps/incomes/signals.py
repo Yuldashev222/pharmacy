@@ -15,10 +15,7 @@ def update_user_income_report(instance, *args, **kwargs):
         to_pharmacy_id=instance.to_pharmacy_id
     ).aggregate(s=Sum('price'))['s']
     obj = PharmacyIncomeReportDay.objects.get_or_create(
-        pharmacy_id=instance.to_pharmacy_id,
-        report_date=instance.report_date,
-        director_id=instance.creator.director_id
-    )[0]
+        pharmacy_id=instance.to_pharmacy_id, report_date=instance.report_date)[0]
     obj.price = price if price else 0
     print(price)
     obj.save()

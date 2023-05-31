@@ -11,18 +11,18 @@ from .models import FirmIncome, FirmExpense, FirmReport, FirmDebtByDate
 @receiver(post_delete, sender=FirmReport)
 def update_firm_report(instance, *args, **kwargs):
     firm_debt, _ = FirmDebtByDate.objects.get_or_create(firm_id=instance.firm_id, report_date=instance.report_date)
-    not_transfer_debt = FirmIncome.objects.filter(
-        is_paid=False, is_transfer_return=False, from_firm_id=firm_debt.id, report_date__lte=firm_debt.report_date
-    ).aggregate(s=Sum('remaining_debt'))['s']
-    transfer_debt = FirmIncome.objects.filter(
-        is_paid=False, is_transfer_return=True, from_firm_id=firm_debt.id, report_date__lte=firm_debt.report_date
-    ).aggregate(s=Sum('remaining_debt'))['s']
+    incomes_not_transfer_debt_price = FirmIncome.objects.filter(
+        is_paid=False, is_transfer_return=False, from_firm_id=firm_debt.firm_id,
+        report_date__lte=firm_debt.report_date).aggregate(s=Sum('remaining_debt'))['s']
+    incomes_transfer_debt_price = FirmIncome.objects.filter(
+        is_paid=False, is_transfer_return=True, from_firm_id=firm_debt.firm_id,
+        report_date__lte=firm_debt.report_date).aggregate(s=Sum('remaining_debt'))['s']
 
-    not_transfer_debt = not_transfer_debt if not_transfer_debt else 0
-    transfer_debt = transfer_debt if transfer_debt else 0
+    incomes_not_transfer_debt_price = incomes_not_transfer_debt_price if incomes_not_transfer_debt_price else 0
+    incomes_transfer_debt_price = incomes_transfer_debt_price if incomes_transfer_debt_price else 0
 
-    firm_debt.not_transfer_debt = not_transfer_debt
-    firm_debt.transfer_debt = transfer_debt
+    firm_debt.incomes_not_transfer_debt_price = incomes_not_transfer_debt_price
+    firm_debt.incomes_transfer_debt_price = incomes_transfer_debt_price
     firm_debt.save()
 
 

@@ -6,7 +6,7 @@ from api.v1.apps.firms.views import (
 )
 from api.v1.apps.drugs.views import DrugAPIViewSet
 from api.v1.apps.debts.views import debt_from_pharmacy, debt_to_pharmacy
-from api.v1.apps.firms.report import FirmReportAPIView
+from api.v1.apps.firms.report import FirmReportAPIView, FirmDebtByDateAPIView
 from api.v1.apps.clients.views import ClientAPIViewSet
 from api.v1.apps.incomes.views import PharmacyIncomeAPIViewSet
 from api.v1.apps.receipts.views import ReceiptCreateUpdateAPIView
@@ -51,6 +51,7 @@ router.register('firms/returns', FirmReturnProductAPIViewSet, basename='firm_ret
 router.register('firms/expenses', FirmExpenseAPIViewSet, basename='firm_expense')
 router.register('firms/reports', FirmReportAPIView, basename='firm_report')
 router.register('firms/incomes', FirmIncomeAPIViewSet, basename='firm_income')
+router.register('firms/debts', FirmDebtByDateAPIView, basename='firm_debt')
 router.register('firms', FirmAPIViewSet, basename='firm')
 
 router.register('companies/reports/expenses/discounts', AllDiscountProductReportMonthAPIView, basename='company_discount_product_report')
