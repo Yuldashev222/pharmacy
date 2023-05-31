@@ -7,7 +7,6 @@ from ..models import PharmacyExpense, ExpenseType
 class ExpenseTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ExpenseType
-        exclude = ('is_user_expense',)
         read_only_fields = ('director',)
 
 
