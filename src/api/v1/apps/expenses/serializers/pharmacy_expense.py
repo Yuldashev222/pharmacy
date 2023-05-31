@@ -20,12 +20,6 @@ class PharmacyExpenseSerializer(serializers.ModelSerializer):
     transfer_type_name = serializers.StringRelatedField(source='transfer_type', read_only=True)
     expense_type_name = serializers.StringRelatedField(source='expense_type', read_only=True)
 
-    def validate(self, attrs):
-        to_user = attrs.get('to_user')
-        if to_user and self.context['request'].user.id == to_user.id:
-            raise ValidationError({'to_user': 'not found'})
-        return attrs
-
 
 class WorkerPharmacyExpenseSerializer(PharmacyExpenseSerializer):
     class Meta:
