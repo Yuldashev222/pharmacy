@@ -45,9 +45,10 @@ class PharmacyExpense(AbstractIncomeExpense):
 
     def save(self, *args, **kwargs):
         change = False
-        expense_type_id = PharmacyExpense.objects.get(id=self.id).expense_type_id
-        if self.pk and expense_type_id != self.expense_type_id:
-            change = True
+        if self.pk:
+            expense_type_id = PharmacyExpense.objects.get(id=self.id).expense_type_id
+            if expense_type_id != self.expense_type_id:
+                change = True
         super().save(*args, **kwargs)
         if change:
             price = PharmacyExpense.objects.filter(
