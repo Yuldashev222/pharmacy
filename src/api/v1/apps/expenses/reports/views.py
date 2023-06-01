@@ -10,16 +10,18 @@ from django_filters.rest_framework import DjangoFilterBackend
 from api.v1.apps.companies.enums import StaticEnv
 from api.v1.apps.accounts.permissions import IsDirector, IsManager
 
-from .models import DiscountProductReportMonth
+from .models import ExpenseReportMonth
 from ..models import PharmacyExpense
 
 
-class DiscountProductSerializer(serializers.ModelSerializer):
+class ExpenseSerializer(serializers.ModelSerializer):
     creator = serializers.StringRelatedField()
+    expense_type = serializers.StringRelatedField()
+    from_pharmacy = serializers.StringRelatedField()
 
     class Meta:
         model = PharmacyExpense
-        fields = ['creator', 'price', 'created_at', 'report_date', 'second_name']
+        fields = ['creator', 'expense_type', 'from_pharmacy', 'price', 'created_at', 'report_date', 'second_name']
 
 
 class CustomPageNumberPagination(PageNumberPagination):
@@ -33,14 +35,15 @@ class CustomPageNumberPagination(PageNumberPagination):
         ]))
 
 
-class DiscountProductAPIView(ReadOnlyModelViewSet):
+class ExpenseAPIView(ReadOnlyModelViewSet):
     pagination_class = CustomPageNumberPagination
     permission_classes = [IsAuthenticated, (IsDirector | IsManager)]
     filter_backends = [DjangoFilterBackend]
-    serializer_class = DiscountProductSerializer
+    serializer_class = ExpenseSerializer
     filterset_fields = {
         'report_date': ['year', 'month'],
-        'from_pharmacy': ['exact']
+        'from_pharmacy': ['exact'],
+        'expense_type': ['exact']
     }
 
     def list(self, request, *args, **kwargs):
@@ -50,13 +53,19 @@ class DiscountProductAPIView(ReadOnlyModelViewSet):
 
         month = request.query_params.get('report_date__month')
         year = request.query_params.get('report_date__year')
+        from_pharmacy = request.query_params.get('from_pharmacy')
+        expense_type = request.query_params.get('expense_type')
         total_month_price = None
-        if month and year:
+        if month and year and from_pharmacy:
             try:
-                total_month_price = DiscountProductReportMonth.objects.get(month=month, year=year).price
-            except DiscountProductReportMonth.DoesNotExist:
+                if expense_type:
+                    total_month_price = ExpenseReportMonth.objects.get(
+                        month=month, year=year, pharmacy_id=from_pharmacy, expense_type_id=expense_type).price
+                else:
+                    total_month_price = ExpenseReportMonth.objects.get(
+                        month=month, year=year, pharmacy_id=from_pharmacy).price
+            except ExpenseReportMonth.DoesNotExist:
                 total_month_price = None
-
         data = {
             'total_month_price': total_month_price,
             'results': serializer.data
@@ -65,27 +74,27 @@ class DiscountProductAPIView(ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = PharmacyExpense.objects.filter(
-            from_pharmacy__director_id=user.director_id,
-            expense_type_id=StaticEnv.discount_id.value
-        )
-        return queryset.order_by('-created_at')
+        queryset = PharmacyExpense.objects.filter(from_pharmacy__director_id=user.director_id).order_by('-created_at')
+        return queryset
 
 
-class DiscountProductReportMonthSerializer(serializers.ModelSerializer):
+class ExpenseReportMonthSerializer(serializers.ModelSerializer):
+    pharmacy = serializers.StringRelatedField()
+    expense_type = serializers.StringRelatedField()
+
     class Meta:
-        model = DiscountProductReportMonth
-        fields = ['month', 'price']
+        model = ExpenseReportMonth
+        fields = '__all__'
 
 
-class DiscountProductReportMonthAPIView(ReadOnlyModelViewSet):
+class ExpenseReportMonthAPIView(ReadOnlyModelViewSet):
     pagination_class = None
     filter_backends = [DjangoFilterBackend]
-    serializer_class = DiscountProductReportMonthSerializer
+    serializer_class = ExpenseReportMonthSerializer
     permission_classes = [IsAuthenticated, (IsDirector | IsManager)]
-    filterset_fields = ['year', 'pharmacy']
+    filterset_fields = ['year', 'pharmacy', 'expense_type']
 
     def get_queryset(self):
         user = self.request.user
-        queryset = DiscountProductReportMonth.objects.filter(director_id=user.director_id)
+        queryset = ExpenseReportMonth.objects.filter(pharmacy__director_id=user.director_id)
         return queryset.order_by('month')

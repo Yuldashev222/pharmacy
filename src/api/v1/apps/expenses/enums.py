@@ -9,6 +9,7 @@ class DefaultExpenseType(Enum):
     kommunal = 5
     ijaraga = 6
     oylik = 7
+    vozvrat = 2
 
     @classmethod
     def choices(cls):
