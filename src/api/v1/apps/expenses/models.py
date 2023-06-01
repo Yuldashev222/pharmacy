@@ -1,9 +1,8 @@
 from django.db import models
 
-from api.v1.apps.companies.enums import StaticEnv
 from api.v1.apps.companies.services import text_normalize
 from api.v1.apps.companies.models import AbstractIncomeExpense
-from api.v1.apps.expenses.reports.models import ReturnProductReportMonth, DiscountProductReportMonth
+from api.v1.apps.expenses.reports.models import ExpenseReportMonth
 
 
 class ExpenseType(models.Model):
@@ -27,7 +26,7 @@ class UserExpense(AbstractIncomeExpense):
     # select
     to_user = models.ForeignKey('accounts.CustomUser', on_delete=models.PROTECT,
                                 related_name='to_user_expenses', null=True, blank=True)
-    to_pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE, blank=True, null=True)  # last
+    to_pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE, blank=True, null=True)
 
     # -------
 
@@ -45,33 +44,38 @@ class PharmacyExpense(AbstractIncomeExpense):
         return f'{self.expense_type}: {self.price}'
 
     def save(self, *args, **kwargs):
+        change = False
+        expense_type_id = PharmacyExpense.objects.get(id=self.id).expense_type_id
+        if self.pk and expense_type_id != self.expense_type_id:
+            change = True
         super().save(*args, **kwargs)
-        if self.expense_type_id == StaticEnv.return_product_id.value:
+        if change:
             price = PharmacyExpense.objects.filter(
                 from_pharmacy_id=self.from_pharmacy_id,
+                expense_type_id=expense_type_id,
                 report_date__year=self.report_date.year,
                 report_date__month=self.report_date.month
             ).aggregate(s=models.Sum('price'))['s']
-            obj = ReturnProductReportMonth.objects.get_or_create(
+            obj, _ = ExpenseReportMonth.objects.get_or_create(
                 pharmacy_id=self.from_pharmacy_id,
+                expense_type_id=expense_type_id,
                 year=self.report_date.year,
-                month=self.report_date.month,
-                director_id=self.from_pharmacy.director_id
-            )[0]
+                month=self.report_date.month
+            )
             obj.price = price if price else 0
             obj.save()
 
-        elif self.expense_type_id == StaticEnv.discount_id.value:
-            price = PharmacyExpense.objects.filter(
-                from_pharmacy_id=self.from_pharmacy_id,
-                report_date__year=self.report_date.year,
-                report_date__month=self.report_date.month
-            ).aggregate(s=models.Sum('price'))['s']
-            obj = DiscountProductReportMonth.objects.get_or_create(
-                pharmacy_id=self.from_pharmacy_id,
-                year=self.report_date.year,
-                month=self.report_date.month,
-                director_id=self.from_pharmacy.director_id
-            )[0]
-            obj.price = price if price else 0
-            obj.save()
+        price = PharmacyExpense.objects.filter(
+            from_pharmacy_id=self.from_pharmacy_id,
+            expense_type_id=self.expense_type_id,
+            report_date__year=self.report_date.year,
+            report_date__month=self.report_date.month
+        ).aggregate(s=models.Sum('price'))['s']
+        obj, _ = ExpenseReportMonth.objects.get_or_create(
+            pharmacy_id=self.from_pharmacy_id,
+            expense_type_id=self.expense_type_id,
+            year=self.report_date.year,
+            month=self.report_date.month
+        )
+        obj.price = price if price else 0
+        obj.save()

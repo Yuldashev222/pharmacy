@@ -93,7 +93,6 @@ INSTALLED_APPS = [
     'api.v1.apps.debts.apps.DebtsConfig',
     'api.v1.apps.expenses.apps.ExpensesConfig',
     'api.v1.apps.incomes.apps.IncomesConfig',
-    'api.v1.apps.reports.apps.ReportsConfig',
     'api.v1.apps.clients.apps.ClientsConfig',
     'api.v1.apps.drugs.apps.DrugsConfig',
     'api.v1.apps.receipts.apps.ReceiptsConfig',

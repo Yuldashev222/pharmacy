@@ -9,15 +9,9 @@ class AllPharmacyIncomeReportMonth(models.Model):
     director = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE)
 
 
-class AllReturnProductReportMonth(models.Model):
+class AllExpenseReportMonth(models.Model):
     year = models.IntegerField()
     month = models.IntegerField()
     price = models.IntegerField(default=0)
     director = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE)
-
-
-class AllDiscountProductReportMonth(models.Model):
-    year = models.IntegerField()
-    month = models.IntegerField()
-    price = models.IntegerField(default=0)
-    director = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE)
+    expense_type = models.ForeignKey('expenses.ExpenseType', on_delete=models.CASCADE)
