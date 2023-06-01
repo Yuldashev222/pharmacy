@@ -17,7 +17,8 @@ class PharmacyIncomeReportMonth(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        obj, _ = AllPharmacyIncomeReportMonth.objects.get_or_create(year=self.year, month=self.month)
+        obj, _ = AllPharmacyIncomeReportMonth.objects.get_or_create(year=self.year, month=self.month,
+                                                                    director_id=self.pharmacy.director_id)
         data = PharmacyIncomeReportMonth.objects.filter(month=obj.month).aggregate(
             s=models.Sum('price'), rs=models.Sum('receipt_price'))
 
