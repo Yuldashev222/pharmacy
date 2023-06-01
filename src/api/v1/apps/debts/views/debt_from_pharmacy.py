@@ -1,6 +1,6 @@
 from datetime import date
-from rest_framework.response import Response
 from rest_framework import filters
+from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
@@ -32,14 +32,12 @@ class DebtFromPharmacyAPIView(ModelViewSet):
 
     def perform_create(self, serializer):
         user = self.request.user
+        data = {'creator_id': user.id}
         if user.is_worker:
-            serializer.save(
-                report_date=date.today(),
-                from_pharmacy_id=user.pharmacy_id,
-                shift=user.shift
-            )
-        else:
-            serializer.save()
+            data['report_date'] = date.today()
+            data['from_pharmacy_id'] = user.pharmacy_id
+            data['shift'] = user.shift
+        serializer.save(**data)
 
     def get_serializer_class(self):
         user = self.request.user
@@ -79,10 +77,11 @@ class DebtRepayToPharmacyAPIView(ModelViewSet):
 
     def perform_create(self, serializer):
         user = self.request.user
+        data = {'creator_id': user.id}
         if user.is_worker:
-            serializer.save(report_date=date.today(), shift=user.shift)
-        else:
-            serializer.save()
+            data['report_date'] = date.today()
+            data['shift'] = user.shift
+        serializer.save(**data)
 
     def perform_destroy(self, instance):
         from_debt = instance.from_debt
@@ -108,8 +107,5 @@ class DebtRepayToPharmacyAPIView(ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-
-        page = self.paginate_queryset(queryset)
-
         serializer = self.get_serializer(queryset, many=True)
         return Response({'results': serializer.data})

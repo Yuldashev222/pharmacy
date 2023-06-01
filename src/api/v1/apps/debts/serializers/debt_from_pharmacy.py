@@ -5,7 +5,6 @@ from ..models import DebtFromPharmacy
 
 
 class DebtFromPharmacySerializer(serializers.ModelSerializer):
-    creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
     creator_name = serializers.StringRelatedField(source='creator', read_only=True)
     from_pharmacy_name = serializers.StringRelatedField(source='from_pharmacy', read_only=True)
     transfer_type_name = serializers.StringRelatedField(source='transfer_type', read_only=True)
@@ -24,19 +23,20 @@ class DebtFromPharmacySerializer(serializers.ModelSerializer):
     class Meta:
         model = DebtFromPharmacy
         fields = '__all__'
-        read_only_fields = ('is_paid', 'remaining_debt')
+        read_only_fields = ('is_paid', 'remaining_debt', 'creator')
 
 
 class WorkerDebtFromPharmacySerializer(DebtFromPharmacySerializer):
     class Meta:
         model = DebtFromPharmacy
         fields = '__all__'
-        read_only_fields = ('is_paid', 'report_date', 'shift', 'from_pharmacy', 'remaining_debt')
+        read_only_fields = ('is_paid', 'report_date', 'shift', 'from_pharmacy', 'remaining_debt', 'creator')
 
 
 class DirectorManagerDebtFromPharmacySerializer(DebtFromPharmacySerializer):
     def validate(self, attrs):
         user = self.context['request'].user
-        if attrs.get('from_pharmacy') and attrs['from_pharmacy'].director_id != user.director_id:
+        from_pharmacy = attrs.get('from_pharmacy')
+        if from_pharmacy and from_pharmacy.director_id != user.director_id:
             ValidationError({'from_pharmacy': 'not found'})
         return super().validate(attrs)

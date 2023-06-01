@@ -12,7 +12,6 @@ class ExpenseTypeSerializer(serializers.ModelSerializer):
 
 
 class PharmacyExpenseSerializer(serializers.ModelSerializer):
-    creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
     creator_name = serializers.StringRelatedField(source='creator', read_only=True)
     from_pharmacy_name = serializers.StringRelatedField(source='from_pharmacy', read_only=True)
     to_user_name = serializers.StringRelatedField(source='to_user', read_only=True)
@@ -25,7 +24,7 @@ class WorkerPharmacyExpenseSerializer(PharmacyExpenseSerializer):
     class Meta:
         model = PharmacyExpense
         fields = '__all__'
-        read_only_fields = ('shift', 'report_date', 'from_pharmacy')
+        read_only_fields = ('shift', 'report_date', 'from_pharmacy', 'creator')
 
     def validate(self, attrs):
         user = self.context['request'].user
@@ -40,6 +39,7 @@ class DirectorManagerPharmacyExpenseSerializer(PharmacyExpenseSerializer):
     class Meta:
         model = PharmacyExpense
         fields = '__all__'
+        read_only_fields = ['creator']
 
     def validate(self, attrs):
         user = self.context['request'].user

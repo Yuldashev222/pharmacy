@@ -45,10 +45,12 @@ class UserExpenseAPIViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         user = self.request.user
+        data = {'creator_id': user.id}
         if user.is_worker:
-            serializer.save(shift=user.shift, report_date=date.today(), to_pharmacy_id=user.pharmacy_id)
-        else:
-            serializer.save()
+            data['shift'] = user.shift
+            data['report_date'] = date.today()
+            data['to_pharmacy_id'] = user.pharmacy_id
+        serializer.save(**data)
 
     def get_serializer_class(self):
         user = self.request.user
@@ -78,20 +80,17 @@ class PharmacyExpenseAPIViewSet(ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-
-        page = self.paginate_queryset(queryset)
-
         serializer = self.get_serializer(queryset, many=True)
         return Response({'results': serializer.data})
 
     def perform_create(self, serializer):
         user = self.request.user
+        data = {'creator_id': user.id}
         if user.is_worker:
-            serializer.save(
-                shift=user.shift, report_date=date.today(), from_pharmacy_id=user.pharmacy_id
-            )
-        else:
-            serializer.save()
+            data['shift'] = user.shift
+            data['report_date'] = date.today()
+            data['from_pharmacy_id'] = user.pharmacy_id
+        serializer.save(**data)
 
     def get_serializer_class(self):
         user = self.request.user
@@ -103,12 +102,7 @@ class PharmacyExpenseAPIViewSet(ModelViewSet):
         user = self.request.user
         if user.is_worker:
             queryset = PharmacyExpense.objects.filter(
-                from_pharmacy_id=user.pharmacy_id,
-                report_date=date.today(),
-                shift=user.shift
-            )
+                from_pharmacy_id=user.pharmacy_id, report_date=date.today(), shift=user.shift)
         else:
-            queryset = PharmacyExpense.objects.filter(
-                from_pharmacy__director_id=user.director_id
-            )
+            queryset = PharmacyExpense.objects.filter(from_pharmacy__director_id=user.director_id)
         return queryset.order_by('-created_at')

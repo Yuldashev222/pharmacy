@@ -19,7 +19,8 @@ class FirmAPIViewSet(ModelViewSet):
     serializer_class = serializers.FirmSerializer
 
     def perform_create(self, serializer):
-        serializer.save(director_id=self.request.user.director_id)
+        user = self.request.user
+        serializer.save(director_id=user.director_id, creator_id=user.id)
 
     def get_queryset(self):
         return Firm.objects.filter(director_id=self.request.user.director_id).order_by('-created_at')
@@ -35,7 +36,7 @@ class FirmAPIViewSet(ModelViewSet):
 
 class FirmIncomeAPIViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['is_paid', 'report_date', 'shift', 'from_firm']
+    filterset_fields = ['is_paid', 'report_date', 'from_firm']
 
     def get_serializer_class(self):
         if self.action in ('update', 'partial_update'):
@@ -47,6 +48,9 @@ class FirmIncomeAPIViewSet(ModelViewSet):
         if self.action == 'destroy':
             permission_classes = [IsAuthenticated, IsDirector]
         return [permission() for permission in permission_classes]
+
+    def perform_create(self, serializer):
+        serializer.save(creator_id=self.request.user.id)
 
     def get_queryset(self):
         return FirmIncome.objects.filter(from_firm__director_id=self.request.user.director_id).order_by('-created_at')
@@ -64,19 +68,17 @@ class FirmExpenseAPIViewSet(CreateModelMixin, ReadOnlyModelViewSet):
 
     def perform_create(self, serializer):
         user = self.request.user
-        data = {
-            'report_date': date.today()
-        }
+        data = {'report_date': date.today(), 'creator_id': user.id}
         if user.is_worker:
-            data['shift'], data['from_pharmacy_id'] = user.shift, user.pharmacy_id
+            data['shift'] = user.shift
+            data['from_pharmacy_id'] = user.pharmacy_id
         serializer.save(**data)
 
     def get_queryset(self):
         user = self.request.user
         if user.is_worker:
             queryset = FirmExpense.objects.filter(
-                report_date=date.today(), shift=user.shift, from_pharmacy_id=user.pharmacy_id
-            )
+                report_date=date.today(), shift=user.shift, from_pharmacy_id=user.pharmacy_id)
         else:
             queryset = FirmExpense.objects.filter(creator__director_id=user.director_id)
         return queryset.filter(is_verified=True).order_by('-created_at')
@@ -94,7 +96,7 @@ class FirmReturnProductAPIViewSet(CreateModelMixin, ReadOnlyModelViewSet):
         return [permission() for permission in permission_classes]
 
     def perform_create(self, serializer):
-        serializer.save(report_date=date.today())
+        serializer.save(report_date=date.today(), creator_id=self.request.user.id)
 
     def get_queryset(self):
         user = self.request.user

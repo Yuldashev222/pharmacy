@@ -5,7 +5,6 @@ from ..models import UserExpense
 
 
 class UserExpenseSerializer(serializers.ModelSerializer):
-    creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
     creator_name = serializers.StringRelatedField(source='creator', read_only=True)
     from_user_name = serializers.StringRelatedField(source='from_user', read_only=True)
     to_user_name = serializers.StringRelatedField(source='to_user', read_only=True)
@@ -18,7 +17,7 @@ class WorkerUserExpenseSerializer(UserExpenseSerializer):
     class Meta:
         model = UserExpense
         fields = '__all__'
-        read_only_fields = ('shift', 'to_pharmacy', 'report_date')
+        read_only_fields = ('shift', 'to_pharmacy', 'report_date', 'creator')
 
     def validate(self, attrs):
         user = self.context['request'].user
@@ -37,6 +36,7 @@ class DirectorManagerUserExpenseSerializer(UserExpenseSerializer):
     class Meta:
         model = UserExpense
         fields = '__all__'
+        read_only_fields = ['creator']
 
     def validate(self, attrs):
         user = self.context['request'].user

@@ -1,11 +1,9 @@
 from datetime import date
-
-from django.db.models import Q
 from rest_framework import mixins
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 
 from api.v1.apps.firms.models import Firm
 from api.v1.apps.receipts.models import Receipt
@@ -88,9 +86,7 @@ class TransferMoneyTypeAPIViewSet(ModelViewSet):
         return [permission() for permission in permission_classes]
 
     def perform_create(self, serializer):
-        user = self.request.user
-        serializer.save(director_id=user.director_id)
+        serializer.save(director_id=self.request.user.director_id)
 
     def get_queryset(self):
-        queryset = TransferMoneyType.objects.filter(director_id=self.request.user.director_id)
-        return queryset.order_by('-id')
+        return TransferMoneyType.objects.filter(director_id=self.request.user.director_id).order_by('-id')

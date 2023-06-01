@@ -25,10 +25,12 @@ class ReceiptCreateUpdateAPIView(CreateModelMixin,
 
     def perform_create(self, serializer):
         user = self.request.user
+        data = {'creator_id': user.id}
         if user.is_worker:
-            serializer.save(report_date=date.today(), shift=user.shift, pharmacy_id=user.pharmacy_id)
-        else:
-            serializer.save()
+            data['report_date'] = date.today()
+            data['shift'] = user.shift
+            data['pharmacy_id'] = user.pharmacy_id
+        serializer.save(**data)
 
     def get_queryset(self):
         user = self.request.user

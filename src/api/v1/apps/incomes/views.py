@@ -7,9 +7,7 @@ from api.v1.apps.accounts.permissions import NotProjectOwner
 
 from .models import PharmacyIncome
 from .serializers import (
-    DirectorManagerPharmacyIncomeSerializer,
-    WorkerPharmacyIncomeSerializer
-)
+    DirectorManagerPharmacyIncomeSerializer, WorkerPharmacyIncomeSerializer)
 
 
 class PharmacyIncomeAPIViewSet(ModelViewSet):
@@ -20,11 +18,12 @@ class PharmacyIncomeAPIViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         user = self.request.user
+        data = {'creator_id': user.id}
         if user.is_worker:
-            serializer.save(
-                shift=user.shift, report_date=date.today(), to_pharmacy_id=user.pharmacy_id)
-        else:
-            serializer.save()
+            data['shift'] = user.shift
+            data['report_date'] = date.today()
+            data['to_pharmacy_id'] = user.pharmacy_id
+        serializer.save(**data)
 
     def get_serializer_class(self):
         user = self.request.user
@@ -36,8 +35,7 @@ class PharmacyIncomeAPIViewSet(ModelViewSet):
         user = self.request.user
         if user.is_worker:
             queryset = PharmacyIncome.objects.filter(
-                to_pharmacy_id=user.pharmacy_id, report_date=date.today(), shift=user.shift
-            )
+                to_pharmacy_id=user.pharmacy_id, report_date=date.today(), shift=user.shift)
         else:
             queryset = PharmacyIncome.objects.filter(to_pharmacy__director_id=user.director_id)
         return queryset.order_by('-created_at')

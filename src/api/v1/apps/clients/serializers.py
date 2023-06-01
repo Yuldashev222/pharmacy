@@ -4,8 +4,7 @@ from .models import Client
 
 
 class ClientSerializer(serializers.ModelSerializer):
-    creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
-
     class Meta:
         model = Client
         fields = '__all__'
+        read_only_fields = ['creator']
