@@ -1,8 +1,8 @@
 from datetime import date
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.response import Response
 from api.v1.apps.accounts.permissions import NotProjectOwner, IsDirector, IsManager
 
 from .models import UserExpense, PharmacyExpense, ExpenseType
@@ -91,9 +91,7 @@ class PharmacyExpenseAPIViewSet(ModelViewSet):
         user = self.request.user
         if user.is_worker:
             serializer.save(
-                shift=user.shift,
-                report_date=date.today(),
-                from_pharmacy_id=user.pharmacy_id,
+                shift=user.shift, report_date=date.today(), from_pharmacy_id=user.pharmacy_id
             )
         else:
             serializer.save()

@@ -1,5 +1,5 @@
 from random import randint
-from datetime import timedelta, datetime, date
+from datetime import timedelta, datetime
 from django.db import models
 
 from api.v1.apps.companies.models import AbstractIncomeExpense, Company
@@ -189,6 +189,7 @@ class FirmReturnProduct(AbstractIncomeExpense):
 
 class FirmDebtByMonth(models.Model):
     firm = models.ForeignKey(Firm, on_delete=models.CASCADE)
+    pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE, null=True)
     year = models.IntegerField()
     month = models.IntegerField()
     expense_price = models.IntegerField(default=0)
@@ -250,12 +251,13 @@ class FirmReport(models.Model):
             firm_debt.save()
 
             by_month, _ = FirmDebtByMonth.objects.get_or_create(
-                month=self.report_date.month, year=self.report_date.year, firm_id=self.firm_id)
+                month=self.report_date.month, year=self.report_date.year, firm_id=self.firm_id, pharmacy=self.pharmacy)
 
             expense_price = FirmReport.objects.filter(
                 report_date__year=by_month.year,
                 report_date__month=by_month.month,
                 firm_id=by_month.firm_id,
+                pharmacy=by_month.pharmacy,
                 is_expense=True
             ).aggregate(s=models.Sum('price'))['s']
 
@@ -263,6 +265,7 @@ class FirmReport(models.Model):
                 report_date__year=by_month.year,
                 report_date__month=by_month.month,
                 firm_id=by_month.firm_id,
+                pharmacy=by_month.pharmacy,
                 is_expense=False
             ).aggregate(s=models.Sum('price'))['s']
             by_month.expense_price = expense_price if expense_price else 0
