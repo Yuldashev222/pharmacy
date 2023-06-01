@@ -76,7 +76,8 @@ class FirmReportAPIView(ReadOnlyModelViewSet):
     filterset_fields = {
         'report_date': ['gte', 'lte'],
         'pharmacy': ['exact'],
-        'firm': ['exact']
+        'firm': ['exact'],
+        'is_expense': ['exact'],
     }
 
     def get_queryset(self):
