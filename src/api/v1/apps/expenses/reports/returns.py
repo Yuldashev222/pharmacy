@@ -56,18 +56,13 @@ class ReturnProductAPIView(ReadOnlyModelViewSet):
                 total_month_price = ReturnProductReportMonth.objects.get(month=month, year=year).price
             except ReturnProductReportMonth.DoesNotExist:
                 total_month_price = None
-        data = {
-            'total_month_price': total_month_price,
-            'results': serializer.data
-        }
+        data = {'total_month_price': total_month_price, 'results': serializer.data}
         return self.get_paginated_response(data)
 
     def get_queryset(self):
         user = self.request.user
         queryset = PharmacyExpense.objects.filter(
-            from_pharmacy__director_id=user.director_id,
-            expense_type_id=StaticEnv.return_product_id.value
-        )
+            from_pharmacy__director_id=user.director_id, expense_type_id=StaticEnv.return_product_id.value)
         return queryset.order_by('-created_at')
 
 
