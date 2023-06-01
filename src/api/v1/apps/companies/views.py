@@ -59,7 +59,7 @@ def company_details(request, *args, **kwargs):
             receipt = Receipt.objects.get(report_date=date.today(), shift=user.shift, pharmacy_id=user.pharmacy_id)
             data['receipt'] = {"id": receipt.id, "price": receipt.price}
         except Receipt.DoesNotExist:
-            data['receipt'] = 0
+            data['receipt'] = None
     else:
         data['pharmacies'] = Pharmacy.objects.filter(director_id=user.director_id).values('id', 'name').order_by('-id')
 
@@ -73,7 +73,7 @@ def company_details(request, *args, **kwargs):
                 receipt = Receipt.objects.get(report_date=report_date, shift=shift, pharmacy_id=pharmacy_id)
                 data['receipt'] = {"id": receipt.id, "price": receipt.price}
             except Receipt.DoesNotExist:
-                data['receipt'] = 0
+                data['receipt'] = None
 
     return Response(data)
 
