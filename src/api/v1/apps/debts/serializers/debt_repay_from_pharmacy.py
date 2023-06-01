@@ -1,13 +1,10 @@
-from datetime import date
 from rest_framework import serializers
-from django.core.validators import MaxValueValidator
 from rest_framework.exceptions import ValidationError
 
 from ..models import DebtRepayFromPharmacy
 
 
 class DebtRepayFromPharmacySerializer(serializers.ModelSerializer):
-    creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
     creator_name = serializers.StringRelatedField(source='creator', read_only=True)
     to_debt_name = serializers.StringRelatedField(source='to_debt', read_only=True)
     from_user_name = serializers.StringRelatedField(source='from_user', read_only=True)
@@ -45,9 +42,8 @@ class DebtRepayFromPharmacySerializer(serializers.ModelSerializer):
             raise ValidationError({'to_debt': 'not found'})
 
         from_user = attrs.get('from_user')
-        if from_user:
-            if user.director_id != from_user.director_id:
-                raise ValidationError({'from_user': 'not found'})
+        if from_user and user.director_id != from_user.director_id:
+            raise ValidationError({'from_user': 'not found'})
         return attrs
 
 
@@ -55,11 +51,12 @@ class DirectorManagerDebtRepayFromPharmacySerializer(DebtRepayFromPharmacySerial
     class Meta:
         model = DebtRepayFromPharmacy
         fields = '__all__'
+        read_only_fields = ['creator']
 
     def validate(self, attrs):
         user = self.context['request'].user
-
-        if attrs.get('to_debt') and attrs['to_debt'].to_pharmacy.director_id != user.director_id:
+        to_debt = attrs.get('to_debt')
+        if to_debt and to_debt.to_pharmacy.director_id != user.director_id:
             raise ValidationError({'to_pharmacy': 'not found'})
         return super().validate(attrs)
 
@@ -68,11 +65,11 @@ class WorkerDebtRepayFromPharmacySerializer(DebtRepayFromPharmacySerializer):
     class Meta:
         model = DebtRepayFromPharmacy
         fields = '__all__'
-        read_only_fields = ('shift', 'report_date')
+        read_only_fields = ('shift', 'report_date', 'creator')
 
     def validate(self, attrs):
         user = self.context['request'].user
         to_debt = attrs.get('to_debt')
-        if to_debt and user.pharmacy_id != attrs['to_debt'].to_pharmacy_id:  # last
+        if to_debt and user.pharmacy_id != to_debt.to_pharmacy_id:  # last
             raise ValidationError({'to_debt': ['not found']})
         return super().validate(attrs)

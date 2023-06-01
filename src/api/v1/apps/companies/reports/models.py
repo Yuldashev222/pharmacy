@@ -13,5 +13,5 @@ class AllExpenseReportMonth(models.Model):
     year = models.IntegerField()
     month = models.IntegerField()
     price = models.IntegerField(default=0)
-    director = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE)
     expense_type = models.ForeignKey('expenses.ExpenseType', on_delete=models.CASCADE)
+    director = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE)

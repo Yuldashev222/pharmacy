@@ -8,7 +8,6 @@ from api.v1.apps.pharmacies.models import Pharmacy
 
 
 class Client(models.Model):
-    pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE)
     phone_number1 = models.CharField(max_length=13, unique=True, validators=[uzb_phone_number_validation])
     phone_number2 = models.CharField(max_length=13, blank=True, validators=[uzb_phone_number_validation])
     first_name = models.CharField("first name", max_length=150)

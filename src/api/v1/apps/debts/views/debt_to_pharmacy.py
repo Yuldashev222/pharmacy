@@ -24,17 +24,17 @@ class DebtToPharmacyAPIView(ModelViewSet):
 
     def perform_create(self, serializer):
         user = self.request.user
+        data = {'creator_id': user.id}
         if user.is_worker:
-            serializer.save(
-                report_date=date.today(), to_pharmacy_id=user.pharmacy_id, shift=user.shift
-            )
-        else:
-            serializer.save()
+            data['report_date'] = date.today()
+            data['to_pharmacy_id'] = user.pharmacy_id
+            data['shift'] = user.shift
+        serializer.save(**data)
 
     def get_permissions(self):
         permission_classes = [IsAuthenticated, NotProjectOwner]
         if self.request.user.is_worker and self.action not in ['list', 'retrieve']:
-            permission_classes += [WorkerTodayObject]
+            permission_classes += [WorkerTodayObject]  # last
         return [permission() for permission in self.permission_classes]
 
     def get_serializer_class(self):
@@ -59,9 +59,6 @@ class TodayDebtToPharmacyAPIView(DebtToPharmacyAPIView):
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-
-        page = self.paginate_queryset(queryset)
-
         serializer = self.get_serializer(queryset, many=True)
         return Response({'results': serializer.data})
 
@@ -87,13 +84,11 @@ class DebtRepayFromPharmacyAPIView(ModelViewSet):
 
     def perform_create(self, serializer):
         user = self.request.user
+        data = {'creator_id': user.id}
         if user.is_worker:
-            serializer.save(
-                shift=user.shift,
-                report_date=date.today()
-            )
-        else:
-            serializer.save()
+            data['shift'] = user.shift
+            data['report_date'] = date.today()
+        serializer.save(**data)
 
     def get_serializer_class(self):
         if self.request.user.is_worker:
@@ -104,18 +99,12 @@ class DebtRepayFromPharmacyAPIView(ModelViewSet):
         user = self.request.user
         if user.is_worker:
             queryset = DebtRepayFromPharmacy.objects.filter(
-                to_debt__to_pharmacy_id=user.pharmacy_id,
-                shift=user.shift,
-                report_date=date.today()
-            )
+                to_debt__to_pharmacy_id=user.pharmacy_id, shift=user.shift, report_date=date.today())
         else:
             queryset = DebtRepayFromPharmacy.objects.filter(to_debt__to_pharmacy__director_id=user.director_id)
         return queryset.order_by('-created_at')
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-
-        page = self.paginate_queryset(queryset)
-
         serializer = self.get_serializer(queryset, many=True)
         return Response({'results': serializer.data})

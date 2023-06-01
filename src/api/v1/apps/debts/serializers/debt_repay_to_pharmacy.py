@@ -1,13 +1,10 @@
-from datetime import date
 from rest_framework import serializers
-from django.core.validators import MaxValueValidator
 from rest_framework.exceptions import ValidationError
 
 from ..models import DebtRepayToPharmacy
 
 
 class DebtRepayToPharmacySerializer(serializers.ModelSerializer):
-    creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
     creator_name = serializers.StringRelatedField(source='creator', read_only=True)
     from_debt_name = serializers.StringRelatedField(source='from_debt', read_only=True)
     transfer_type_name = serializers.StringRelatedField(source='transfer_type', read_only=True)
@@ -44,10 +41,12 @@ class DirectorManagerDebtRepayToPharmacySerializer(DebtRepayToPharmacySerializer
     class Meta:
         model = DebtRepayToPharmacy
         fields = '__all__'
+        read_only_fields = ['creator']
 
     def validate(self, attrs):
         user = self.context['request'].user
-        if attrs.get('from_debt') and attrs['from_debt'].from_pharmacy.director_id != user.director_id:
+        from_debt = attrs.get('from_debt')
+        if from_debt and from_debt.from_pharmacy.director_id != user.director_id:
             raise ValidationError({'from_pharmacy': 'not found'})
         return super().validate(attrs)
 
@@ -56,4 +55,4 @@ class WorkerDebtRepayToPharmacySerializer(DebtRepayToPharmacySerializer):
     class Meta:
         model = DebtRepayToPharmacy
         fields = '__all__'
-        read_only_fields = ('report_date', 'shift')
+        read_only_fields = ('report_date', 'shift', 'creator')

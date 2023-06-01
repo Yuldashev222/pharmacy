@@ -5,7 +5,6 @@ from .models import PharmacyIncome
 
 
 class DirectorManagerPharmacyIncomeSerializer(serializers.ModelSerializer):
-    creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
     creator_name = serializers.StringRelatedField(source='creator', read_only=True)
     to_pharmacy_name = serializers.StringRelatedField(source='to_pharmacy', read_only=True)
     to_user_name = serializers.StringRelatedField(source='to_user', read_only=True)
@@ -15,6 +14,7 @@ class DirectorManagerPharmacyIncomeSerializer(serializers.ModelSerializer):
     class Meta:
         model = PharmacyIncome
         fields = '__all__'
+        read_only_fields = ['creator']
 
     def validate(self, attrs):
         user = self.context['request'].user
@@ -28,4 +28,4 @@ class DirectorManagerPharmacyIncomeSerializer(serializers.ModelSerializer):
 
 class WorkerPharmacyIncomeSerializer(DirectorManagerPharmacyIncomeSerializer):
     class Meta(DirectorManagerPharmacyIncomeSerializer.Meta):
-        read_only_fields = ('shift', 'to_pharmacy', 'report_date')
+        read_only_fields = ('shift', 'to_pharmacy', 'report_date', 'creator')

@@ -84,9 +84,7 @@ class RetrieveUpdateDestroySerializer(serializers.ModelSerializer):
 class DirectorUpdateDestroySerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = [
-            'id', 'phone_number', 'is_active', 'password'
-        ]
+        fields = ['id', 'phone_number', 'is_active', 'password']
         extra_kwargs = {
             'password': {
                 'write_only': True,
@@ -104,18 +102,13 @@ class DirectorUpdateDestroySerializer(serializers.ModelSerializer):
 
 class ManagerUpdateDestroySerializer(DirectorUpdateDestroySerializer):
     class Meta(DirectorUpdateDestroySerializer.Meta):
-        fields = DirectorUpdateDestroySerializer.Meta.fields + [
-            'shift',
-            'wage'
-        ]
+        fields = DirectorUpdateDestroySerializer.Meta.fields + ['shift', 'wage']
 
 
 class WorkerUpdateDestroySerializer(DirectorUpdateDestroySerializer):
     class Meta:
         model = CustomUser
-        fields = [
-            'id', 'phone_number', 'is_active', 'shift', 'password', 'wage'
-        ]
+        fields = ['id', 'phone_number', 'is_active', 'shift', 'password', 'wage']
 
 
 class OwnerRetrieveUpdateSerializer(serializers.ModelSerializer):

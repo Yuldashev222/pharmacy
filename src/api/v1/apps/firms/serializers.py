@@ -6,24 +6,23 @@ from .services import EskizUz
 
 
 class FirmSerializer(serializers.ModelSerializer):
-    creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
     creator_name = serializers.StringRelatedField(source='creator', read_only=True)
     director_name = serializers.StringRelatedField(source='director', read_only=True)
 
     class Meta:
         model = Firm
         exclude = ('director',)
+        read_only_fields = ['creator']
 
 
 class FirmIncomeSerializer(serializers.ModelSerializer):
-    creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
     creator_name = serializers.StringRelatedField(source='creator', read_only=True)
     from_firm_name = serializers.StringRelatedField(source='from_firm', read_only=True)
 
     class Meta:
         model = FirmIncome
         fields = '__all__'
-        read_only_fields = ('is_paid', 'remaining_debt')
+        read_only_fields = ('is_paid', 'remaining_debt', 'creator')
 
     def validate(self, attrs):
         user = self.context['request'].user
@@ -36,7 +35,7 @@ class FirmIncomeUpdateSerializer(FirmIncomeSerializer):
     class Meta:
         model = FirmIncome
         fields = '__all__'
-        read_only_fields = ('is_paid', 'remaining_debt', 'from_firm', 'report_date')
+        read_only_fields = ('is_paid', 'remaining_debt', 'from_firm', 'report_date', 'creator')
 
     def update(self, instance, validated_data):
         new_price = validated_data.get('price')
@@ -53,7 +52,6 @@ class FirmIncomeUpdateSerializer(FirmIncomeSerializer):
 
 
 class FirmExpenseSerializer(serializers.ModelSerializer):
-    creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
     creator_name = serializers.StringRelatedField(source='creator', read_only=True)
     from_pharmacy_name = serializers.StringRelatedField(source='from_pharmacy', read_only=True)
     to_firm_name = serializers.StringRelatedField(source='to_firm', read_only=True)
@@ -63,7 +61,7 @@ class FirmExpenseSerializer(serializers.ModelSerializer):
     class Meta:
         model = FirmExpense
         exclude = ('verified_code',)
-        read_only_fields = ('is_verified', 'report_date')
+        read_only_fields = ('is_verified', 'report_date', 'creator')
 
     def validate(self, attrs):
         user = self.context['request'].user
@@ -85,13 +83,12 @@ class FirmExpenseSerializer(serializers.ModelSerializer):
 
 class WorkerFirmExpenseSerializer(FirmExpenseSerializer):
     class Meta(FirmExpenseSerializer.Meta):
-        read_only_fields = ('report_date', 'shift', 'from_pharmacy')
+        read_only_fields = ('report_date', 'shift', 'from_pharmacy', 'creator')
 
 
 class DirectorManagerFirmExpenseSerializer(FirmExpenseSerializer):
     def validate(self, attrs):
         from_pharmacy = attrs['from_pharmacy']
-
         if self.context['request'].user.director_id != from_pharmacy.director_id:
             raise ValidationError({'from_pharmacy': 'not found'})
 
@@ -99,13 +96,12 @@ class DirectorManagerFirmExpenseSerializer(FirmExpenseSerializer):
 
 
 class FirmReturnProductSerializer(serializers.ModelSerializer):
-    creator = serializers.HiddenField(default=serializers.CurrentUserDefault())
     creator_name = serializers.StringRelatedField(source='creator', read_only=True)
 
     class Meta:
         model = FirmReturnProduct
         exclude = ('verified_code',)
-        read_only_fields = ('is_verified', 'report_date')
+        read_only_fields = ('is_verified', 'report_date', 'creator')
 
     def validate(self, attrs):
         user = self.context['request'].user

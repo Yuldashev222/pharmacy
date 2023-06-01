@@ -1,5 +1,4 @@
 from collections import OrderedDict
-
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import serializers
 from rest_framework.pagination import PageNumberPagination

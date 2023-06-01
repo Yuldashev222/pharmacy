@@ -37,6 +37,7 @@ class Firm(models.Model):
 
 class FirmIncome(AbstractIncomeExpense):
     transfer_type = None
+    shift = None
 
     from_firm = models.ForeignKey(Firm, on_delete=models.PROTECT)
     deadline_date = models.DateField(blank=True, null=True)
