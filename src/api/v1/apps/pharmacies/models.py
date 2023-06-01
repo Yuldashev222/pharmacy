@@ -28,3 +28,15 @@ class Pharmacy(models.Model):
     class Meta:
         verbose_name = 'Pharmacy'
         verbose_name_plural = 'Pharmacies'
+
+
+class PharmacyReport(models.Model):
+    pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE)
+    report_date = models.DateField()
+    shift = models.IntegerField()
+    not_transfer_income = models.IntegerField(default=0)
+    transfer_income = models.IntegerField(default=0)
+    debt_income = models.IntegerField(default=0)
+    total_expense = models.IntegerField(default=0)  # last
+    remainder = models.IntegerField(default=0)
+    receipt_price = models.IntegerField(default=0)

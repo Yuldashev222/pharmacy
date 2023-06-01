@@ -4,6 +4,8 @@ from rest_framework.mixins import UpdateModelMixin, CreateModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
+from api.v1.apps.accounts.permissions import NotProjectOwner
+
 from .models import Receipt
 from .serializers import WorkerReceiptCreateUpdateSerializer, DirectorManagerReceiptCreateUpdateSerializer
 
@@ -13,7 +15,7 @@ class ReceiptCreateUpdateAPIView(CreateModelMixin,
                                  GenericViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['report_date', 'shift', 'pharmacy']
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, NotProjectOwner]
 
     def get_serializer_class(self):
         user = self.request.user

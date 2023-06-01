@@ -14,7 +14,13 @@ from ..serializers import debt_from_pharmacy, debt_repay_to_pharmacy
 
 class DebtFromPharmacyAPIView(ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    filterset_fields = ['is_paid', 'from_pharmacy', 'report_date', 'report_date__year', 'report_date__month', 'shift', 'is_client']
+    filterset_fields = {
+        'is_paid': ['exact'],
+        'from_pharmacy': ['exact'],
+        'report_date': ['exact', 'year', 'month'],
+        'shift': ['exact'],
+        'is_client': ['exact']
+    }
     search_fields = ['to_who', 'desc']
 
     def get_permissions(self):
