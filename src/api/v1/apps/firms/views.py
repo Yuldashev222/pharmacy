@@ -90,7 +90,7 @@ class FirmExpenseAPIViewSet(CreateModelMixin, ReadOnlyModelViewSet):
 class FirmReturnProductAPIViewSet(CreateModelMixin, ReadOnlyModelViewSet):
     serializer_class = serializers.FirmReturnProductSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['report_date', 'shift']  # last
+    filterset_fields = ['report_date']  # last
 
     def get_permissions(self):
         permission_classes = [IsAuthenticated, (IsDirector | IsManager)]
