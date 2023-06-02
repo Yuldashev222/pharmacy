@@ -24,6 +24,4 @@ class Offer(models.Model):
         if self.answer_text and self.status != 'a':
             self.status = 'a'
             self.answered_at = datetime.now()
-        else:
-            self.status = 'p'
         super().save(*args, **kwargs)
