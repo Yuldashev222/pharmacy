@@ -3,6 +3,7 @@ from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
 from api.v1.apps.accounts.models import WorkerReport
+from api.v1.apps.companies.enums import DefaultTransferType
 from api.v1.apps.remainders.models import Remainder
 
 from .models import PharmacyIncome, PharmacyIncomeReportDay
@@ -10,10 +11,8 @@ from .models import PharmacyIncome, PharmacyIncomeReportDay
 
 @receiver(post_delete, sender=PharmacyIncome)
 def update_user_income_report(instance, *args, **kwargs):
-    price = PharmacyIncome.objects.filter(
-        report_date=instance.report_date,
-        to_pharmacy_id=instance.to_pharmacy_id
-    ).aggregate(s=Sum('price'))['s']
+    price = PharmacyIncome.objects.filter(report_date=instance.report_date, to_pharmacy_id=instance.to_pharmacy_id
+                                          ).aggregate(s=Sum('price'))['s']
     obj = PharmacyIncomeReportDay.objects.get_or_create(
         pharmacy_id=instance.to_pharmacy_id, report_date=instance.report_date)[0]
     obj.price = price if price else 0
@@ -24,9 +23,8 @@ def update_user_income_report(instance, *args, **kwargs):
 @receiver(post_save, sender=PharmacyIncome)
 def update_report(instance, *args, **kwargs):
     # remainder update
-    if instance.transfer_type_id == 1 and not instance.to_user:
+    if instance.transfer_type_id == DefaultTransferType.cash.name and not instance.to_user:
         obj, _ = Remainder.objects.get_or_create(pharmacy_income_id=instance.id)
-        obj.is_expense = False
         obj.report_date = instance.report_date
         obj.price = instance.price
         obj.shift = instance.shift

@@ -3,6 +3,7 @@ from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
 from api.v1.apps.accounts.models import WorkerReport
+from api.v1.apps.companies.enums import DefaultTransferType
 from api.v1.apps.remainders.models import Remainder
 
 from .models import FirmIncome, FirmExpense, FirmReport, FirmDebtByDate
@@ -29,7 +30,7 @@ def update_firm_report(instance, *args, **kwargs):
 @receiver(post_save, sender=FirmExpense)
 def report_update(instance, *args, **kwargs):
     # remainder update
-    if instance.transfer_type_id == 1 and not instance.from_user:
+    if instance.transfer_type_id == DefaultTransferType.cash.name and not instance.from_user:
         obj, _ = Remainder.objects.get_or_create(firm_expense_id=instance.id)
         obj.report_date = instance.report_date
         obj.price = -1 * instance.price

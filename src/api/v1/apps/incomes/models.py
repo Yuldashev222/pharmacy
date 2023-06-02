@@ -55,8 +55,7 @@ class PharmacyIncomeReportDay(models.Model):
 class PharmacyIncome(AbstractIncomeExpense):
     to_pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.PROTECT)
     to_user = models.ForeignKey(
-        'accounts.CustomUser', on_delete=models.PROTECT, related_name='pharmacy_incomes', blank=True, null=True
-    )
+        'accounts.CustomUser', on_delete=models.PROTECT, related_name='pharmacy_incomes', blank=True, null=True)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

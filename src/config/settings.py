@@ -97,6 +97,7 @@ INSTALLED_APPS = [
     'api.v1.apps.drugs.apps.DrugsConfig',
     'api.v1.apps.receipts.apps.ReceiptsConfig',
     'api.v1.apps.remainders.apps.RemaindersConfig',
+    'api.v1.apps.offers.apps.OffersConfig',
 ]
 
 # DATABASES = {
