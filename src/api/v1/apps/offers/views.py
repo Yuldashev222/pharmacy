@@ -12,7 +12,7 @@ class OfferAPIView(ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = {
         'status': ['exact'],
-        'created_at': ['range'],
+        'created_at': ['month', 'year', 'day'],
     }
 
     def get_object(self):
