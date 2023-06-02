@@ -1,25 +1,16 @@
 from enum import Enum
 
 
-class StaticEnv(Enum):
-    workers_id = 1
-    return_product_id = 2
-    discount_id = 3
-
-
-class Month(Enum):
-    jan = "January"
-    feb = "February"
-    mar = "March"
-    apr = "April"
-    may = "May"
-    jun = "June"
-    jul = "July"
-    aug = "August"
-    sep = "September"
-    oct = "October"
-    nov = "November"
-    dec = "December"
+class DefaultTransferType(Enum):
+    cash = 1
+    payme = 2
+    click = 3
+    pharmacy_account = 4
+    account = 4
+    uz_card = 5
+    orange = 6
+    grape = 7
+    xumo = 8
 
     @classmethod
     def choices(cls):

@@ -3,6 +3,7 @@ from django.db.models import Sum
 from django.db.models.signals import post_delete, post_save
 
 from api.v1.apps.accounts.models import WorkerReport
+from api.v1.apps.companies.enums import DefaultTransferType
 from api.v1.apps.remainders.models import Remainder
 
 from .models import PharmacyExpense, UserExpense
@@ -12,7 +13,7 @@ from .reports.models import ExpenseReportMonth
 @receiver(post_save, sender=PharmacyExpense)
 def update_report(instance, *args, **kwargs):
     # remainder update
-    if instance.transfer_type_id == 1:
+    if instance.transfer_type_id == DefaultTransferType.cash.name:
         obj, _ = Remainder.objects.get_or_create(pharmacy_expense_id=instance.id)
         obj.report_date = instance.report_date
         obj.price = -1 * instance.price
@@ -42,9 +43,8 @@ def update_report(instance, *args, **kwargs):
 @receiver(post_save, sender=UserExpense)
 def update_user_expense_report(instance, *args, **kwargs):
     # remainder update
-    if instance.transfer_type_id == 1 and instance.to_pharmacy:
+    if instance.transfer_type_id == DefaultTransferType.cash.name and instance.to_pharmacy:
         obj, _ = Remainder.objects.get_or_create(user_expense_id=instance.id)
-        obj.is_expense = False
         obj.report_date = instance.report_date
         obj.price = instance.price
         obj.shift = instance.shift

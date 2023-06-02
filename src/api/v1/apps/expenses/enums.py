@@ -2,14 +2,9 @@ from enum import Enum
 
 
 class DefaultExpenseType(Enum):
-    obed = 1
-    ujin = 2
-    zavtrak = 3
-    wi_fi = 4
-    kommunal = 5
-    ijaraga = 6
-    oylik = 7
-    vozvrat = 2
+    worker = 1
+    return_product_id = 2
+    discount_id = 3
 
     @classmethod
     def choices(cls):
