@@ -6,7 +6,6 @@ class DefaultTransferType(Enum):
     payme = 2
     click = 3
     pharmacy_account = 4
-    account = 4
     uz_card = 5
     orange = 6
     grape = 7
