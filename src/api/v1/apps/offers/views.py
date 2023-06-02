@@ -15,6 +15,13 @@ class OfferAPIView(ModelViewSet):
         'created_at': ['range'],
     }
 
+    def get_object(self):
+        obj = super().get_object()
+        if self.request.user.is_project_owner and obj.status == 'n':
+            obj.status = 'p'
+            obj.save()
+        return obj
+
     def perform_create(self, serializer):
         serializer.save(creator_id=self.request.user.id)
 
