@@ -104,7 +104,7 @@ class FirmReturnProductAPIViewSet(CreateModelMixin, ReadOnlyModelViewSet):  # la
     def get_queryset(self):
         user = self.request.user
         queryset = FirmReturnProduct.objects.filter(
-            creator__director_id=user.director_id, is_verified=True).select_related('creator')
+            creator__director_id=user.director_id, is_verified=True).select_related('creator', 'firm_income__from_firm')
         return queryset.order_by('-created_at')
 
 
