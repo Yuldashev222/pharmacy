@@ -37,6 +37,7 @@ ESKIZ_UZ_ALPHA_NICK = os.getenv('ESKIZ_UZ_ALPHA_NICK', '4546')
 ESKIZ_UZ_CALLBACK_URL = os.getenv('ESKIZ_UZ_CALLBACK_URL', None)
 
 MIDDLEWARE = [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -84,6 +85,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'django_filters',
     'corsheaders',
+    'debug_toolbar',
 
     # apps
     'api.v1.apps.accounts.apps.AccountsConfig',
@@ -123,6 +125,15 @@ CACHES = {
         'LOCATION': 'redis://127.0.0.1:16379/1'
     }
 }
+
+INTERNAL_IPS = []
+if DEBUG:
+    INTERNAL_IPS = [
+        "127.0.0.1",
+        "localhost",
+        "zbesstudio.uz",
+        "89.223.127.4",
+    ]
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""
 DJANGO CONFIGURATIONS
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""

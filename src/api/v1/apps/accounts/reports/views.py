@@ -37,7 +37,8 @@ class WorkerReportMontAPIView(ReadOnlyModelViewSet):
     filterset_fields = ['worker', 'year', 'month', 'pharmacy']
 
     def get_queryset(self):
-        return WorkerReportMonth.objects.filter(worker__director_id=self.request.user.director_id).order_by('month')
+        queryset = WorkerReportMonth.objects.filter(worker__director_id=self.request.user.director_id).order_by('month')
+        return queryset.select_related('worker', 'pharmacy')
 
 
 class CustomPageNumberPagination(PageNumberPagination):
@@ -66,7 +67,8 @@ class WorkerReportAPIView(ReadOnlyModelViewSet):
     }
 
     def get_queryset(self):
-        return WorkerReport.objects.filter(creator__director_id=self.request.user.director_id).order_by('report_date')
+        queryset = WorkerReport.objects.filter(creator__director_id=self.request.user.director_id).order_by('report_date')
+        return queryset.select_related('pharmacy', 'creator', 'worker')
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())

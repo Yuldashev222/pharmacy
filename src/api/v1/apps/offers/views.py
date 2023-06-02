@@ -47,4 +47,4 @@ class OfferAPIView(ModelViewSet):
             queryset = Offer.objects.all()
         else:
             queryset = Offer.objects.filter(creator_id=user.id)
-        return queryset.order_by('-created_at')
+        return queryset.select_related('creator').order_by('-created_at')
