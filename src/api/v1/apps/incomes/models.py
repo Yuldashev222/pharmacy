@@ -59,10 +59,11 @@ class PharmacyIncome(AbstractIncomeExpense):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        obj, _ = PharmacyIncomeReportDay.objects.get_or_create(
-            pharmacy_id=self.to_pharmacy_id, report_date=self.report_date)
-        price = PharmacyIncome.objects.filter(
-            report_date=self.report_date, to_pharmacy_id=self.to_pharmacy_id).aggregate(s=models.Sum('price'))['s']
+        obj, _ = PharmacyIncomeReportDay.objects.get_or_create(pharmacy_id=self.to_pharmacy_id,
+                                                               report_date=self.report_date)
+        price = PharmacyIncome.objects.filter(report_date=obj.report_date,
+                                              to_pharmacy_id=obj.pharmacy_id
+                                              ).aggregate(s=models.Sum('price'))['s']
 
         obj.price = price if price else 0
         obj.save()

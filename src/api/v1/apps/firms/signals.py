@@ -4,7 +4,8 @@ from django.dispatch import receiver
 
 from api.v1.apps.accounts.models import WorkerReport
 from api.v1.apps.companies.enums import DefaultTransferType
-from api.v1.apps.remainders.models import Remainder
+from api.v1.apps.remainders.models import RemainderDetail
+from api.v1.apps.pharmacies.models import PharmacyReport
 
 from .models import FirmIncome, FirmExpense, FirmReport, FirmDebtByDate
 
@@ -12,12 +13,16 @@ from .models import FirmIncome, FirmExpense, FirmReport, FirmDebtByDate
 @receiver(post_delete, sender=FirmReport)
 def update_firm_report(instance, *args, **kwargs):
     firm_debt, _ = FirmDebtByDate.objects.get_or_create(firm_id=instance.firm_id, report_date=instance.report_date)
-    incomes_not_transfer_debt_price = FirmIncome.objects.filter(
-        is_paid=False, is_transfer_return=False, from_firm_id=firm_debt.firm_id,
-        report_date__lte=firm_debt.report_date).aggregate(s=Sum('remaining_debt'))['s']
-    incomes_transfer_debt_price = FirmIncome.objects.filter(
-        is_paid=False, is_transfer_return=True, from_firm_id=firm_debt.firm_id,
-        report_date__lte=firm_debt.report_date).aggregate(s=Sum('remaining_debt'))['s']
+    incomes_not_transfer_debt_price = FirmIncome.objects.filter(is_paid=False,
+                                                                is_transfer_return=False,
+                                                                from_firm_id=firm_debt.firm_id,
+                                                                report_date__lte=firm_debt.report_date
+                                                                ).aggregate(s=Sum('remaining_debt'))['s']
+    incomes_transfer_debt_price = FirmIncome.objects.filter(is_paid=False,
+                                                            is_transfer_return=True,
+                                                            from_firm_id=firm_debt.firm_id,
+                                                            report_date__lte=firm_debt.report_date
+                                                            ).aggregate(s=Sum('remaining_debt'))['s']
 
     incomes_not_transfer_debt_price = incomes_not_transfer_debt_price if incomes_not_transfer_debt_price else 0
     incomes_transfer_debt_price = incomes_transfer_debt_price if incomes_transfer_debt_price else 0
@@ -30,12 +35,22 @@ def update_firm_report(instance, *args, **kwargs):
 @receiver(post_save, sender=FirmExpense)
 def report_update(instance, *args, **kwargs):
     # remainder update
-    if instance.transfer_type_id == DefaultTransferType.cash.name and not instance.from_user:
-        obj, _ = Remainder.objects.get_or_create(firm_expense_id=instance.id)
+    if instance.transfer_type_id == DefaultTransferType.cash.value and not instance.from_user:
+        obj, _ = RemainderDetail.objects.get_or_create(firm_expense_id=instance.id)
         obj.report_date = instance.report_date
         obj.price = -1 * instance.price
         obj.shift = instance.shift
         obj.pharmacy_id = instance.from_pharmacy_id
+        obj.save()
+
+        obj, _ = PharmacyReport.objects.get_or_create(pharmacy_id=instance.from_pharmacy_id,
+                                                      report_date=instance.report_date,
+                                                      shift=instance.shift)
+        expense_firm = FirmExpense.objects.filter(from_pharmacy_id=obj.pharmacy_id,
+                                                  report_date=obj.report_date,
+                                                  shift=obj.shift
+                                                  ).aggregate(s=Sum('price'))['s']
+        obj.expense_firm = expense_firm if expense_firm else 0
         obj.save()
 
     if instance.from_user:

@@ -1,5 +1,6 @@
 from django.db import models
 
+from api.v1.apps.accounts.models import CustomUser
 from api.v1.apps.companies.services import text_normalize
 
 from .services import pharmacy_logo_upload_location
@@ -41,3 +42,17 @@ class PharmacyReport(models.Model):
     total_expense = models.IntegerField(default=0)  # last
     remainder = models.IntegerField(default=0)
     receipt_price = models.IntegerField(default=0)
+
+    expense_debt_repay_from_pharmacy = models.IntegerField(default=0)
+    expense_debt_from_pharmacy = models.IntegerField(default=0)
+    expense_pharmacy = models.IntegerField(default=0)
+    expense_firm = models.IntegerField(default=0)
+
+    def save(self, *args, **kwargs):
+        self.total_expense = sum([
+            self.expense_debt_repay_from_pharmacy,
+            self.expense_debt_from_pharmacy,
+            self.expense_pharmacy,
+            self.expense_firm
+        ])
+        super().save(*args, **kwargs)

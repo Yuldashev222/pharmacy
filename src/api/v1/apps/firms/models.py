@@ -238,12 +238,16 @@ class FirmReport(models.Model):
         super().save(*args, **kwargs)
         if self.firm and self.report_date:
             firm_debt, _ = FirmDebtByDate.objects.get_or_create(firm_id=self.firm_id, report_date=self.report_date)
-            incomes_not_transfer_debt_price = FirmIncome.objects.filter(
-                is_paid=False, is_transfer_return=False, from_firm_id=firm_debt.firm_id,
-                report_date__lte=firm_debt.report_date).aggregate(s=models.Sum('remaining_debt'))['s']
-            incomes_transfer_debt_price = FirmIncome.objects.filter(
-                is_paid=False, is_transfer_return=True, from_firm_id=firm_debt.firm_id,
-                report_date__lte=firm_debt.report_date).aggregate(s=models.Sum('remaining_debt'))['s']
+            incomes_not_transfer_debt_price = FirmIncome.objects.filter(is_paid=False,
+                                                                        is_transfer_return=False,
+                                                                        from_firm_id=firm_debt.firm_id,
+                                                                        report_date__lte=firm_debt.report_date
+                                                                        ).aggregate(s=models.Sum('remaining_debt'))['s']
+            incomes_transfer_debt_price = FirmIncome.objects.filter(is_paid=False,
+                                                                    is_transfer_return=True,
+                                                                    from_firm_id=firm_debt.firm_id,
+                                                                    report_date__lte=firm_debt.report_date
+                                                                    ).aggregate(s=models.Sum('remaining_debt'))['s']
 
             incomes_not_transfer_debt_price = incomes_not_transfer_debt_price if incomes_not_transfer_debt_price else 0
             incomes_transfer_debt_price = incomes_transfer_debt_price if incomes_transfer_debt_price else 0
@@ -252,24 +256,24 @@ class FirmReport(models.Model):
             firm_debt.incomes_transfer_debt_price = incomes_transfer_debt_price
             firm_debt.save()
 
-            by_month, _ = FirmDebtByMonth.objects.get_or_create(
-                month=self.report_date.month, year=self.report_date.year, firm_id=self.firm_id, pharmacy=self.pharmacy)
+            by_month, _ = FirmDebtByMonth.objects.get_or_create(month=self.report_date.month,
+                                                                year=self.report_date.year,
+                                                                firm_id=self.firm_id,
+                                                                pharmacy=self.pharmacy)
 
-            expense_price = FirmReport.objects.filter(
-                report_date__year=by_month.year,
-                report_date__month=by_month.month,
-                firm_id=by_month.firm_id,
-                pharmacy=by_month.pharmacy,
-                is_expense=True
-            ).aggregate(s=models.Sum('price'))['s']
+            expense_price = FirmReport.objects.filter(report_date__year=by_month.year,
+                                                      report_date__month=by_month.month,
+                                                      firm_id=by_month.firm_id,
+                                                      pharmacy=by_month.pharmacy,
+                                                      is_expense=True
+                                                      ).aggregate(s=models.Sum('price'))['s']
 
-            income_price = FirmReport.objects.filter(
-                report_date__year=by_month.year,
-                report_date__month=by_month.month,
-                firm_id=by_month.firm_id,
-                pharmacy=by_month.pharmacy,
-                is_expense=False
-            ).aggregate(s=models.Sum('price'))['s']
+            income_price = FirmReport.objects.filter(report_date__year=by_month.year,
+                                                     report_date__month=by_month.month,
+                                                     firm_id=by_month.firm_id,
+                                                     pharmacy=by_month.pharmacy,
+                                                     is_expense=False
+                                                     ).aggregate(s=models.Sum('price'))['s']
             by_month.expense_price = expense_price if expense_price else 0
             by_month.income_price = income_price if income_price else 0
             by_month.save()

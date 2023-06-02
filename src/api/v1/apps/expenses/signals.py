@@ -4,7 +4,8 @@ from django.db.models.signals import post_delete, post_save
 
 from api.v1.apps.accounts.models import WorkerReport
 from api.v1.apps.companies.enums import DefaultTransferType
-from api.v1.apps.remainders.models import Remainder
+from api.v1.apps.remainders.models import RemainderDetail
+from api.v1.apps.pharmacies.models import PharmacyReport
 
 from .models import PharmacyExpense, UserExpense
 from .reports.models import ExpenseReportMonth
@@ -13,12 +14,22 @@ from .reports.models import ExpenseReportMonth
 @receiver(post_save, sender=PharmacyExpense)
 def update_report(instance, *args, **kwargs):
     # remainder update
-    if instance.transfer_type_id == DefaultTransferType.cash.name:
-        obj, _ = Remainder.objects.get_or_create(pharmacy_expense_id=instance.id)
+    if instance.transfer_type_id == DefaultTransferType.cash.value:
+        obj, _ = RemainderDetail.objects.get_or_create(pharmacy_expense_id=instance.id)
         obj.report_date = instance.report_date
         obj.price = -1 * instance.price
         obj.shift = instance.shift
         obj.pharmacy_id = instance.from_pharmacy_id
+        obj.save()
+
+        obj, _ = PharmacyReport.objects.get_or_create(pharmacy_id=instance.from_pharmacy_id,
+                                                      report_date=instance.report_date,
+                                                      shift=instance.shift)
+        expense_pharmacy = PharmacyExpense.objects.filter(from_pharmacy_id=obj.pharmacy_id,
+                                                          report_date=obj.report_date,
+                                                          shift=obj.shift
+                                                          ).aggregate(s=Sum('price'))['s']
+        obj.expense_pharmacy = expense_pharmacy if expense_pharmacy else 0
         obj.save()
 
 
@@ -43,8 +54,8 @@ def update_report(instance, *args, **kwargs):
 @receiver(post_save, sender=UserExpense)
 def update_user_expense_report(instance, *args, **kwargs):
     # remainder update
-    if instance.transfer_type_id == DefaultTransferType.cash.name and instance.to_pharmacy:
-        obj, _ = Remainder.objects.get_or_create(user_expense_id=instance.id)
+    if instance.transfer_type_id == DefaultTransferType.cash.value and instance.to_pharmacy:
+        obj, _ = RemainderDetail.objects.get_or_create(user_expense_id=instance.id)
         obj.report_date = instance.report_date
         obj.price = instance.price
         obj.shift = instance.shift

@@ -14,6 +14,7 @@ from api.v1.apps.receipts.views import ReceiptCreateUpdateAPIView
 from api.v1.apps.incomes.report import PharmacyIncomeReportDayAPIView, PharmacyIncomeReportMonthAPIView
 from api.v1.apps.expenses.views import PharmacyExpenseAPIViewSet, ExpenseTypeAPIViewSet
 from api.v1.apps.pharmacies.views import PharmacyAPIViewSet
+from api.v1.apps.pharmacies.reports import PharmacyReportAPIViewSet
 from api.v1.apps.expenses.reports.views import ExpenseAPIView, ExpenseReportMonthAPIView
 
 from .reports.incomes import AllPharmacyIncomeReportMonthAPIView
@@ -35,6 +36,7 @@ router.register('pharmacies/to-debts', debt_from_pharmacy.DebtFromPharmacyAPIVie
 router.register('pharmacies/expenses', PharmacyExpenseAPIViewSet, basename='pharmacy_expense')
 router.register('pharmacies/receipts', ReceiptCreateUpdateAPIView, basename='pharmacy_receipt')
 router.register('pharmacies/incomes', PharmacyIncomeAPIViewSet, basename='pharmacy_income')
+router.register('pharmacies/reports', PharmacyReportAPIViewSet, basename='pharmacy_report')
 router.register('pharmacies/debts', debt_to_pharmacy.DebtToPharmacyAPIView, basename='debt_to_pharmacy')
 router.register('pharmacies', PharmacyAPIViewSet, basename='pharmacy')
 
