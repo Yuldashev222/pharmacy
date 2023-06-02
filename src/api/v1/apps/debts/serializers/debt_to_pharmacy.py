@@ -8,7 +8,6 @@ class DebtToPharmacySerializer(serializers.ModelSerializer):
     creator_name = serializers.StringRelatedField(source='creator', read_only=True)
     to_pharmacy_name = serializers.StringRelatedField(source='to_pharmacy', read_only=True)
     transfer_type_name = serializers.StringRelatedField(source='transfer_type', read_only=True)
-    expense_type_name = serializers.StringRelatedField(source='expense_type', read_only=True)
 
     def update(self, instance, validated_data):
         if validated_data.get('to_pharmacy'):
