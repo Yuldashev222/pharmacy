@@ -13,6 +13,7 @@ from api.v1.apps.accounts.permissions import IsDirector, IsManager
 
 class FirmReportSerializer(serializers.ModelSerializer):
     pharmacy_name = serializers.StringRelatedField(source='pharmacy')
+    creator_name = serializers.StringRelatedField(source='creator')
 
     class Meta:
         model = FirmReport
@@ -87,7 +88,8 @@ class FirmReportAPIView(ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        return FirmReport.objects.filter(creator__director_id=user.director_id).order_by('report_date')
+        return FirmReport.objects.filter(creator__director_id=user.director_id
+                                         ).select_related('creator').order_by('report_date')
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
