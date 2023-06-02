@@ -43,7 +43,8 @@ class FirmDebtByDateAPIView(ReadOnlyModelViewSet):
     search_fields = ['firm__name']
 
     def get_queryset(self):
-        return FirmDebtByDate.objects.filter(firm__director_id=self.request.user.director_id).order_by('-report_date')
+        return FirmDebtByDate.objects.filter(firm__director_id=self.request.user.director_id).select_related(
+            'firm').order_by('-report_date')
 
 
 class FirmDebtByMonthAPIView(ReadOnlyModelViewSet):
@@ -54,7 +55,8 @@ class FirmDebtByMonthAPIView(ReadOnlyModelViewSet):
     filterset_fields = ['year', 'month', 'firm', 'pharmacy']
 
     def get_queryset(self):
-        return FirmDebtByMonth.objects.filter(firm__director_id=self.request.user.director_id).order_by('month')
+        return FirmDebtByMonth.objects.filter(firm__director_id=self.request.user.director_id).select_related(
+            'firm', 'pharmacy').order_by('month')
 
 
 class CustomPageNumberPagination(PageNumberPagination):

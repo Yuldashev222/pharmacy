@@ -48,7 +48,7 @@ class UserReadOnlyAPIView(ReadOnlyModelViewSet):
             queryset = CustomUser.objects.filter(role=UserRole.d.name)
         else:
             queryset = CustomUser.objects.filter(director_id=user.director_id)
-        return queryset.order_by('-date_joined')
+        return queryset.select_related('pharmacy', 'director', 'creator').order_by('-date_joined')
 
 
 class OwnerRetrieveUpdateAPIView(RetrieveAPIView, UpdateAPIView):

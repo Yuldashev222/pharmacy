@@ -14,6 +14,7 @@ urlpatterns = [
     path('api/v1/', include(router.urls)),
     path('api/v1/companies/details', company_details, name='company-details'),
 
+    path('__debug__/', include('debug_toolbar.urls'))
 ]
 
 urlpatterns += doc_urls

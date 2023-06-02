@@ -25,4 +25,4 @@ class AllExpenseReportMonthAPIView(ReadOnlyModelViewSet):
     def get_queryset(self):
         user = self.request.user
         queryset = AllExpenseReportMonth.objects.filter(director_id=user.director_id)
-        return queryset.order_by('month')
+        return queryset.select_related('expense_type').order_by('month')

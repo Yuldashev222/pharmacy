@@ -143,8 +143,9 @@ class FirmExpense(AbstractIncomeExpense):
 
 class FirmReturnProduct(AbstractIncomeExpense):
     transfer_type = None
-    firm_income = models.ForeignKey(FirmIncome, on_delete=models.CASCADE)
+    shift = None
 
+    firm_income = models.ForeignKey(FirmIncome, on_delete=models.CASCADE)
     is_verified = models.BooleanField(default=False)
     verified_code = models.PositiveIntegerField()
     verified_phone_number = models.CharField(max_length=13, validators=[uzb_phone_number_validation])

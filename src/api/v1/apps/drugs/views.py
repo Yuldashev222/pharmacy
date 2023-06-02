@@ -33,7 +33,7 @@ class DrugAPIViewSet(ModelViewSet):
             queryset = Drug.objects.filter(pharmacy_id=user.pharmacy_id)
         else:
             queryset = Drug.objects.filter(pharmacy__director_id=user.director_id)
-        return queryset.order_by('-created_at')
+        return queryset.select_related('pharmacy').order_by('-created_at')
 
     def get_serializer_class(self):
         user = self.request.user
