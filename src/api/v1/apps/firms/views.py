@@ -87,7 +87,7 @@ class FirmExpenseAPIViewSet(CreateModelMixin, ReadOnlyModelViewSet):
             'creator', 'transfer_type', 'from_pharmacy', 'to_firm', 'from_user').order_by('-created_at')
 
 
-class FirmReturnProductAPIViewSet(CreateModelMixin, ReadOnlyModelViewSet):
+class FirmReturnProductAPIViewSet(CreateModelMixin, ReadOnlyModelViewSet):  # last
     serializer_class = serializers.FirmReturnProductSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['report_date']  # last

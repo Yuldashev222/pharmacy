@@ -73,7 +73,8 @@ class ExpenseAPIView(ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = PharmacyExpense.objects.filter(from_pharmacy__director_id=user.director_id).order_by('-created_at')
+        queryset = PharmacyExpense.objects.filter(from_pharmacy__director_id=user.director_id).select_related(
+            'creator', 'expense_type', 'from_pharmacy').order_by('-created_at')
         return queryset
 
 
@@ -96,4 +97,4 @@ class ExpenseReportMonthAPIView(ReadOnlyModelViewSet):
     def get_queryset(self):
         user = self.request.user
         queryset = ExpenseReportMonth.objects.filter(pharmacy__director_id=user.director_id)
-        return queryset.order_by('month')
+        return queryset.select_related('pharmacy', 'expense_type').order_by('month')

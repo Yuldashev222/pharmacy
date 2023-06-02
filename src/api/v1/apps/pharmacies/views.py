@@ -1,5 +1,3 @@
-from datetime import date
-
 from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.viewsets import ModelViewSet
@@ -25,7 +23,7 @@ class PharmacyAPIViewSet(ModelViewSet):
             queryset = Pharmacy.objects.filter(id=user.pharmacy_id)
         else:
             queryset = Pharmacy.objects.filter(director_id=user.director_id)
-        return queryset.order_by('-created_at')
+        return queryset.select_related('director').order_by('-created_at')
 
     def get_permissions(self):
         permission_classes = [IsAuthenticated, NotProjectOwner]

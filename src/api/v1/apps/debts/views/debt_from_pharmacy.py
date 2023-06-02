@@ -12,7 +12,7 @@ from ..models import DebtFromPharmacy, DebtRepayToPharmacy
 from ..serializers import debt_from_pharmacy, debt_repay_to_pharmacy
 
 
-class DebtFromPharmacyAPIView(ModelViewSet):
+class DebtFromPharmacyAPIView(ModelViewSet):  # last
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = {
         'is_paid': ['exact'],
@@ -51,7 +51,7 @@ class DebtFromPharmacyAPIView(ModelViewSet):
             queryset = DebtFromPharmacy.objects.filter(from_pharmacy_id=user.pharmacy_id)
         else:
             queryset = DebtFromPharmacy.objects.filter(from_pharmacy__director_id=user.director_id)
-        return queryset.order_by('-created_at')
+        return queryset.select_related('creator', 'from_pharmacy', 'transfer_type').order_by('-created_at')
 
 
 class TodayDebtFromPharmacyAPIView(DebtFromPharmacyAPIView):
@@ -103,7 +103,7 @@ class DebtRepayToPharmacyAPIView(ModelViewSet):
             queryset = DebtRepayToPharmacy.objects.filter(from_debt__from_pharmacy_id=user.pharmacy_id)
         else:
             queryset = DebtRepayToPharmacy.objects.filter(from_debt__from_pharmacy__director_id=user.director_id)
-        return queryset.order_by('-created_at')
+        return queryset.select_related('creator', 'from_debt', 'transfer_type').order_by('-created_at')
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())

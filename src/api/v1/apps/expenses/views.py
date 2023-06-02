@@ -106,4 +106,4 @@ class PharmacyExpenseAPIViewSet(ModelViewSet):
                 from_pharmacy_id=user.pharmacy_id, report_date=date.today(), shift=user.shift)
         else:
             queryset = PharmacyExpense.objects.filter(from_pharmacy__director_id=user.director_id)
-        return queryset.order_by('-created_at')
+        return queryset.select_related('creator', 'transfer_type', 'expense_type', 'from_pharmacy', 'to_user').order_by('-created_at')

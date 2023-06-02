@@ -13,8 +13,8 @@ class Pharmacy(models.Model):
     logo = models.ImageField(upload_to=pharmacy_logo_upload_location, blank=True, null=True)
     address = models.CharField(max_length=500, blank=True)
     desc = models.TextField(max_length=1000, blank=True)
-    last_shift_end_hour = models.IntegerField(help_text='Is the pharmacy open until 12:00? If not, '
-                                                        'enter what time the business day ends')
+    last_shift_end_hour = models.IntegerField(default=0, help_text='Is the pharmacy open until 12:00? If not, '
+                                                                   'enter what time the business day ends')
 
     def __str__(self):
         return self.name
