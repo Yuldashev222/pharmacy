@@ -32,10 +32,11 @@ class Pharmacy(models.Model):
         verbose_name_plural = 'Pharmacies'
 
 
-class PharmacyReport(models.Model):
+class PharmacyReportByShift(models.Model):
     pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE)
     report_date = models.DateField()
     shift = models.IntegerField()
+
     not_transfer_income = models.IntegerField(default=0)
     transfer_income = models.IntegerField(default=0)
     debt_income = models.IntegerField(default=0)
@@ -49,10 +50,8 @@ class PharmacyReport(models.Model):
     expense_firm = models.IntegerField(default=0)
 
     def save(self, *args, **kwargs):
-        self.total_expense = sum([
-            self.expense_debt_repay_from_pharmacy,
-            self.expense_debt_from_pharmacy,
-            self.expense_pharmacy,
-            self.expense_firm
-        ])
+        self.total_expense = sum([self.expense_debt_repay_from_pharmacy,
+                                  self.expense_debt_from_pharmacy,
+                                  self.expense_pharmacy,
+                                  self.expense_firm])
         super().save(*args, **kwargs)

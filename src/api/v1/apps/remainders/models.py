@@ -1,7 +1,7 @@
 from datetime import datetime
 from django.db import models
 
-from api.v1.apps.pharmacies.models import PharmacyReport
+from api.v1.apps.pharmacies.models import PharmacyReportByShift
 
 
 class RemainderShift(models.Model):
@@ -14,8 +14,9 @@ class RemainderShift(models.Model):
         if self.price < 0:
             self.price = 0
         super().save(*args, **kwargs)
-        obj, _ = PharmacyReport.objects.get_or_create(
-            pharmacy_id=self.pharmacy_id, shift=self.shift, report_date=self.report_date)
+        obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=self.pharmacy_id,
+                                                             shift=self.shift,
+                                                             report_date=self.report_date)
         obj.remainder = self.price
         obj.save()
 

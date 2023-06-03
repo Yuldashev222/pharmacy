@@ -5,7 +5,7 @@ from django.dispatch import receiver
 from api.v1.apps.accounts.models import WorkerReport
 from api.v1.apps.companies.enums import DefaultTransferType
 from api.v1.apps.remainders.models import RemainderDetail
-from api.v1.apps.pharmacies.models import PharmacyReport
+from api.v1.apps.pharmacies.models import PharmacyReportByShift
 
 from .models import FirmIncome, FirmExpense, FirmReport, FirmDebtByDate
 
@@ -43,9 +43,9 @@ def report_update(instance, *args, **kwargs):
         obj.pharmacy_id = instance.from_pharmacy_id
         obj.save()
 
-        obj, _ = PharmacyReport.objects.get_or_create(pharmacy_id=instance.from_pharmacy_id,
-                                                      report_date=instance.report_date,
-                                                      shift=instance.shift)
+        obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=instance.from_pharmacy_id,
+                                                             report_date=instance.report_date,
+                                                             shift=instance.shift)
         expense_firm = FirmExpense.objects.filter(from_pharmacy_id=obj.pharmacy_id,
                                                   report_date=obj.report_date,
                                                   shift=obj.shift

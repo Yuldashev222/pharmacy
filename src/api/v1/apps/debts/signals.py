@@ -5,7 +5,7 @@ from django.dispatch import receiver
 from api.v1.apps.accounts.models import WorkerReport
 from api.v1.apps.companies.enums import DefaultTransferType
 from api.v1.apps.remainders.models import RemainderDetail
-from api.v1.apps.pharmacies.models import PharmacyReport
+from api.v1.apps.pharmacies.models import PharmacyReportByShift
 
 from .models import DebtRepayFromPharmacy, DebtToPharmacy, DebtFromPharmacy, DebtRepayToPharmacy
 
@@ -21,9 +21,9 @@ def report_update(instance, *args, **kwargs):
         obj.pharmacy_id = instance.from_pharmacy_id
         obj.save()
 
-        obj, _ = PharmacyReport.objects.get_or_create(pharmacy_id=instance.from_pharmacy_id,
-                                                      report_date=instance.report_date,
-                                                      shift=instance.shift)
+        obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=instance.from_pharmacy_id,
+                                                             report_date=instance.report_date,
+                                                             shift=instance.shift)
         expense_debt_from_pharmacy = DebtFromPharmacy.objects.filter(from_pharmacy_id=obj.pharmacy_id,
                                                                      report_date=obj.report_date,
                                                                      shift=obj.shift
@@ -31,7 +31,7 @@ def report_update(instance, *args, **kwargs):
         obj.expense_debt_from_pharmacy = expense_debt_from_pharmacy if expense_debt_from_pharmacy else 0
         obj.save()
 
-    obj, _ = PharmacyReport.objects.get_or_create(
+    obj, _ = PharmacyReportByShift.objects.get_or_create(
         pharmacy_id=instance.from_pharmacy_id, report_date=instance.report_date, shift=instance.shift)
     debt_income = DebtFromPharmacy.objects.filter(
         from_pharmacy_id=obj.pharmacy_id, report_date=obj.report_date, shift=obj.shift).aggregate(s=Sum('price'))['s']
@@ -62,9 +62,9 @@ def report_update(instance, *args, **kwargs):
         obj.pharmacy_id = instance.to_debt.to_pharmacy_id
         obj.save()
 
-        obj, _ = PharmacyReport.objects.get_or_create(pharmacy_id=instance.to_debt.to_pharmacy_id,
-                                                      report_date=instance.report_date,
-                                                      shift=instance.shift)
+        obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=instance.to_debt.to_pharmacy_id,
+                                                             report_date=instance.report_date,
+                                                             shift=instance.shift)
         expense_debt_repay_from_pharmacy = DebtRepayFromPharmacy.objects.filter(to_debt__to_pharmacy_id=obj.pharmacy_id,
                                                                                 report_date=obj.report_date,
                                                                                 shift=obj.shift
