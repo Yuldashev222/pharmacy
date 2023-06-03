@@ -5,7 +5,7 @@ from django.dispatch import receiver
 from api.v1.apps.accounts.models import WorkerReport
 from api.v1.apps.companies.enums import DefaultTransferType
 from api.v1.apps.remainders.models import RemainderDetail
-from api.v1.apps.pharmacies.models import PharmacyReport
+from api.v1.apps.pharmacies.models import PharmacyReportByShift
 
 from .models import PharmacyIncome, PharmacyIncomeReportDay
 
@@ -23,9 +23,9 @@ def update_user_income_report(instance, *args, **kwargs):
 
 @receiver(post_save, sender=PharmacyIncome)
 def update_report(instance, *args, **kwargs):
-    obj, _ = PharmacyReport.objects.get_or_create(pharmacy_id=instance.to_pharmacy_id,
-                                                  report_date=instance.report_date,
-                                                  shift=instance.shift)
+    obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=instance.to_pharmacy_id,
+                                                         report_date=instance.report_date,
+                                                         shift=instance.shift)
 
     if instance.transfer_type_id == DefaultTransferType.cash.value:
 

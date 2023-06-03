@@ -23,8 +23,9 @@ class FirmAPIViewSet(ModelViewSet):
         serializer.save(director_id=user.director_id, creator_id=user.id)
 
     def get_queryset(self):
-        return Firm.objects.filter(director_id=self.request.user.director_id).select_related(
-            'creator', 'director').order_by('-created_at')
+        return Firm.objects.filter(director_id=self.request.user.director_id).select_related('creator',
+                                                                                             'director'
+                                                                                             ).order_by('-created_at')
 
     def get_permissions(self):
         permission_classes = [IsAuthenticated, NotProjectOwner]
@@ -54,8 +55,10 @@ class FirmIncomeAPIViewSet(ModelViewSet):
         serializer.save(creator_id=self.request.user.id)
 
     def get_queryset(self):
-        return FirmIncome.objects.filter(from_firm__director_id=self.request.user.director_id).select_related(
-            'creator', 'from_firm').order_by('-created_at')
+        return FirmIncome.objects.filter(from_firm__director_id=self.request.user.director_id
+                                         ).select_related('creator',
+                                                          'from_firm'
+                                                          ).order_by('-created_at')
 
 
 class FirmExpenseAPIViewSet(CreateModelMixin, ReadOnlyModelViewSet):
@@ -83,8 +86,11 @@ class FirmExpenseAPIViewSet(CreateModelMixin, ReadOnlyModelViewSet):
                 report_date=date.today(), shift=user.shift, from_pharmacy_id=user.pharmacy_id)
         else:
             queryset = FirmExpense.objects.filter(creator__director_id=user.director_id)
-        return queryset.filter(is_verified=True).select_related(
-            'creator', 'transfer_type', 'from_pharmacy', 'to_firm', 'from_user').order_by('-created_at')
+        return queryset.filter(is_verified=True).select_related('creator',
+                                                                'transfer_type',
+                                                                'from_pharmacy',
+                                                                'to_firm',
+                                                                'from_user').order_by('-created_at')
 
 
 class FirmReturnProductAPIViewSet(CreateModelMixin, ReadOnlyModelViewSet):  # last

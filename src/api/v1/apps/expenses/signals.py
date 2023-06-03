@@ -5,7 +5,7 @@ from django.db.models.signals import post_delete, post_save
 from api.v1.apps.accounts.models import WorkerReport
 from api.v1.apps.companies.enums import DefaultTransferType
 from api.v1.apps.remainders.models import RemainderDetail
-from api.v1.apps.pharmacies.models import PharmacyReport
+from api.v1.apps.pharmacies.models import PharmacyReportByShift
 
 from .models import PharmacyExpense, UserExpense
 from .reports.models import ExpenseReportMonth
@@ -22,9 +22,9 @@ def update_report(instance, *args, **kwargs):
         obj.pharmacy_id = instance.from_pharmacy_id
         obj.save()
 
-        obj, _ = PharmacyReport.objects.get_or_create(pharmacy_id=instance.from_pharmacy_id,
-                                                      report_date=instance.report_date,
-                                                      shift=instance.shift)
+        obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=instance.from_pharmacy_id,
+                                                             report_date=instance.report_date,
+                                                             shift=instance.shift)
         expense_pharmacy = PharmacyExpense.objects.filter(from_pharmacy_id=obj.pharmacy_id,
                                                           report_date=obj.report_date,
                                                           shift=obj.shift
