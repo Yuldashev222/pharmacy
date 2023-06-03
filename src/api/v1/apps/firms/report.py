@@ -80,7 +80,7 @@ class FirmReportAPIView(ReadOnlyModelViewSet):
     serializer_class = FirmReportSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = {
-        'report_date': ['gte', 'lte'],
+        'report_date': ['gte', 'lte', 'month', 'year'],
         'pharmacy': ['exact'],
         'firm': ['exact'],
         'is_expense': ['exact'],

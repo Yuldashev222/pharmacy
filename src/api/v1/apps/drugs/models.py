@@ -6,7 +6,7 @@ from api.v1.apps.companies.services import text_normalize
 
 
 class Drug(models.Model):
-    pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE)
+    pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE, null=True)
     name = models.CharField(max_length=150)
     price = models.IntegerField(blank=True, null=True)
     manufacturer = models.CharField(max_length=200, blank=True)

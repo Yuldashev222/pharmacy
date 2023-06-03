@@ -25,7 +25,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR.joinpath('media'))
 STATIC_ROOT = os.path.join(BASE_DIR.joinpath('static'))
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SECRET_KEY = os.getenv('SECRET_KEY')
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(' ') + [os.getenv('DOMAIN')]
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(' ') + os.getenv('DOMAINS').split(' ')
 AUTH_USER_MODEL = 'accounts.CustomUser'
 LOGIN_REDIRECT_URL = 'profile'
 

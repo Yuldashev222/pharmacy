@@ -3,4 +3,6 @@ def user_photo_upload_location(obj, image):
 
 
 def default_user_authentication_rule(user):
-    return user is not None and user.is_active and user.director.is_active
+    if user.director:
+        return user is not None and user.is_active and user.director.is_active
+    return user is not None and user.is_active
