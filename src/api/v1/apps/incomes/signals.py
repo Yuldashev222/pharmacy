@@ -27,7 +27,7 @@ def update_report(instance, *args, **kwargs):
                                                          report_date=instance.report_date,
                                                          shift=instance.shift)
 
-    if instance.transfer_type_id == DefaultTransferType.cash.value:
+    if instance.transfer_type_id != DefaultTransferType.cash.value:
 
         transfer_income = PharmacyIncome.objects.exclude(transfer_type_id=DefaultTransferType.cash.value
                                                          ).filter(report_date=obj.report_date,
