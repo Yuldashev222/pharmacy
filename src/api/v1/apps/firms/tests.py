@@ -1,24 +1,25 @@
-import requests
+from datetime import date, timedelta
+from api.v1.apps.firms.models import FirmIncome, Firm
 
 
-message = 'Eslatma: "Navqiron Farm" MCHJ tomonidan 10.10.2022 kuni olingan 50000000 so\'m tovardan qarzingiz 15000000 so\'m qoldi. Qarzni to\'liq qaytarish muddatiga 3 kun qoldi.'
+def f():
+    from_firm_id = Firm.objects.last().id
+    deadline_date = date.today() + timedelta(days=20)
+    report_date = date.today()
+    price = 2101212332
+    second_name = 'testtesttestsetestsetestsetestestesttesttestsetes' \
+                  'tsetestsetestestesttesttestsetestsetestsetesteste' \
+                  'sttesttestsetestsetestsetestes'
 
-payload = {
-    'email': 'diamondstones81@gmail.com',
-    'password': 'aLOGmzKi5gxD4hNriNaCRfwGxfQMEqM1vOtDzxKe'
-}
-token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOjM5OTMsInJvbGUiOiJ1c2VyIiwiZGF0YSI6eyJpZCI6Mzk5MywibmFtZSI6Ilx1MDQyZlx1MDQyMlx1MDQyMiBYQVlSSVlFVkEgRElMT1JBIFpBUklQT1ZOQSIsImVtYWlsIjoiZGlhbW9uZHN0b25lczgxQGdtYWlsLmNvbSIsInJvbGUiOiJ1c2VyIiwiYXBpX3Rva2VuIjpudWxsLCJzdGF0dXMiOiJhY3RpdmUiLCJzbXNfYXBpX2xvZ2luIjoiZXNraXoyIiwic21zX2FwaV9wYXNzd29yZCI6ImUkJGsheiIsInV6X3ByaWNlIjo1MCwidWNlbGxfcHJpY2UiOjExNSwidGVzdF91Y2VsbF9wcmljZSI6bnVsbCwiYmFsYW5jZSI6Mjk4ODIwLCJpc192aXAiOjAsImhvc3QiOiJzZXJ2ZXIxIiwiY3JlYXRlZF9hdCI6IjIwMjMtMDUtMTJUMTA6NDg6NDguMDAwMDAwWiIsInVwZGF0ZWRfYXQiOiIyMDIzLTA1LTE4VDA1OjU1OjAzLjAwMDAwMFoiLCJ3aGl0ZWxpc3QiOm51bGx9LCJpYXQiOjE2ODQzOTA5ODAsImV4cCI6MTY4Njk4Mjk4MH0.jfny3d-TRE-P__GGxElZhc-33okiMhtUBmyIsilbBxI'
-token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOjM5MjIsInJvbGUiOm51bGwsImRhdGEiOnsiaWQiOjM5MjIsIm5hbWUiOiJPeWJlayBZdWxkYXNoZXYgRmF4cmlkZGluIG8nZydsaSIsImVtYWlsIjoib3liZWt5dWxkYXNob3Y1NEBnbWFpbC5jb20iLCJyb2xlIjpudWxsLCJhcGlfdG9rZW4iOm51bGwsInN0YXR1cyI6ImluZGVidGVkIiwic21zX2FwaV9sb2dpbiI6ImVza2l6MiIsInNtc19hcGlfcGFzc3dvcmQiOiJlJCRrIXoiLCJ1el9wcmljZSI6NTAsInVjZWxsX3ByaWNlIjoxMTUsInRlc3RfdWNlbGxfcHJpY2UiOm51bGwsImJhbGFuY2UiOi0xNzUsImlzX3ZpcCI6MCwiaG9zdCI6InNlcnZlcjEiLCJjcmVhdGVkX2F0IjoiMjAyMy0wNC0yOFQyMToxNjo1MC4wMDAwMDBaIiwidXBkYXRlZF9hdCI6IjIwMjMtMDUtMThUMDU6Mjk6MDUuMDAwMDAwWiIsIndoaXRlbGlzdCI6bnVsbH0sImlhdCI6MTY4NDM5MTI1NiwiZXhwIjoxNjg2OTgzMjU2fQ.j3QXol4BJH5gKCIBtfCRCIDEnb1GmaonoUxjC4aw3dw'
-
-url = "https://notify.eskiz.uz/api/message/sms/send"
-
-payload = {
-    'mobile_phone': '998974068686',
-    'message': 'Eskiz Test',
-    'from': '4546'
-}
-headers = {'AUTHORIZATION': f'Bearer {token}'}
-
-response = requests.request("POST", url, headers=headers, data=payload)
-
-print(response.text)
+    objs = []
+    for i in range(500):
+        objs.append(FirmIncome(from_firm_id=from_firm_id,
+                               deadline_date=deadline_date,
+                               report_date=report_date,
+                               price=price,
+                               second_name=second_name,
+                               remaining_debt=price))
+        deadline_date += timedelta(days=10)
+        report_date += timedelta(days=3)
+        price = price + i ** 2
+    return FirmIncome.objects.bulk_create(objs)
