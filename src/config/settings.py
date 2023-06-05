@@ -102,22 +102,22 @@ INSTALLED_APPS = [
     'api.v1.apps.offers.apps.OffersConfig',
 ]
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': os.getenv()('POSTGRES_DB_ENGINE', 'django.db.backends.sqlite3'),
-#         'NAME': os.getenv()('POSTGRES_DB_NAME', BASE_DIR.joinpath('db.sqlite3')),
-#         'USER': os.getenv()('POSTGRES_DB_USER', 'user'),
-#         'PASSWORD': os.getenv()('POSTGRES_DB_PASSWORD', 'password'),
-#         'HOST': os.getenv()('POSTGRES_DB_HOST', 'localhost'),
-#         'PORT': os.getenv()('POSTGRES_DB_PORT', '5432'),
-#     },
-# }
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR.joinpath('db.sqlite3'),
+        'ENGINE': os.getenv('POSTGRES_DB_ENGINE', 'django.db.backends.sqlite3'),
+        'NAME': os.getenv('POSTGRES_DB_NAME', BASE_DIR.joinpath('db.sqlite3')),
+        'USER': os.getenv('POSTGRES_DB_USER', 'user'),
+        'PASSWORD': os.getenv('POSTGRES_DB_PASSWORD', 'password'),
+        'HOST': os.getenv('POSTGRES_DB_HOST', 'localhost'),
+        'PORT': os.getenv('POSTGRES_DB_PORT', '5432'),
     },
 }
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR.joinpath('db.sqlite3'),
+#     },
+# }
 
 CACHES = {
     'default': {
@@ -165,8 +165,8 @@ REST_FRAMEWORK = {
 
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication'
+        # 'rest_framework.authentication.SessionAuthentication',
+        # 'rest_framework.authentication.BasicAuthentication'
     ],
 
     'DATETIME_FORMAT': '%Y-%m-%d %H:%M',
