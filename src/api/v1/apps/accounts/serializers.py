@@ -8,6 +8,22 @@ from rest_framework_simplejwt.serializers import TokenObtainSerializer
 
 from .models import CustomUser
 
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.serializers import TokenObtainSerializer
+class CustomTokenObtainPairSerializer(TokenObtainSerializer):
+    token_class = RefreshToken
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+
+        refresh = self.get_token(self.user)
+
+        data["refresh"] = str(refresh)
+        data["access"] = str(refresh.access_token)
+        data['user'] = UserReadOnlySerializer(self.user).data
+
+        return data
+
 
 class CustomTokenObtainPairSerializer(TokenObtainSerializer):
     token_class = RefreshToken

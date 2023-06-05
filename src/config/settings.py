@@ -19,13 +19,13 @@ LANGUAGE_CODE = 'en-us'
 ROOT_URLCONF = 'config.urls'
 TIME_ZONE = 'Asia/Tashkent'
 CELERY_TIMEZONE = 'Asia/Tashkent'
-DEBUG = True
+DEBUG = 1
 WSGI_APPLICATION = 'config.wsgi.application'
 MEDIA_ROOT = os.path.join(BASE_DIR.joinpath('media'))
 STATIC_ROOT = os.path.join(BASE_DIR.joinpath('static'))
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SECRET_KEY = os.getenv('SECRET_KEY')
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(' ') + os.getenv('DOMAINS').split(' ')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(' ') + [os.getenv('DOMAIN')]
 AUTH_USER_MODEL = 'accounts.CustomUser'
 LOGIN_REDIRECT_URL = 'profile'
 
@@ -102,22 +102,22 @@ INSTALLED_APPS = [
     'api.v1.apps.offers.apps.OffersConfig',
 ]
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': os.getenv()('POSTGRES_DB_ENGINE', 'django.db.backends.sqlite3'),
+#         'NAME': os.getenv()('POSTGRES_DB_NAME', BASE_DIR.joinpath('db.sqlite3')),
+#         'USER': os.getenv()('POSTGRES_DB_USER', 'user'),
+#         'PASSWORD': os.getenv()('POSTGRES_DB_PASSWORD', 'password'),
+#         'HOST': os.getenv()('POSTGRES_DB_HOST', 'localhost'),
+#         'PORT': os.getenv()('POSTGRES_DB_PORT', '5432'),
+#     },
+# }
 DATABASES = {
     'default': {
-        'ENGINE': os.getenv('POSTGRES_DB_ENGINE'),
-        'NAME': os.getenv('POSTGRES_DB_NAME'),
-        'USER': os.getenv('POSTGRES_DB_USER'),
-        'PASSWORD': os.getenv('POSTGRES_DB_PASSWORD'),
-        'HOST': os.getenv('POSTGRES_DB_HOST'),
-        'PORT': os.getenv('POSTGRES_DB_PORT'),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR.joinpath('db.sqlite3'),
     },
 }
-#DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.sqlite3',
-#        'NAME': BASE_DIR.joinpath('db.sqlite3'),
-#    },
-#}
 
 CACHES = {
     'default': {
@@ -125,7 +125,7 @@ CACHES = {
         'LOCATION': 'redis://127.0.0.1:16379/1'
     }
 }
-print(os.getenv('POSTGRES_DB_ENGINE'))
+
 INTERNAL_IPS = []
 if DEBUG:
     INTERNAL_IPS = [
@@ -165,8 +165,8 @@ REST_FRAMEWORK = {
 
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-#        'rest_framework.authentication.SessionAuthentication',
-#        'rest_framework.authentication.BasicAuthentication'
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication'
     ],
 
     'DATETIME_FORMAT': '%Y-%m-%d %H:%M',
@@ -206,7 +206,7 @@ SIMPLE_JWT = {
     "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
     "USER_ID_FIELD": "id",
     "USER_ID_CLAIM": "user_id",
-    "USER_AUTHENTICATION_RULE": "api.v1.apps.accounts.services.default_user_authentication_rule",
+    "USER_AUTHENTICATION_RULE": "api.v1.accounts.services.default_user_authentication_rule",
 
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
     "TOKEN_TYPE_CLAIM": "token_type",
@@ -214,7 +214,7 @@ SIMPLE_JWT = {
 
     "JTI_CLAIM": "jti",
 
-    "TOKEN_OBTAIN_SERIALIZER": "api.v1.apps.accounts.serializers.CustomTokenObtainPairSerializer",
+    "TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainPairSerializer",
     "TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSerializer",
     "TOKEN_VERIFY_SERIALIZER": "rest_framework_simplejwt.serializers.TokenVerifySerializer",
     "TOKEN_BLACKLIST_SERIALIZER": "rest_framework_simplejwt.serializers.TokenBlacklistSerializer",

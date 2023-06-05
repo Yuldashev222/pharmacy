@@ -19,6 +19,10 @@ class DirectorManagerPharmacyIncomeSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         user = self.context['request'].user
         to_user = attrs.get('to_user')
+        pharmacy = attrs.get('to_pharmacy')
+
+        if pharmacy and pharmacy.director_id != user.director_id:
+            raise ValidationError({'to_pharmacy': 'not found'})
 
         if to_user and to_user.director_id != user.director_id:
             raise ValidationError({'to_user': 'not found'})

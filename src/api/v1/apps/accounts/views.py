@@ -86,6 +86,6 @@ class WorkerUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
 
 # director_id 1
 # company_id 1
-# director +998974068633   2
+# director +998974068622   2
 # manager +998974068000   3
 # worker +998974068681   4

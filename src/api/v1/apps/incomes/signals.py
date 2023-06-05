@@ -28,19 +28,21 @@ def update_report(instance, *args, **kwargs):
                                                          shift=instance.shift)
 
     if instance.transfer_type_id == DefaultTransferType.cash.value:
-
+        print(22222)
         transfer_income = PharmacyIncome.objects.exclude(transfer_type_id=DefaultTransferType.cash.value
                                                          ).filter(report_date=obj.report_date,
                                                                   to_pharmacy_id=obj.pharmacy_id,
                                                                   shift=obj.shift).aggregate(s=Sum('price'))['s']
         obj.transfer_income = transfer_income if transfer_income else 0
     else:
+        print(33333)
         not_transfer_income = PharmacyIncome.objects.filter(report_date=obj.report_date,
                                                             to_pharmacy_id=obj.pharmacy_id,
                                                             shift=obj.shift,
                                                             transfer_type_id=DefaultTransferType.cash.value
                                                             ).aggregate(s=Sum('price'))['s']
         obj.not_transfer_income = not_transfer_income if not_transfer_income else 0
+    print(obj.transfer_income, obj.not_transfer_income)
     obj.save()
 
     # remainder update

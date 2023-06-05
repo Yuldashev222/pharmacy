@@ -1,10 +1,12 @@
 from collections import OrderedDict
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import serializers
-from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticated
+from drf_excel.mixins import XLSXFileMixin
+from drf_excel.renderers import XLSXRenderer
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
+from django_filters.rest_framework import DjangoFilterBackend
 
 from ..models import WorkerReport, WorkerReportMonth
 from ..permissions import IsDirector, IsManager
@@ -67,7 +69,8 @@ class WorkerReportAPIView(ReadOnlyModelViewSet):
     }
 
     def get_queryset(self):
-        queryset = WorkerReport.objects.filter(creator__director_id=self.request.user.director_id).order_by('report_date')
+        queryset = WorkerReport.objects.filter(creator__director_id=self.request.user.director_id).order_by(
+            'report_date')
         return queryset.select_related('pharmacy', 'creator', 'worker')
 
     def list(self, request, *args, **kwargs):
@@ -95,3 +98,15 @@ class WorkerReportAPIView(ReadOnlyModelViewSet):
             'results': serializer.data
         }
         return self.get_paginated_response(data)
+
+
+class WorkerReportDownloadAPIView(XLSXFileMixin, WorkerReportAPIView):
+    pagination_class = None
+    renderer_classes = [XLSXRenderer]
+    filename = 'accounts_report.xlsx'
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
