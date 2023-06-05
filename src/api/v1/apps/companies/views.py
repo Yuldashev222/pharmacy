@@ -51,7 +51,6 @@ def company_details(request, *args, **kwargs):
 
     if user.is_worker:
         data['pharmacies'] = Pharmacy.objects.filter(id=user.pharmacy_id).values('id', 'name').order_by('-id')
-        data['remainder'] = RemainderShift.get_price(date.today(), user.shift, user.pharmacy_id)
 
         try:
             receipt = Receipt.objects.get(report_date=date.today(), shift=user.shift, pharmacy_id=user.pharmacy_id)
@@ -65,8 +64,6 @@ def company_details(request, *args, **kwargs):
         shift = request.query_params.get('shift')
         pharmacy_id = request.query_params.get('pharmacy_id')
         if report_date and shift and pharmacy_id:
-            data['remainder'] = RemainderShift.get_price(report_date, shift, pharmacy_id)
-
             try:
                 receipt = Receipt.objects.get(report_date=report_date, shift=shift, pharmacy_id=pharmacy_id)
                 data['receipt'] = {"id": receipt.id, "price": receipt.price}

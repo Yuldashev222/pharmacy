@@ -20,6 +20,7 @@ from api.v1.apps.expenses.reports.views import ExpenseAPIView, ExpenseReportMont
 from .reports.incomes import AllPharmacyIncomeReportMonthAPIView
 from .reports.expenses import AllExpenseReportMonthAPIView
 from .views import TransferMoneyTypeAPIViewSet, CompanyAPIViewSet
+from ..remainders.views import RemainderAPIView
 
 router = DefaultRouter()
 
@@ -32,6 +33,7 @@ router.register('pharmacies/expenses/reports', ExpenseAPIView, basename='pharmac
 router.register('pharmacies/expenses/types', ExpenseTypeAPIViewSet, basename='expense_type')
 router.register('pharmacies/to-debts/repay', debt_from_pharmacy.DebtRepayToPharmacyAPIView, basename='debt_repay_to_pharmacy')
 router.register('pharmacies/debts/repay', debt_to_pharmacy.DebtRepayFromPharmacyAPIView, basename='debt_repay_from_pharmacy')
+router.register('pharmacies/remainders', RemainderAPIView, basename='pharmacy_reminder')
 router.register('pharmacies/to-debts', debt_from_pharmacy.DebtFromPharmacyAPIView, basename='debt_from_pharmacy')
 router.register('pharmacies/expenses', PharmacyExpenseAPIViewSet, basename='pharmacy_expense')
 router.register('pharmacies/receipts', ReceiptCreateUpdateAPIView, basename='pharmacy_receipt')
