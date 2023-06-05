@@ -64,7 +64,7 @@ class DirectorUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated, IsProjectOwner]
 
     def get_queryset(self):
-        queryset = CustomUser.objects.all(role=UserRole.d.name, ).order_by('-date_joined')
+        queryset = CustomUser.objects.filter(role=UserRole.d.name).order_by('-date_joined')
         return queryset
 
 

@@ -3,8 +3,25 @@ from django.core.validators import MinValueValidator
 from rest_framework.exceptions import ValidationError
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.password_validation import validate_password
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.serializers import TokenObtainSerializer
 
 from .models import CustomUser
+
+
+class CustomTokenObtainPairSerializer(TokenObtainSerializer):
+    token_class = RefreshToken
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+
+        refresh = self.get_token(self.user)
+
+        data["refresh"] = str(refresh)
+        data["access"] = str(refresh.access_token)
+        data['user'] = UserReadOnlySerializer(self.user).data
+
+        return data
 
 
 class UserCreateSerializer(serializers.ModelSerializer):

@@ -19,7 +19,7 @@ LANGUAGE_CODE = 'en-us'
 ROOT_URLCONF = 'config.urls'
 TIME_ZONE = 'Asia/Tashkent'
 CELERY_TIMEZONE = 'Asia/Tashkent'
-DEBUG = 1
+DEBUG = True
 WSGI_APPLICATION = 'config.wsgi.application'
 MEDIA_ROOT = os.path.join(BASE_DIR.joinpath('media'))
 STATIC_ROOT = os.path.join(BASE_DIR.joinpath('static'))
@@ -102,22 +102,22 @@ INSTALLED_APPS = [
     'api.v1.apps.offers.apps.OffersConfig',
 ]
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': os.getenv()('POSTGRES_DB_ENGINE', 'django.db.backends.sqlite3'),
-#         'NAME': os.getenv()('POSTGRES_DB_NAME', BASE_DIR.joinpath('db.sqlite3')),
-#         'USER': os.getenv()('POSTGRES_DB_USER', 'user'),
-#         'PASSWORD': os.getenv()('POSTGRES_DB_PASSWORD', 'password'),
-#         'HOST': os.getenv()('POSTGRES_DB_HOST', 'localhost'),
-#         'PORT': os.getenv()('POSTGRES_DB_PORT', '5432'),
-#     },
-# }
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR.joinpath('db.sqlite3'),
+        'ENGINE': os.getenv('POSTGRES_DB_ENGINE'),
+        'NAME': os.getenv('POSTGRES_DB_NAME'),
+        'USER': os.getenv('POSTGRES_DB_USER'),
+        'PASSWORD': os.getenv('POSTGRES_DB_PASSWORD'),
+        'HOST': os.getenv('POSTGRES_DB_HOST'),
+        'PORT': os.getenv('POSTGRES_DB_PORT'),
     },
 }
+#DATABASES = {
+#    'default': {
+#        'ENGINE': 'django.db.backends.sqlite3',
+#        'NAME': BASE_DIR.joinpath('db.sqlite3'),
+#    },
+#}
 
 CACHES = {
     'default': {
@@ -125,7 +125,7 @@ CACHES = {
         'LOCATION': 'redis://127.0.0.1:16379/1'
     }
 }
-
+print(os.getenv('POSTGRES_DB_ENGINE'))
 INTERNAL_IPS = []
 if DEBUG:
     INTERNAL_IPS = [
@@ -165,8 +165,8 @@ REST_FRAMEWORK = {
 
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication'
+#        'rest_framework.authentication.SessionAuthentication',
+#        'rest_framework.authentication.BasicAuthentication'
     ],
 
     'DATETIME_FORMAT': '%Y-%m-%d %H:%M',
@@ -214,7 +214,7 @@ SIMPLE_JWT = {
 
     "JTI_CLAIM": "jti",
 
-    "TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainPairSerializer",
+    "TOKEN_OBTAIN_SERIALIZER": "api.v1.apps.accounts.serializers.CustomTokenObtainPairSerializer",
     "TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSerializer",
     "TOKEN_VERIFY_SERIALIZER": "rest_framework_simplejwt.serializers.TokenVerifySerializer",
     "TOKEN_BLACKLIST_SERIALIZER": "rest_framework_simplejwt.serializers.TokenBlacklistSerializer",
