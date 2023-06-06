@@ -9,6 +9,7 @@ from .models import PharmacyReportByShift
 
 
 class PharmacyReportSerializer(serializers.ModelSerializer):
+    worker = serializers.StringRelatedField()
 
     class Meta:
         model = PharmacyReportByShift
@@ -56,5 +57,5 @@ class PharmacyReportAPIViewSet(ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = PharmacyReportByShift.objects.filter(pharmacy__director_id=user.director_id)
+        queryset = PharmacyReportByShift.objects.filter(pharmacy__director_id=user.director_id).select_related('worker')
         return queryset.order_by('report_date', 'shift')

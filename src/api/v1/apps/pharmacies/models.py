@@ -36,7 +36,7 @@ class PharmacyReportByShift(models.Model):
     pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE)
     report_date = models.DateField()
     shift = models.IntegerField()
-
+    worker = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True)
     not_transfer_income = models.IntegerField(default=0)
     transfer_income = models.IntegerField(default=0)
     debt_income = models.IntegerField(default=0)
@@ -50,6 +50,10 @@ class PharmacyReportByShift(models.Model):
     expense_firm = models.IntegerField(default=0)
 
     def save(self, *args, **kwargs):
+        try:
+            self.worker = CustomUser.objects.get(shift=self.shift)
+        except Exception as e:
+            print(e)
         self.total_expense = sum([self.expense_debt_repay_from_pharmacy,
                                   self.expense_debt_from_pharmacy,
                                   self.expense_pharmacy,

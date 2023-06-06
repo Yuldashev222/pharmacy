@@ -25,10 +25,10 @@ MEDIA_ROOT = os.path.join(BASE_DIR.joinpath('media'))
 STATIC_ROOT = os.path.join(BASE_DIR.joinpath('static'))
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SECRET_KEY = os.getenv('SECRET_KEY')
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(' ') + [os.getenv('DOMAIN')]
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(' ') + os.getenv('DOMAINS').split(' ')
 AUTH_USER_MODEL = 'accounts.CustomUser'
 LOGIN_REDIRECT_URL = 'profile'
-
+print(ALLOWED_HOSTS)
 ESKIZ_UZ_EMAIL = os.getenv('ESKIZ_UZ_EMAIL')
 ESKIZ_UZ_PASSWORD = os.getenv('ESKIZ_UZ_PASSWORD')
 ESKIZ_UZ_TOKEN_URL = os.getenv('ESKIZ_UZ_TOKEN_URL')
@@ -206,7 +206,7 @@ SIMPLE_JWT = {
     "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
     "USER_ID_FIELD": "id",
     "USER_ID_CLAIM": "user_id",
-    "USER_AUTHENTICATION_RULE": "api.v1.accounts.services.default_user_authentication_rule",
+    "USER_AUTHENTICATION_RULE": "api.v1.apps.accounts.services.default_user_authentication_rule",
 
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
     "TOKEN_TYPE_CLAIM": "token_type",
@@ -214,7 +214,7 @@ SIMPLE_JWT = {
 
     "JTI_CLAIM": "jti",
 
-    "TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainPairSerializer",
+    "TOKEN_OBTAIN_SERIALIZER": "api.v1.apps.accounts.serializers.CustomTokenObtainPairSerializer",
     "TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSerializer",
     "TOKEN_VERIFY_SERIALIZER": "rest_framework_simplejwt.serializers.TokenVerifySerializer",
     "TOKEN_BLACKLIST_SERIALIZER": "rest_framework_simplejwt.serializers.TokenBlacklistSerializer",
