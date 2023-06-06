@@ -1,9 +1,11 @@
 from random import randint
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, date
 from django.db import models
 
+from api.v1.apps.companies.enums import DefaultTransferType
 from api.v1.apps.companies.models import AbstractIncomeExpense, Company
 from api.v1.apps.companies.services import text_normalize
+from api.v1.apps.pharmacies.services import get_worker_report_date
 from api.v1.apps.companies.validators import uzb_phone_number_validation
 
 from .services import firm_logo_upload_location, EskizUz
@@ -15,7 +17,7 @@ class Firm(models.Model):
     not_transfer_debt = models.IntegerField(default=0)
     transfer_debt = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
-    director = models.ForeignKey('accounts.CustomUser', related_name='firms', on_delete=models.PROTECT)
+    director = models.ForeignKey('accounts.CustomUser', related_name='firms', on_delete=models.CASCADE)
     creator = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True)
     phone_number1 = models.CharField(max_length=13, validators=[uzb_phone_number_validation], blank=True)
     phone_number2 = models.CharField(max_length=13, validators=[uzb_phone_number_validation], blank=True)
@@ -39,7 +41,7 @@ class FirmIncome(AbstractIncomeExpense):
     transfer_type = None
     shift = None
 
-    from_firm = models.ForeignKey(Firm, on_delete=models.PROTECT)
+    from_firm = models.ForeignKey(Firm, on_delete=models.CASCADE)
     deadline_date = models.DateField(blank=True, null=True)
     remaining_debt = models.IntegerField()
     is_paid = models.BooleanField(default=False)
@@ -66,36 +68,39 @@ class FirmIncome(AbstractIncomeExpense):
 
 class FirmExpense(AbstractIncomeExpense):
     from_pharmacy_transfer = models.BooleanField(default=False)
-    to_firm = models.ForeignKey(Firm, on_delete=models.PROTECT)
-    from_pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.PROTECT)
+    to_firm = models.ForeignKey(Firm, on_delete=models.CASCADE)
+    from_pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.SET_NULL, null=True)
     is_verified = models.BooleanField(default=False)
     verified_code = models.PositiveIntegerField()
     verified_phone_number = models.CharField(max_length=13, validators=[uzb_phone_number_validation], blank=True)
     verified_firm_worker_name = models.CharField(max_length=50, blank=True)
 
-    from_user = models.ForeignKey(
-        'accounts.CustomUser', on_delete=models.PROTECT, blank=True, null=True, related_name='firm_expenses')
+    from_user = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, blank=True, null=True,
+                                  related_name='firm_expenses')
 
     def __str__(self):
         return str(self.to_firm)
 
     def save(self, *args, **kwargs):
-        FirmExpense.objects.filter(
-            is_verified=False, created_at__lt=datetime.now() - timedelta(minutes=5)).delete()
-
-        self.verified_firm_worker_name = text_normalize(self.verified_firm_worker_name).title()
+        FirmExpense.objects.filter(is_verified=False, created_at__lt=datetime.now() - timedelta(minutes=5)).delete()
 
         if not self.pk:
-            self.verified_code = randint(10000, 99999)
+            if self.from_pharmacy:
+                self.report_date = get_worker_report_date(self.from_pharmacy.last_shift_end_hour)
+            else:
+                self.report_date = date.today()
 
+            self.verified_firm_worker_name = text_normalize(self.verified_firm_worker_name).title()
+            self.verified_code = randint(10000, 99999)
             # send sms
             if not self.from_pharmacy_transfer:
                 w_name = ''.join([i for i in self.verified_firm_worker_name if i.isalpha() or i in ' \''])
                 try:
-                    message = EskizUz.verify_code_message(
-                        verify_code=self.verified_code, firm_name=self.to_firm.send_sms_name,
-                        pharmacy_name=self.from_pharmacy.send_sms_name, price=self.price, firm_worker_name=w_name
-                    )
+                    message = EskizUz.verify_code_message(verify_code=self.verified_code,
+                                                          firm_name=self.to_firm.send_sms_name,
+                                                          pharmacy_name=self.from_pharmacy.send_sms_name,
+                                                          price=self.price,
+                                                          firm_worker_name=w_name)
                     EskizUz.send_sms(phone_number=self.verified_phone_number[1:], message=message)
                 except Exception as e:
                     return e
@@ -120,24 +125,24 @@ class FirmExpense(AbstractIncomeExpense):
                 else:
                     break
             if temp_price > 0:
-                firm_debt, _ = FirmDebtByDate.objects.get_or_create(
-                    firm_id=self.to_firm_id, report_date=self.report_date)
-                if self.transfer_type == 1:
+                firm_debt, _ = FirmDebtByDate.objects.get_or_create(firm_id=self.to_firm_id,
+                                                                    report_date=self.report_date)
+                if self.transfer_type == DefaultTransferType.cash.value:
                     firm_debt.expenses_not_transfer_debt_price += temp_price
                 else:
                     firm_debt.expenses_transfer_debt_price += temp_price
                 firm_debt.save()
 
             firm_report, _ = FirmReport.objects.get_or_create(expense_id=self.id)
-            firm_report.creator_id = self.creator_id
+            firm_report.creator = self.creator
             firm_report.firm_id = self.to_firm_id
-            firm_report.pharmacy_id = self.from_pharmacy_id
+            firm_report.pharmacy = self.from_pharmacy
             firm_report.verified_phone_number = self.verified_phone_number
             firm_report.verified_firm_worker_name = self.verified_firm_worker_name
             firm_report.created_at = self.created_at
             firm_report.report_date = self.report_date
             firm_report.price = self.price
-            firm_report.is_transfer = bool(self.transfer_type_id != 1)
+            firm_report.is_transfer = bool(self.transfer_type_id != DefaultTransferType.cash.value)
             firm_report.save()
 
 
@@ -152,21 +157,24 @@ class FirmReturnProduct(AbstractIncomeExpense):
     verified_firm_worker_name = models.CharField(max_length=50)
 
     def save(self, *args, **kwargs):
-        self.verified_firm_worker_name = text_normalize(self.verified_firm_worker_name).title()
-
         if not self.pk:
+            self.verified_firm_worker_name = text_normalize(self.verified_firm_worker_name).title()
             self.verified_code = randint(10000, 99999)
 
             # send sms
             w_name = ''.join([i for i in self.verified_firm_worker_name if i.isalpha() or i in ' \''])
             try:
-                message = EskizUz.return_product_verify_code_message(
-                    verify_code=self.verified_code, price=self.price, firm_worker_name=w_name,
-                    firm_name=self.firm_income.from_firm.send_sms_name,
-                    company_name=Company.objects.get(director_id=self.creator.director_id).name
-                )
+                firm = self.firm_income.from_firm
+                message = EskizUz.return_product_verify_code_message(verify_code=self.verified_code,
+                                                                     price=self.price,
+                                                                     firm_worker_name=w_name,
+                                                                     firm_name=firm.send_sms_name,
+                                                                     company_name=Company.objects.get(
+                                                                         director_id=firm.director_id).name)
+
                 EskizUz.send_sms(phone_number=self.verified_phone_number[1:], message=message)
             except Exception as e:
+                print(e)
                 return e
 
         super().save(*args, **kwargs)
@@ -178,7 +186,7 @@ class FirmReturnProduct(AbstractIncomeExpense):
             self.firm_income.save()
 
             firm_report, _ = FirmReport.objects.get_or_create(return_product_id=self.id)
-            firm_report.creator_id = self.creator_id
+            firm_report.creator = self.creator
             firm_report.firm_id = self.firm_income.from_firm_id
             firm_report.verified_phone_number = self.verified_phone_number
             firm_report.verified_firm_worker_name = self.verified_firm_worker_name
@@ -191,7 +199,7 @@ class FirmReturnProduct(AbstractIncomeExpense):
 
 class FirmDebtByMonth(models.Model):
     firm = models.ForeignKey(Firm, on_delete=models.CASCADE)
-    pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE, null=True)
+    pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.SET_NULL, null=True)
     year = models.IntegerField()
     month = models.IntegerField()
     expense_price = models.IntegerField(default=0)
@@ -223,10 +231,10 @@ class FirmReport(models.Model):
     expense = models.ForeignKey(FirmExpense, on_delete=models.CASCADE, blank=True, null=True)
     return_product = models.ForeignKey(FirmReturnProduct, on_delete=models.CASCADE, blank=True, null=True)
 
-    is_expense = models.BooleanField(default=True)
-    creator = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True)
     firm = models.ForeignKey(Firm, on_delete=models.CASCADE, null=True)
     pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.SET_NULL, null=True)
+    creator = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True)
+    is_expense = models.BooleanField(default=True)
     verified_phone_number = models.CharField(max_length=13, blank=True)
     verified_firm_worker_name = models.CharField(max_length=50, blank=True)
     created_at = models.DateTimeField(null=True)
@@ -238,11 +246,13 @@ class FirmReport(models.Model):
         super().save(*args, **kwargs)
         if self.firm and self.report_date:
             firm_debt, _ = FirmDebtByDate.objects.get_or_create(firm_id=self.firm_id, report_date=self.report_date)
+
             incomes_not_transfer_debt_price = FirmIncome.objects.filter(is_paid=False,
                                                                         is_transfer_return=False,
                                                                         from_firm_id=firm_debt.firm_id,
                                                                         report_date__lte=firm_debt.report_date
                                                                         ).aggregate(s=models.Sum('remaining_debt'))['s']
+
             incomes_transfer_debt_price = FirmIncome.objects.filter(is_paid=False,
                                                                     is_transfer_return=True,
                                                                     from_firm_id=firm_debt.firm_id,
@@ -274,6 +284,7 @@ class FirmReport(models.Model):
                                                      pharmacy=by_month.pharmacy,
                                                      is_expense=False
                                                      ).aggregate(s=models.Sum('price'))['s']
+
             by_month.expense_price = expense_price if expense_price else 0
             by_month.income_price = income_price if income_price else 0
             by_month.save()

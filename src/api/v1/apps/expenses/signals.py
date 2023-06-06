@@ -35,18 +35,16 @@ def update_report(instance, *args, **kwargs):
 
 @receiver(post_delete, sender=PharmacyExpense)
 def update_report(instance, *args, **kwargs):
-    price = PharmacyExpense.objects.filter(
-        from_pharmacy_id=instance.from_pharmacy_id,
-        expense_type_id=instance.expense_type_id,
-        report_date__year=instance.report_date.year,
-        report_date__month=instance.report_date.month
-    ).aggregate(s=Sum('price'))['s']
-    obj, _ = ExpenseReportMonth.objects.get_or_create(
-        pharmacy_id=instance.from_pharmacy_id,
-        expense_type_id=instance.expense_type_id,
-        year=instance.report_date.year,
-        month=instance.report_date.month
-    )
+    price = PharmacyExpense.objects.filter(from_pharmacy_id=instance.from_pharmacy_id,
+                                           expense_type_id=instance.expense_type_id,
+                                           report_date__year=instance.report_date.year,
+                                           report_date__month=instance.report_date.month
+                                           ).aggregate(s=Sum('price'))['s']
+
+    obj, _ = ExpenseReportMonth.objects.get_or_create(pharmacy_id=instance.from_pharmacy_id,
+                                                      expense_type_id=instance.expense_type_id,
+                                                      year=instance.report_date.year,
+                                                      month=instance.report_date.month)
     obj.price = price if price else 0
     obj.save()
 
@@ -66,9 +64,9 @@ def update_user_expense_report(instance, *args, **kwargs):
     obj, _ = WorkerReport.objects.get_or_create(user_expense_id=instance.id, is_expense=True)
     obj.report_date = instance.report_date
     obj.price = instance.price
-    obj.creator_id = instance.creator_id
+    obj.creator = instance.creator
     obj.pharmacy = instance.to_pharmacy
-    obj.worker_id = instance.from_user_id
+    obj.worker = instance.from_user
     obj.created_at = instance.created_at
     obj.save()
 
@@ -76,9 +74,9 @@ def update_user_expense_report(instance, *args, **kwargs):
         obj, _ = WorkerReport.objects.get_or_create(user_expense_id=instance.id, is_expense=False)
         obj.report_date = instance.report_date
         obj.price = instance.price
-        obj.creator_id = instance.creator_id
+        obj.creator = instance.creator
         obj.pharmacy = instance.to_pharmacy
-        obj.worker_id = instance.to_user_id
+        obj.worker = instance.to_user
         obj.created_at = instance.created_at
         obj.is_expense = False
         obj.save()

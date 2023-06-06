@@ -20,8 +20,10 @@ class Receipt(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
+
         obj, _ = PharmacyIncomeReportDay.objects.get_or_create(pharmacy_id=self.pharmacy_id,
                                                                report_date=self.report_date)
+
         receipt_price = Receipt.objects.filter(report_date=obj.report_date,
                                                pharmacy_id=obj.pharmacy_id
                                                ).aggregate(s=models.Sum('price'))['s']
@@ -32,6 +34,6 @@ class Receipt(models.Model):
         obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=self.pharmacy_id,
                                                              report_date=self.report_date,
                                                              shift=self.shift)
-        receipt_price = self.price
-        obj.receipt_price = receipt_price
+
+        obj.receipt_price = self.price
         obj.save()

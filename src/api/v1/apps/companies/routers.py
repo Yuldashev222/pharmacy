@@ -6,12 +6,12 @@ from api.v1.apps.firms.views import (
 )
 from api.v1.apps.drugs.views import DrugAPIViewSet
 from api.v1.apps.debts.views import debt_from_pharmacy, debt_to_pharmacy
-from api.v1.apps.firms.report import FirmReportAPIView, FirmDebtByDateAPIView, FirmDebtByMonthAPIView
+from api.v1.apps.firms.reports import FirmReportAPIView, FirmDebtByDateAPIView, FirmDebtByMonthAPIView
 from api.v1.apps.offers.views import OfferAPIView
 from api.v1.apps.clients.views import ClientAPIViewSet
 from api.v1.apps.incomes.views import PharmacyIncomeAPIViewSet
 from api.v1.apps.receipts.views import ReceiptCreateUpdateAPIView
-from api.v1.apps.incomes.report import PharmacyIncomeReportDayAPIView, PharmacyIncomeReportMonthAPIView
+from api.v1.apps.incomes.reports import PharmacyIncomeReportDayAPIView, PharmacyIncomeReportMonthAPIView
 from api.v1.apps.expenses.views import PharmacyExpenseAPIViewSet, ExpenseTypeAPIViewSet
 from api.v1.apps.pharmacies.views import PharmacyAPIViewSet
 from api.v1.apps.pharmacies.reports import PharmacyReportAPIViewSet

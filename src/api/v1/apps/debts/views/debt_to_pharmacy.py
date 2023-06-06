@@ -1,10 +1,10 @@
-from datetime import date
-from rest_framework.response import Response
 from rest_framework import filters
+from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 
+from api.v1.apps.pharmacies.services import get_worker_report_date
 from api.v1.apps.accounts.permissions import NotProjectOwner
 from api.v1.apps.companies.permissions import WorkerTodayObject
 
@@ -26,7 +26,7 @@ class DebtToPharmacyAPIView(ModelViewSet):  # last
         user = self.request.user
         data = {'creator_id': user.id}
         if user.is_worker:
-            data['report_date'] = date.today()
+            data['report_date'] = get_worker_report_date(user.pharmacy.last_shift_end_hour)
             data['to_pharmacy_id'] = user.pharmacy_id
             data['shift'] = user.shift
         serializer.save(**data)
@@ -48,8 +48,11 @@ class DebtToPharmacyAPIView(ModelViewSet):  # last
             queryset = DebtToPharmacy.objects.filter(to_pharmacy_id=user.pharmacy_id, is_paid=False)
         else:
             queryset = DebtToPharmacy.objects.filter(to_pharmacy__director_id=user.director_id)
-        queryset = queryset.exclude(to_firm_expense__isnull=False, to_firm_expense__is_verified=False).select_related(
-            'creator', 'to_pharmacy', 'transfer_type').order_by('-created_at')
+        queryset = queryset.exclude(to_firm_expense__isnull=False,
+                                    to_firm_expense__is_verified=False).select_related('creator',
+                                                                                       'to_pharmacy',
+                                                                                       'transfer_type'
+                                                                                       ).order_by('-created_at')
         return queryset
 
 
@@ -86,7 +89,7 @@ class DebtRepayFromPharmacyAPIView(ModelViewSet):
         data = {'creator_id': user.id}
         if user.is_worker:
             data['shift'] = user.shift
-            data['report_date'] = date.today()
+            data['report_date'] = get_worker_report_date(user.pharmacy.last_shift_end_hour)
         serializer.save(**data)
 
     def get_serializer_class(self):
@@ -97,8 +100,10 @@ class DebtRepayFromPharmacyAPIView(ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.is_worker:
-            queryset = DebtRepayFromPharmacy.objects.filter(
-                to_debt__to_pharmacy_id=user.pharmacy_id, shift=user.shift, report_date=date.today())
+            queryset = DebtRepayFromPharmacy.objects.filter(to_debt__to_pharmacy_id=user.pharmacy_id,
+                                                            shift=user.shift,
+                                                            report_date=get_worker_report_date(
+                                                                user.pharmacy.last_shift_end_hour))
         else:
             queryset = DebtRepayFromPharmacy.objects.filter(to_debt__to_pharmacy__director_id=user.director_id)
         return queryset.select_related('creator', 'from_user', 'transfer_type', 'to_debt').order_by('-created_at')

@@ -1,6 +1,6 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.contrib.auth.models import AbstractUser
 
 from api.v1.apps.companies.services import text_normalize
 from api.v1.apps.companies.validators import uzb_phone_number_validation
@@ -22,9 +22,8 @@ class CustomUser(AbstractUser):
     role = models.CharField(max_length=1, choices=UserRole.choices())
     shift = models.PositiveSmallIntegerField(default=0, validators=[MaxValueValidator(3)])
     creator = models.ForeignKey('self', on_delete=models.SET_NULL, null=True)
-    pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.PROTECT, blank=True, null=True)
-    director = models.ForeignKey('self', on_delete=models.CASCADE,
-                                 related_name='employees', blank=True, null=True)
+    pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE, blank=True, null=True)
+    director = models.ForeignKey('self', on_delete=models.CASCADE, related_name='employees', blank=True, null=True)
     wage = models.FloatField(validators=[MinValueValidator(0)], default=0)
 
     bio = models.CharField(max_length=500, blank=True)
@@ -60,7 +59,7 @@ class CustomUser(AbstractUser):
 
 class WorkerReportMonth(models.Model):
     worker = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE)
-    pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.SET_NULL, null=True)
+    pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE, null=True)
     year = models.IntegerField()
     month = models.IntegerField()
     expense_price = models.IntegerField(default=0)
@@ -72,8 +71,8 @@ class WorkerReport(models.Model):
     user_expense = models.ForeignKey('expenses.UserExpense', on_delete=models.CASCADE, null=True, blank=True)
     pharmacy_income = models.ForeignKey('incomes.PharmacyIncome', on_delete=models.CASCADE, null=True, blank=True)
     firm_expense = models.ForeignKey('firms.FirmExpense', on_delete=models.CASCADE, null=True, blank=True)
-    debt_repay_from_pharmacy = models.ForeignKey(
-        'debts.DebtRepayFromPharmacy', on_delete=models.CASCADE, null=True, blank=True)
+    debt_repay_from_pharmacy = models.ForeignKey('debts.DebtRepayFromPharmacy', on_delete=models.CASCADE,
+                                                 null=True, blank=True)
 
     report_date = models.DateField(null=True)
     pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE, blank=True, null=True)

@@ -79,7 +79,7 @@ def report_update(instance, *args, **kwargs):
         obj.pharmacy = instance.to_debt.to_pharmacy
         obj.price = instance.price
         obj.creator_id = instance.creator_id
-        obj.worker_id = instance.from_user_id
+        obj.worker = instance.from_user
         obj.created_at = instance.created_at
         obj.save()
     else:

@@ -1,3 +1,4 @@
+from django.core.validators import MaxValueValidator
 from django.db import models
 
 from api.v1.apps.accounts.models import CustomUser
@@ -10,12 +11,13 @@ class Pharmacy(models.Model):
     name = models.CharField(max_length=100)
     send_sms_name = models.CharField(max_length=100, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    director = models.ForeignKey('accounts.CustomUser', related_name='pharmacies', on_delete=models.PROTECT)
+    director = models.ForeignKey('accounts.CustomUser', related_name='pharmacies', on_delete=models.CASCADE)
     logo = models.ImageField(upload_to=pharmacy_logo_upload_location, blank=True, null=True)
     address = models.CharField(max_length=500, blank=True)
     desc = models.TextField(max_length=1000, blank=True)
-    last_shift_end_hour = models.IntegerField(default=0, help_text='Is the pharmacy open until 12:00? If not, '
-                                                                   'enter what time the business day ends')
+    last_shift_end_hour = models.PositiveSmallIntegerField(default=0,
+                                                           help_text='Is the pharmacy open until 12:00? If not, '
+                                                                     'enter what time the business day ends')
 
     def __str__(self):
         return self.name
@@ -51,12 +53,13 @@ class PharmacyReportByShift(models.Model):
     expense_firm = models.IntegerField(default=0)
 
     def save(self, *args, **kwargs):
-        try:
-            self.worker = CustomUser.objects.get(shift=self.shift)
-        except Exception as e:
-            print(e)
+        workers = CustomUser.objects.filter(shift=self.shift)
+        if workers.exists():
+            self.worker = workers.first()
+
         self.total_expense = sum([self.expense_debt_repay_from_pharmacy,
                                   self.expense_debt_from_pharmacy,
                                   self.expense_pharmacy,
                                   self.expense_firm])
+
         super().save(*args, **kwargs)

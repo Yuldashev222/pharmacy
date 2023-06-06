@@ -14,11 +14,13 @@ class DebtRepayFromPharmacySerializer(serializers.ModelSerializer):
     total_debt = serializers.IntegerField(source='to_debt.price', read_only=True)
 
     def create(self, validated_data):
-        to_debt = validated_data['to_debt']
-        to_debt.remaining_debt -= validated_data['price']
-        if to_debt.remaining_debt <= 0:
-            to_debt.is_paid = True
-        to_debt.save()
+        to_debt = validated_data.get('to_debt')
+        price = validated_data.get('price')
+        if to_debt and price:
+            to_debt.remaining_debt -= price
+            if to_debt.remaining_debt <= 0:
+                to_debt.is_paid = True
+            to_debt.save()
         return super().create(validated_data)
 
     def update(self, instance, validated_data):

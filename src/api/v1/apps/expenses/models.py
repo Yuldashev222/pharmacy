@@ -8,7 +8,7 @@ from api.v1.apps.expenses.reports.models import ExpenseReportMonth
 class ExpenseType(models.Model):
     name = models.CharField(max_length=300)
     desc = models.CharField(max_length=600, blank=True)
-    director = models.ForeignKey('accounts.CustomUser', on_delete=models.PROTECT, null=True)
+    director = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return self.name
@@ -20,11 +20,12 @@ class ExpenseType(models.Model):
 
 
 class UserExpense(AbstractIncomeExpense):
-    expense_type = models.ForeignKey(ExpenseType, on_delete=models.PROTECT)
-    from_user = models.ForeignKey('accounts.CustomUser', on_delete=models.PROTECT, related_name='from_user_expenses')
+    expense_type = models.ForeignKey(ExpenseType, on_delete=models.CASCADE)
+    from_user = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True,
+                                  related_name='from_user_expenses')
 
     # select
-    to_user = models.ForeignKey('accounts.CustomUser', on_delete=models.PROTECT,
+    to_user = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL,
                                 related_name='to_user_expenses', null=True, blank=True)
     to_pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE, blank=True, null=True)
 
@@ -35,10 +36,10 @@ class UserExpense(AbstractIncomeExpense):
 
 
 class PharmacyExpense(AbstractIncomeExpense):
-    expense_type = models.ForeignKey(ExpenseType, on_delete=models.PROTECT)
-    from_pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.PROTECT)
-    to_user = models.ForeignKey(
-        'accounts.CustomUser', on_delete=models.PROTECT, related_name='pharmacy_expenses', null=True, blank=True)
+    expense_type = models.ForeignKey(ExpenseType, on_delete=models.CASCADE)
+    from_pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE)
+    to_user = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, related_name='pharmacy_expenses',
+                                null=True, blank=True)
 
     def __str__(self):
         return f'{self.expense_type}: {self.price}'
@@ -56,9 +57,11 @@ class PharmacyExpense(AbstractIncomeExpense):
                                                    report_date__year=self.report_date.year,
                                                    report_date__month=self.report_date.month
                                                    ).aggregate(s=models.Sum('price'))['s']
+
             obj, _ = ExpenseReportMonth.objects.get_or_create(pharmacy_id=self.from_pharmacy_id,
                                                               expense_type_id=expense_type_id,
-                                                              year=self.report_date.year, month=self.report_date.month)
+                                                              year=self.report_date.year,
+                                                              month=self.report_date.month)
             obj.price = price if price else 0
             obj.save()
 
@@ -67,6 +70,7 @@ class PharmacyExpense(AbstractIncomeExpense):
                                                report_date__year=self.report_date.year,
                                                report_date__month=self.report_date.month
                                                ).aggregate(s=models.Sum('price'))['s']
+
         obj, _ = ExpenseReportMonth.objects.get_or_create(pharmacy_id=self.from_pharmacy_id,
                                                           expense_type_id=self.expense_type_id,
                                                           year=self.report_date.year,

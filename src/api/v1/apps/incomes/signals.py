@@ -1,6 +1,6 @@
+from django.dispatch import receiver
 from django.db.models import Sum
 from django.db.models.signals import post_delete, post_save
-from django.dispatch import receiver
 
 from api.v1.apps.accounts.models import WorkerReport
 from api.v1.apps.companies.enums import DefaultTransferType
@@ -12,17 +12,20 @@ from .models import PharmacyIncome, PharmacyIncomeReportDay
 
 @receiver(post_delete, sender=PharmacyIncome)
 def update_user_income_report(instance, *args, **kwargs):
-    price = PharmacyIncome.objects.filter(report_date=instance.report_date, to_pharmacy_id=instance.to_pharmacy_id
+    price = PharmacyIncome.objects.filter(report_date=instance.report_date,
+                                          to_pharmacy_id=instance.to_pharmacy_id
                                           ).aggregate(s=Sum('price'))['s']
-    obj = PharmacyIncomeReportDay.objects.get_or_create(
-        pharmacy_id=instance.to_pharmacy_id, report_date=instance.report_date)[0]
+
+    obj, _ = PharmacyIncomeReportDay.objects.get_or_create(pharmacy_id=instance.to_pharmacy_id,
+                                                           report_date=instance.report_date)
+
     obj.price = price if price else 0
-    print(price)
     obj.save()
 
 
 @receiver(post_save, sender=PharmacyIncome)
 def update_report(instance, *args, **kwargs):
+    # pharmacy reports update
     obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=instance.to_pharmacy_id,
                                                          report_date=instance.report_date,
                                                          shift=instance.shift)
@@ -40,7 +43,6 @@ def update_report(instance, *args, **kwargs):
                                                             transfer_type_id=DefaultTransferType.cash.value
                                                             ).aggregate(s=Sum('price'))['s']
         obj.not_transfer_income = not_transfer_income if not_transfer_income else 0
-    print(obj.transfer_income, obj.not_transfer_income)
     obj.save()
 
     # remainder update
@@ -57,8 +59,8 @@ def update_report(instance, *args, **kwargs):
         obj.report_date = instance.report_date
         obj.pharmacy = instance.to_pharmacy
         obj.price = instance.price
-        obj.creator_id = instance.creator_id
-        obj.worker_id = instance.to_user_id
+        obj.creator = instance.creator
+        obj.worker = instance.to_user
         obj.created_at = instance.created_at
         obj.is_expense = False
         obj.save()

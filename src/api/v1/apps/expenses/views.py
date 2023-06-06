@@ -1,8 +1,9 @@
-from datetime import date
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
+
+from api.v1.apps.pharmacies.services import get_worker_report_date
 from api.v1.apps.accounts.permissions import NotProjectOwner, IsDirector, IsManager
 
 from .models import UserExpense, PharmacyExpense, ExpenseType
@@ -48,7 +49,7 @@ class UserExpenseAPIViewSet(ModelViewSet):
         data = {'creator_id': user.id}
         if user.is_worker:
             data['shift'] = user.shift
-            data['report_date'] = date.today()
+            data['report_date'] = get_worker_report_date(user.pharmacy.last_shift_end_hour)
             data['to_pharmacy_id'] = user.pharmacy_id
         serializer.save(**data)
 
@@ -62,9 +63,15 @@ class UserExpenseAPIViewSet(ModelViewSet):
         user = self.request.user
         queryset = UserExpense.objects.filter(from_user__director_id=user.director_id)
         if user.is_worker:
-            queryset = queryset.filter(report_date=date.today(), shift=user.shift)
-        return queryset.select_related('creator', 'expense_type', 'transfer_type', 'to_user', 'from_user', 'to_pharmacy'
-                                       ).order_by('-created_at')
+            queryset = queryset.filter(report_date=get_worker_report_date(user.pharmacy.last_shift_end_hour),
+                                       shift=user.shift)
+
+        return queryset.select_related('creator',
+                                       'expense_type',
+                                       'transfer_type',
+                                       'to_user',
+                                       'from_user',
+                                       'to_pharmacy').order_by('-created_at')
 
 
 class PharmacyExpenseAPIViewSet(ModelViewSet):
@@ -89,7 +96,7 @@ class PharmacyExpenseAPIViewSet(ModelViewSet):
         data = {'creator_id': user.id}
         if user.is_worker:
             data['shift'] = user.shift
-            data['report_date'] = date.today()
+            data['report_date'] = get_worker_report_date(user.pharmacy.last_shift_end_hour)
             data['from_pharmacy_id'] = user.pharmacy_id
         serializer.save(**data)
 
@@ -103,7 +110,13 @@ class PharmacyExpenseAPIViewSet(ModelViewSet):
         user = self.request.user
         if user.is_worker:
             queryset = PharmacyExpense.objects.filter(
-                from_pharmacy_id=user.pharmacy_id, report_date=date.today(), shift=user.shift)
+                from_pharmacy_id=user.pharmacy_id,
+                report_date=get_worker_report_date(user.pharmacy.last_shift_end_hour), shift=user.shift)
         else:
             queryset = PharmacyExpense.objects.filter(from_pharmacy__director_id=user.director_id)
-        return queryset.select_related('creator', 'transfer_type', 'expense_type', 'from_pharmacy', 'to_user').order_by('-created_at')
+
+        return queryset.select_related('creator',
+                                       'transfer_type',
+                                       'expense_type',
+                                       'from_pharmacy',
+                                       'to_user').order_by('-created_at')

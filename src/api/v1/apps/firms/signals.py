@@ -13,11 +13,13 @@ from .models import FirmIncome, FirmExpense, FirmReport, FirmDebtByDate
 @receiver(post_delete, sender=FirmReport)
 def update_firm_report(instance, *args, **kwargs):
     firm_debt, _ = FirmDebtByDate.objects.get_or_create(firm_id=instance.firm_id, report_date=instance.report_date)
+
     incomes_not_transfer_debt_price = FirmIncome.objects.filter(is_paid=False,
                                                                 is_transfer_return=False,
                                                                 from_firm_id=firm_debt.firm_id,
                                                                 report_date__lte=firm_debt.report_date
                                                                 ).aggregate(s=Sum('remaining_debt'))['s']
+
     incomes_transfer_debt_price = FirmIncome.objects.filter(is_paid=False,
                                                             is_transfer_return=True,
                                                             from_firm_id=firm_debt.firm_id,
@@ -46,10 +48,12 @@ def report_update(instance, *args, **kwargs):
         obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=instance.from_pharmacy_id,
                                                              report_date=instance.report_date,
                                                              shift=instance.shift)
+
         expense_firm = FirmExpense.objects.filter(from_pharmacy_id=obj.pharmacy_id,
                                                   report_date=obj.report_date,
                                                   shift=obj.shift
                                                   ).aggregate(s=Sum('price'))['s']
+
         obj.expense_firm = expense_firm if expense_firm else 0
         obj.save()
 
@@ -59,7 +63,7 @@ def report_update(instance, *args, **kwargs):
         obj.pharmacy = instance.from_pharmacy
         obj.price = instance.price
         obj.creator_id = instance.creator_id
-        obj.worker_id = instance.from_user_id
+        obj.worker = instance.from_user
         obj.created_at = instance.created_at
         obj.save()
     else:

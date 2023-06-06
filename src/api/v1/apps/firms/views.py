@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 
+from api.v1.apps.pharmacies.services import get_worker_report_date
 from api.v1.apps.accounts.permissions import NotProjectOwner, IsDirector, IsManager
 
 from . import serializers
@@ -73,7 +74,7 @@ class FirmExpenseAPIViewSet(CreateModelMixin, ReadOnlyModelViewSet):
 
     def perform_create(self, serializer):
         user = self.request.user
-        data = {'report_date': date.today(), 'creator_id': user.id}
+        data = {'creator_id': user.id}
         if user.is_worker:
             data['shift'] = user.shift
             data['from_pharmacy_id'] = user.pharmacy_id
@@ -82,10 +83,12 @@ class FirmExpenseAPIViewSet(CreateModelMixin, ReadOnlyModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.is_worker:
-            queryset = FirmExpense.objects.filter(
-                report_date=date.today(), shift=user.shift, from_pharmacy_id=user.pharmacy_id)
+            queryset = FirmExpense.objects.filter(report_date=get_worker_report_date(user.pharmacy.last_shift_end_hour),
+                                                  shift=user.shift,
+                                                  from_pharmacy_id=user.pharmacy_id)
         else:
             queryset = FirmExpense.objects.filter(creator__director_id=user.director_id)
+
         return queryset.filter(is_verified=True).select_related('creator',
                                                                 'transfer_type',
                                                                 'from_pharmacy',
@@ -109,8 +112,9 @@ class FirmReturnProductAPIViewSet(CreateModelMixin, ReadOnlyModelViewSet):  # la
 
     def get_queryset(self):
         user = self.request.user
-        queryset = FirmReturnProduct.objects.filter(
-            creator__director_id=user.director_id, is_verified=True).select_related('creator', 'firm_income__from_firm')
+        queryset = FirmReturnProduct.objects.filter(creator__director_id=user.director_id,
+                                                    is_verified=True
+                                                    ).select_related('creator', 'firm_income__from_firm')
         return queryset.order_by('-created_at')
 
 

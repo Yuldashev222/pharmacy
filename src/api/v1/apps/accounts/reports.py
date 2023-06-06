@@ -8,8 +8,8 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 
-from ..models import WorkerReport, WorkerReportMonth
-from ..permissions import IsDirector, IsManager
+from api.v1.apps.accounts.models import WorkerReport, WorkerReportMonth
+from api.v1.apps.accounts.permissions import IsDirector, IsManager
 
 
 class WorkerReportSerializer(serializers.ModelSerializer):

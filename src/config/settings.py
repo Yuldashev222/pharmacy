@@ -28,7 +28,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(' ') + os.getenv('DOMAINS').split(' ')
 AUTH_USER_MODEL = 'accounts.CustomUser'
 LOGIN_REDIRECT_URL = 'profile'
-print(ALLOWED_HOSTS)
+
 ESKIZ_UZ_EMAIL = os.getenv('ESKIZ_UZ_EMAIL')
 ESKIZ_UZ_PASSWORD = os.getenv('ESKIZ_UZ_PASSWORD')
 ESKIZ_UZ_TOKEN_URL = os.getenv('ESKIZ_UZ_TOKEN_URL')
@@ -169,8 +169,8 @@ REST_FRAMEWORK = {
         # 'rest_framework.authentication.BasicAuthentication'
     ],
 
-    'DATETIME_FORMAT': '%Y-%m-%d %H:%M',
-    'DATE_FORMAT': '%Y-%m-%d',
+    'DATETIME_FORMAT': '%d.%m.%Y %H:%M',
+    'DATE_FORMAT': '%d.%m.%Y',
 }
 
 if DEBUG:

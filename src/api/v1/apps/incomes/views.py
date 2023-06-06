@@ -1,13 +1,13 @@
-from datetime import date
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
+
+from api.v1.apps.pharmacies.services import get_worker_report_date
 from api.v1.apps.accounts.permissions import NotProjectOwner
 
 from .models import PharmacyIncome
-from .serializers import (
-    DirectorManagerPharmacyIncomeSerializer, WorkerPharmacyIncomeSerializer)
+from .serializers import DirectorManagerPharmacyIncomeSerializer, WorkerPharmacyIncomeSerializer
 
 
 class PharmacyIncomeAPIViewSet(ModelViewSet):
@@ -21,7 +21,7 @@ class PharmacyIncomeAPIViewSet(ModelViewSet):
         data = {'creator_id': user.id}
         if user.is_worker:
             data['shift'] = user.shift
-            data['report_date'] = date.today()
+            data['report_date'] = get_worker_report_date(user.pharmacy.last_shift_end_hour)
             data['to_pharmacy_id'] = user.pharmacy_id
         serializer.save(**data)
 
@@ -34,8 +34,10 @@ class PharmacyIncomeAPIViewSet(ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.is_worker:
-            queryset = PharmacyIncome.objects.filter(
-                to_pharmacy_id=user.pharmacy_id, report_date=date.today(), shift=user.shift)
+            queryset = PharmacyIncome.objects.filter(to_pharmacy_id=user.pharmacy_id,
+                                                     shift=user.shift,
+                                                     report_date=get_worker_report_date(
+                                                         user.pharmacy.last_shift_end_hour))
         else:
             queryset = PharmacyIncome.objects.filter(to_pharmacy__director_id=user.director_id)
         return queryset.select_related('creator', 'to_pharmacy', 'to_user', 'transfer_type').order_by('-created_at')

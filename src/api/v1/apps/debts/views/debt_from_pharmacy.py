@@ -1,10 +1,10 @@
-from datetime import date
 from rest_framework import filters
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 
+from api.v1.apps.pharmacies.services import get_worker_report_date
 from api.v1.apps.accounts.permissions import NotProjectOwner
 from api.v1.apps.companies.permissions import WorkerTodayObject
 
@@ -34,7 +34,7 @@ class DebtFromPharmacyAPIView(ModelViewSet):  # last
         user = self.request.user
         data = {'creator_id': user.id}
         if user.is_worker:
-            data['report_date'] = date.today()
+            data['report_date'] = get_worker_report_date(user.pharmacy.last_shift_end_hour)
             data['from_pharmacy_id'] = user.pharmacy_id
             data['shift'] = user.shift
         serializer.save(**data)
@@ -79,7 +79,7 @@ class DebtRepayToPharmacyAPIView(ModelViewSet):
         user = self.request.user
         data = {'creator_id': user.id}
         if user.is_worker:
-            data['report_date'] = date.today()
+            data['report_date'] = get_worker_report_date(user.pharmacy.last_shift_end_hour)
             data['shift'] = user.shift
         serializer.save(**data)
 

@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import datetime
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins
@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from api.v1.apps.pharmacies.services import get_worker_report_date
 from api.v1.apps.accounts.permissions import NotProjectOwner
 
 from .models import RemainderShift
@@ -21,7 +22,11 @@ class RemainderAPIView(mixins.ListModelMixin, GenericViewSet):
         user = request.user
 
         if user.is_worker:
-            return Response({'price': RemainderShift.get_price(date.today(), user.shift, user.pharmacy_id)})
+            return Response({'price': RemainderShift.get_price(
+                get_worker_report_date(user.pharmacy.last_shift_end_hour),
+                user.shift,
+                user.pharmacy_id)})
+
         try:
             pharmacy_id = int(request.GET['pharmacy_id'])
             report_date = datetime.strptime(request.GET['report_date'], '%Y-%m-%d').date()

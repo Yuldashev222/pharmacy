@@ -1,7 +1,7 @@
 from rest_framework.routers import DefaultRouter
 
 from api.v1.apps.expenses.views import UserExpenseAPIViewSet
-from .reports.views import WorkerReportAPIView, WorkerReportMontAPIView, WorkerReportDownloadAPIView
+from api.v1.apps.accounts.reports import WorkerReportAPIView, WorkerReportMontAPIView, WorkerReportDownloadAPIView
 
 from .views import UserReadOnlyAPIView
 
