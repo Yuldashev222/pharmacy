@@ -20,20 +20,20 @@ class FirmReportSerializer(serializers.ModelSerializer):
         exclude = ['expense', 'income', 'return_product']
 
 
-class FirmDebtByDateSerializer(serializers.ModelSerializer):
-    firm_name = serializers.StringRelatedField(source='firm')
-
-    class Meta:
-        model = FirmDebtByDate
-        fields = '__all__'
-
-
 class FirmDebtByMonthSerializer(serializers.ModelSerializer):
     firm_name = serializers.StringRelatedField(source='firm')
     pharmacy_name = serializers.StringRelatedField(source='pharmacy')
 
     class Meta:
         model = FirmDebtByMonth
+        fields = '__all__'
+
+
+class FirmDebtByDateSerializer(serializers.ModelSerializer):
+    firm_name = serializers.StringRelatedField(source='firm')
+
+    class Meta:
+        model = FirmDebtByDate
         fields = '__all__'
 
 
