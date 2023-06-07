@@ -40,19 +40,24 @@ def company_details(request, *args, **kwargs):
     user = request.user
     data = {
         'firms': Firm.objects.filter(director_id=user.director_id).values('id', 'name').order_by('-id'),
-        'transfer_types': TransferMoneyType.objects.filter(
-            director_id=user.director_id).values('id', 'name').order_by('-id'),
-        'expense_types': ExpenseType.objects.filter(
-            director_id=user.director_id).values('id', 'name').order_by('-id'),
-        'employees': CustomUser.objects.filter(
-            director_id=user.director_id).values('id', 'first_name', 'last_name', 'role').order_by('-id'),
+        'transfer_types': TransferMoneyType.objects.filter(director_id=user.director_id).values('id',
+                                                                                                'name').order_by('-id'),
+        'expense_types': ExpenseType.objects.filter(director_id=user.director_id).values('id',
+                                                                                         'name').order_by('-id'),
+        'employees': CustomUser.objects.filter(director_id=user.director_id).values('id',
+                                                                                    'first_name',
+                                                                                    'last_name',
+                                                                                    'role').order_by('-id'),
     }
 
     if user.is_worker:
         data['pharmacies'] = Pharmacy.objects.filter(id=user.pharmacy_id).values('id', 'name').order_by('-id')
 
         try:
-            receipt = Receipt.objects.get(report_date=get_worker_report_date(user.pharmacy.last_shift_end_hour), shift=user.shift, pharmacy_id=user.pharmacy_id)
+            receipt = Receipt.objects.get(report_date=get_worker_report_date(user.pharmacy.last_shift_end_hour),
+                                          shift=user.shift,
+                                          pharmacy_id=user.pharmacy_id)
+
             data['receipt'] = {"id": receipt.id, "price": receipt.price}
         except Receipt.DoesNotExist:
             data['receipt'] = None
