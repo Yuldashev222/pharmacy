@@ -18,7 +18,7 @@ from api.v1.apps.pharmacies.reports import PharmacyReportAPIViewSet
 from api.v1.apps.expenses.reports.views import ExpenseAPIView, ExpenseReportMonthAPIView
 
 from .reports.incomes import AllPharmacyIncomeReportMonthAPIView
-from .reports.expenses import AllExpenseReportMonthAPIView
+from .reports.expenses import AllExpenseReportMonthAPIView, AllExpenseReportMonthExcelAPIView
 from .views import TransferMoneyTypeAPIViewSet, CompanyAPIViewSet
 from ..remainders.views import RemainderAPIView
 
@@ -52,6 +52,7 @@ router.register('firms/incomes', FirmIncomeAPIViewSet, basename='firm_income')
 router.register('firms/debts', FirmDebtByDateAPIView, basename='firm_debt')
 router.register('firms', FirmAPIViewSet, basename='firm')
 
+router.register('companies/reports/expenses/downloads/excel', AllExpenseReportMonthExcelAPIView, basename='company_expense_report_download_excel')
 router.register('companies/reports/expenses', AllExpenseReportMonthAPIView, basename='company_expense_report')
 router.register('companies/reports/incomes', AllPharmacyIncomeReportMonthAPIView, basename='company_income_report')
 router.register('companies/offers', OfferAPIView, basename='offer')
