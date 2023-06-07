@@ -1,4 +1,6 @@
 from collections import OrderedDict
+
+from django.utils.encoding import escape_uri_path
 from rest_framework import serializers
 from drf_excel.mixins import XLSXFileMixin
 from drf_excel.renderers import XLSXRenderer
@@ -8,7 +10,8 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 
-from api.v1.apps.accounts.models import WorkerReport, WorkerReportMonth
+from api.v1.apps.accounts.models import WorkerReport, WorkerReportMonth, CustomUser
+from api.v1.apps.companies.enums import MONTHS
 from api.v1.apps.accounts.permissions import IsDirector, IsManager
 
 
@@ -31,6 +34,20 @@ class WorkerReportMonthSerializer(serializers.ModelSerializer):
         fields = ['worker', 'year', 'month', 'expense_price', 'income_price', 'pharmacy']
 
 
+class WorkerReportMonthExcelSerializer(serializers.ModelSerializer):
+    worker = serializers.StringRelatedField()
+    pharmacy = serializers.StringRelatedField()
+
+    class Meta:
+        model = WorkerReportMonth
+        fields = ['year', 'month', 'pharmacy', 'worker', 'income_price', 'expense_price']
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret['month'] = MONTHS[ret['month']]
+        return ret
+
+
 class WorkerReportMontAPIView(ReadOnlyModelViewSet):
     pagination_class = None
     serializer_class = WorkerReportMonthSerializer
@@ -41,6 +58,93 @@ class WorkerReportMontAPIView(ReadOnlyModelViewSet):
     def get_queryset(self):
         queryset = WorkerReportMonth.objects.filter(worker__director_id=self.request.user.director_id).order_by('month')
         return queryset.select_related('worker', 'pharmacy')
+
+
+class WorkerReportMontExcelAPIView(XLSXFileMixin, WorkerReportMontAPIView):
+    renderer_classes = (XLSXRenderer,)
+    serializer_class = WorkerReportMonthExcelSerializer
+
+    def get_filename(self, request=None, *args, **kwargs):
+        year = request.query_params.get('year')
+        worker_id = request.query_params.get('worker')
+        try:
+            worker = CustomUser.objects.get(id=worker_id)
+        except CustomUser.DoesNotExist:
+            return f'{year}_report.xlsx'
+        return f'{year}_{"".join(str(worker).split())}_report.xlsx'
+
+    def finalize_response(self, request, response, *args, **kwargs):
+        response = super().finalize_response(request, response, *args, **kwargs)
+        filename = escape_uri_path(self.get_filename(request=request, *args, **kwargs))
+        response["content-disposition"] = f"attachment; filename={filename}"
+        total_expense_price = sum(list(map(lambda x: x['expense_price'], response.data)))
+        total_income_price = sum(list(map(lambda x: x['income_price'], response.data)))
+        response.data.append(OrderedDict())
+        response.data.append(OrderedDict(worker='Jami',
+                                         expense_price=total_expense_price,
+                                         income_price=total_income_price))
+        return response
+
+    column_header = {
+        'titles': [
+            "Yil",
+            "Oy",
+            "Filial",
+            "Xodim",
+            "Olgan pul miqdori",
+            "Bergan pul miqdori",
+        ],
+        'column_width': [10, 20, 60, 60, 30, 30],
+        'height': 50,
+        'style': {
+            'fill': {
+                'fill_type': 'solid',
+                'start_color': 'FFCCFFCC',
+            },
+            'alignment': {
+                'horizontal': 'center',
+                'vertical': 'center',
+                'wrapText': True,
+                'shrink_to_fit': True,
+            },
+            'border_side': {
+                'border_style': 'thin',
+                'color': 'FF000000',
+            },
+            'font': {
+                'name': 'Arial',
+                'size': 14,
+                'bold': True,
+                'color': 'FF000000',
+            },
+        },
+    }
+
+    body = {
+        'style': {
+            'fill': {
+                'fill_type': 'solid',
+                'start_color': 'FFCCFFCC',
+            },
+            'alignment': {
+                'horizontal': 'center',
+                'vertical': 'center',
+                'wrapText': True,
+                'shrink_to_fit': True,
+            },
+            'border_side': {
+                'border_style': 'thin',
+                'color': 'FF000000',
+            },
+            'font': {
+                'name': 'Arial',
+                'size': 14,
+                'bold': False,
+                'color': 'FF000000',
+            }
+        },
+        'height': 40,
+    }
 
 
 class CustomPageNumberPagination(PageNumberPagination):
@@ -69,8 +173,9 @@ class WorkerReportAPIView(ReadOnlyModelViewSet):
     }
 
     def get_queryset(self):
-        queryset = WorkerReport.objects.filter(creator__director_id=self.request.user.director_id).order_by(
-            'report_date')
+        queryset = WorkerReport.objects.filter(creator__director_id=self.request.user.director_id
+                                               ).order_by('report_date')
+
         return queryset.select_related('pharmacy', 'creator', 'worker')
 
     def list(self, request, *args, **kwargs):
@@ -98,15 +203,3 @@ class WorkerReportAPIView(ReadOnlyModelViewSet):
             'results': serializer.data
         }
         return self.get_paginated_response(data)
-
-
-class WorkerReportDownloadAPIView(XLSXFileMixin, WorkerReportAPIView):
-    pagination_class = None
-    renderer_classes = [XLSXRenderer]
-    filename = 'accounts_report.xlsx'
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-
