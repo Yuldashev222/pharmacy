@@ -55,9 +55,12 @@ class AllPharmacyIncomeReportMonthExcelAPIView(XLSXFileMixin, AllPharmacyIncomeR
         response = super().finalize_response(request, response, *args, **kwargs)
         filename = escape_uri_path(self.get_filename(request=request, *args, **kwargs))
         response["content-disposition"] = f"attachment; filename={filename}"
-        total_price = sum(list(map(lambda x: x['price'], response.data)))
-        response.data.append(OrderedDict())
-        response.data.append(OrderedDict(month='Jami', price=total_price))
+        try:
+            total_price = sum(list(map(lambda x: x['price'], response.data)))
+            response.data.append(OrderedDict())
+            response.data.append(OrderedDict(month='Jami', price=total_price))
+        except Exception as e:
+            print(e)
         return response
 
     column_header = {
