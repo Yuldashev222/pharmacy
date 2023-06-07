@@ -77,6 +77,7 @@ class WorkerReportMontExcelAPIView(XLSXFileMixin, WorkerReportMontAPIView):
         response = super().finalize_response(request, response, *args, **kwargs)
         filename = escape_uri_path(self.get_filename(request=request, *args, **kwargs))
         response["content-disposition"] = f"attachment; filename={filename}"
+        print(response.data)
         total_expense_price = sum(list(map(lambda x: x['expense_price'], response.data)))
         total_income_price = sum(list(map(lambda x: x['income_price'], response.data)))
         response.data.append(OrderedDict())
