@@ -1,10 +1,8 @@
 from collections import OrderedDict
-
-from django.utils.encoding import escape_uri_path
 from rest_framework import serializers
 from drf_excel.mixins import XLSXFileMixin
 from drf_excel.renderers import XLSXRenderer
-from rest_framework.response import Response
+from django.utils.encoding import escape_uri_path
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
@@ -29,7 +27,7 @@ class AllExpenseReportMonthExcelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AllExpenseReportMonth
-        fields = ['month', 'expense_type', 'price']
+        fields = ['expense_type', 'month', 'price']
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
@@ -68,18 +66,17 @@ class AllExpenseReportMonthExcelAPIView(XLSXFileMixin, AllExpenseReportMonthAPIV
         response["content-disposition"] = f"attachment; filename={filename}"
         total_price = sum(list(map(lambda x: x['price'], response.data)))
         response.data.append(OrderedDict())
-        response.data.append(OrderedDict(expense_type='Jami', price=total_price))
-        print(response.data)
+        response.data.append(OrderedDict(month='Jami', price=total_price))
         return response
 
     column_header = {
         'titles': [
-            "Oy",
             "Xarajat turi",
+            "Oy",
             "Miqdor",
         ],
         'column_width': [30, 30, 30],
-        'height': 25,
+        'height': 50,
         'style': {
             'fill': {
                 'fill_type': 'solid',
@@ -128,17 +125,4 @@ class AllExpenseReportMonthExcelAPIView(XLSXFileMixin, AllExpenseReportMonthAPIV
             }
         },
         'height': 40,
-    }
-
-    column_data_styles = {
-        'distance': {
-            'alignment': {
-                'horizontal': 'right',
-                'vertical': 'top',
-            },
-            'format': '0.00E+00'
-        },
-        'created_at': {
-            'format': 'd.m.y h:mm',
-        }
     }
