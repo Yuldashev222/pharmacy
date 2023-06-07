@@ -1,10 +1,8 @@
 from collections import OrderedDict
-
-from django.utils.encoding import escape_uri_path
 from rest_framework import serializers
 from drf_excel.mixins import XLSXFileMixin
 from drf_excel.renderers import XLSXRenderer
-from rest_framework.exceptions import ValidationError
+from django.utils.encoding import escape_uri_path
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.pagination import PageNumberPagination
@@ -16,16 +14,6 @@ from api.v1.apps.companies.enums import MONTHS
 from api.v1.apps.accounts.permissions import IsDirector, IsManager
 
 
-class WorkerReportSerializer(serializers.ModelSerializer):
-    worker = serializers.StringRelatedField()
-    creator = serializers.StringRelatedField()
-    pharmacy = serializers.StringRelatedField()
-
-    class Meta:
-        model = WorkerReport
-        fields = ['is_expense', 'report_date', 'price', 'creator', 'worker', 'created_at', 'pharmacy']
-
-
 class WorkerReportMonthSerializer(serializers.ModelSerializer):
     worker = serializers.StringRelatedField()
     pharmacy = serializers.StringRelatedField()
@@ -33,20 +21,6 @@ class WorkerReportMonthSerializer(serializers.ModelSerializer):
     class Meta:
         model = WorkerReportMonth
         fields = ['worker', 'year', 'month', 'expense_price', 'income_price', 'pharmacy']
-
-
-class WorkerReportMonthExcelSerializer(serializers.ModelSerializer):
-    worker = serializers.StringRelatedField()
-    pharmacy = serializers.StringRelatedField()
-
-    class Meta:
-        model = WorkerReportMonth
-        fields = ['year', 'month', 'pharmacy', 'worker', 'income_price', 'expense_price']
-
-    def to_representation(self, instance):
-        ret = super().to_representation(instance)
-        ret['month'] = MONTHS[ret['month']]
-        return ret
 
 
 class WorkerReportMontAPIView(ReadOnlyModelViewSet):
@@ -59,6 +33,21 @@ class WorkerReportMontAPIView(ReadOnlyModelViewSet):
     def get_queryset(self):
         queryset = WorkerReportMonth.objects.filter(worker__director_id=self.request.user.director_id).order_by('month')
         return queryset.select_related('worker', 'pharmacy')
+
+
+# month excel
+class WorkerReportMonthExcelSerializer(serializers.ModelSerializer):
+    worker = serializers.StringRelatedField()
+    pharmacy = serializers.StringRelatedField()
+
+    class Meta:
+        model = WorkerReportMonth
+        fields = ['year', 'month', 'pharmacy', 'worker', 'income_price', 'expense_price']
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret['month'] = MONTHS[ret['month']]
+        return ret
 
 
 class WorkerReportMontExcelAPIView(XLSXFileMixin, WorkerReportMontAPIView):
@@ -165,6 +154,16 @@ class CustomPageNumberPagination(PageNumberPagination):
         ]))
 
 
+class WorkerReportSerializer(serializers.ModelSerializer):
+    worker = serializers.StringRelatedField()
+    creator = serializers.StringRelatedField()
+    pharmacy = serializers.StringRelatedField()
+
+    class Meta:
+        model = WorkerReport
+        fields = ['is_expense', 'report_date', 'price', 'creator', 'worker', 'created_at', 'pharmacy']
+
+
 class WorkerReportAPIView(ReadOnlyModelViewSet):
     pagination_class = CustomPageNumberPagination
     serializer_class = WorkerReportSerializer
@@ -207,3 +206,135 @@ class WorkerReportAPIView(ReadOnlyModelViewSet):
             'results': serializer.data
         }
         return self.get_paginated_response(data)
+
+
+class WorkerReportExcelSerializer(serializers.ModelSerializer):
+    worker = serializers.StringRelatedField()
+    creator = serializers.StringRelatedField()
+    pharmacy = serializers.StringRelatedField()
+
+    class Meta:
+        model = WorkerReport
+        fields = ['report_date', 'created_at', 'creator', 'pharmacy', 'worker', 'is_expense', 'price']
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        income_price = 0 if ret['is_expense'] else ret['price']
+        expense_price = ret['price'] if ret['is_expense'] else 0
+        ret['price'], ret['is_expense'] = income_price, expense_price
+        print(income_price, expense_price)
+        return ret
+
+
+class WorkerReportExcelAPIView(ReadOnlyModelViewSet):
+    pagination_class = None
+    renderer_classes = (XLSXRenderer,)
+    serializer_class = WorkerReportExcelSerializer
+    permission_classes = [IsAuthenticated, (IsDirector | IsManager)]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = {
+        'report_date': ['month', 'year'],
+        'worker': ['exact'],
+        'pharmacy': ['exact'],
+    }
+
+    def finalize_response(self, request, response, *args, **kwargs):
+        response = super().finalize_response(request, response, *args, **kwargs)
+        filename = escape_uri_path(self.get_filename(request=request, *args, **kwargs))
+        response["content-disposition"] = f"attachment; filename={filename}"
+
+        month = request.query_params.get('report_date__month')
+        year = request.query_params.get('report_date__year')
+        worker = request.query_params.get('worker')
+        pharmacy = request.query_params.get('pharmacy')
+        month_income_total_price = 0
+        month_expense_total_price = 0
+        if month and year and worker and pharmacy:
+            try:
+                obj = WorkerReportMonth.objects.get(month=month, year=year, worker_id=worker, pharmacy_id=pharmacy)
+                month_income_total_price = obj.income_price
+                month_expense_total_price = obj.expense_price
+            except WorkerReportMonth.DoesNotExist:
+                pass
+            response.data.append(OrderedDict())
+            response.data.append(OrderedDict(worker='Jami',
+                                             price=month_income_total_price,
+                                             is_expense=month_expense_total_price))
+        return response
+
+    def get_filename(self, request=None, *args, **kwargs):
+        year = request.query_params.get('report_date__year')
+        worker_id = request.query_params.get('worker')
+        try:
+            worker = CustomUser.objects.get(id=worker_id)
+        except CustomUser.DoesNotExist:
+            return f'{year}_report.xlsx'
+        return f'{year}_{"".join(str(worker).split())}_report.xlsx'
+
+    def get_queryset(self):
+        queryset = WorkerReport.objects.filter(creator__director_id=self.request.user.director_id
+                                               ).order_by('report_date')
+
+        return queryset.select_related('pharmacy', 'creator', 'worker')
+
+    column_header = {
+        'titles': [
+            "Hisobot sanasi",
+            "Qo'shilgan vaqti",
+            "Qo'shgan xodim",
+            "Filial",
+            "Xodim",
+            "Bergan pul miqdori",
+            "Olgan pul miqdori",
+        ],
+        'column_width': [30, 30, 60, 60, 60, 60, 60],
+        'height': 50,
+        'style': {
+            'fill': {
+                'fill_type': 'solid',
+                'start_color': 'FFCCFFCC',
+            },
+            'alignment': {
+                'horizontal': 'center',
+                'vertical': 'center',
+                'wrapText': True,
+                'shrink_to_fit': True,
+            },
+            'border_side': {
+                'border_style': 'thin',
+                'color': 'FF000000',
+            },
+            'font': {
+                'name': 'Arial',
+                'size': 14,
+                'bold': True,
+                'color': 'FF000000',
+            },
+        },
+    }
+
+    body = {
+        'style': {
+            'fill': {
+                'fill_type': 'solid',
+                'start_color': 'FFCCFFCC',
+            },
+            'alignment': {
+                'horizontal': 'center',
+                'vertical': 'center',
+                'wrapText': True,
+                'shrink_to_fit': True,
+            },
+            'border_side': {
+                'border_style': 'thin',
+                'color': 'FF000000',
+            },
+            'font': {
+                'name': 'Arial',
+                'size': 14,
+                'bold': False,
+                'color': 'FF000000',
+            }
+        },
+        'height': 40,
+    }

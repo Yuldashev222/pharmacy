@@ -239,3 +239,12 @@ CELERY_TASK_SERIALIZER = 'json'
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""
 CELERY CONFIGURATIONS
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+# Date formats
+DRF_EXCEL_DATETIME_FORMAT = 'dd-mm-yyyy h:mm'
+DRF_EXCEL_DATE_FORMAT = 'dd-mm-yyyy'
+DRF_EXCEL_TIME_FORMAT = 'h:mm'
+
+# Number formats
+DRF_EXCEL_INTEGER_FORMAT = '0%'
+DRF_EXCEL_DECIMAL_FORMAT = '0.00E+00'
