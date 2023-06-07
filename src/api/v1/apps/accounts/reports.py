@@ -247,19 +247,15 @@ class WorkerReportExcelAPIView(ReadOnlyModelViewSet):
         year = request.query_params.get('report_date__year')
         worker = request.query_params.get('worker')
         pharmacy = request.query_params.get('pharmacy')
-        month_income_total_price = 0
-        month_expense_total_price = 0
         if month and year and worker and pharmacy:
             try:
                 obj = WorkerReportMonth.objects.get(month=month, year=year, worker_id=worker, pharmacy_id=pharmacy)
-                month_income_total_price = obj.income_price
-                month_expense_total_price = obj.expense_price
-            except WorkerReportMonth.DoesNotExist:
-                pass
-            response.data.append(OrderedDict())
-            response.data.append(OrderedDict(worker='Jami',
-                                             price=month_income_total_price,
-                                             is_expense=month_expense_total_price))
+                response.data.append(OrderedDict())
+                response.data.append(OrderedDict(worker='Jami',
+                                                 price=obj.income_price,
+                                                 is_expense=obj.expense_price))
+            except Exception as e:
+                print(e)
         return response
 
     def get_filename(self, request=None, *args, **kwargs):
