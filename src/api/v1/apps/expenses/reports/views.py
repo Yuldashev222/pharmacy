@@ -9,12 +9,12 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 
+from api.v1.apps.companies.enums import MONTHS
+from api.v1.apps.pharmacies.models import Pharmacy
 from api.v1.apps.accounts.permissions import IsDirector, IsManager
 
 from .models import ExpenseReportMonth
 from ..models import PharmacyExpense
-from ...companies.enums import MONTHS
-from ...pharmacies.models import Pharmacy
 
 
 class CustomPageNumberPagination(PageNumberPagination):
@@ -130,6 +130,7 @@ class ExpenseExcelAPIView(ExpenseAPIView):
         pharmacy = request.query_params.get('from_pharmacy')
         try:
             pharmacy = Pharmacy.objects.get(id=pharmacy)
+            month = int(month)
             return f'{year}_{MONTHS[month]}_{"".join(str(pharmacy).split())}_expense_report.xlsx'
         except Exception as e:
             print(e)
