@@ -111,7 +111,7 @@ class ExpenseExcelAPIView(ExpenseAPIView):
                     total_month_price = ExpenseReportMonth.objects.get(month=month,
                                                                        year=year,
                                                                        pharmacy_id=pharmacy,
-                                                                       expense_type_id=expense_type).price
+                                                                       expense_type=expense_type).price
                 else:
                     total_month_price = ExpenseReportMonth.objects.get(month=month,
                                                                        year=year,
