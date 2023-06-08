@@ -1,4 +1,3 @@
-from django.core.validators import MaxValueValidator
 from django.db import models
 
 from api.v1.apps.accounts.models import CustomUser
