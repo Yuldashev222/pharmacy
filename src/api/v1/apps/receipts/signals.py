@@ -15,5 +15,5 @@ def update_report(instance, *args, **kwargs):
 
     obj, _ = PharmacyIncomeReportDay.objects.get_or_create(pharmacy_id=instance.pharmacy_id,
                                                            report_date=instance.report_date)
-    obj.receipt_price = price
+    obj.receipt_price = price if price else 0
     obj.save()
