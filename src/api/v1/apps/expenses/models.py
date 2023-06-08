@@ -1,7 +1,7 @@
 from django.db import models
 
-from api.v1.apps.companies.services import text_normalize
 from api.v1.apps.companies.models import AbstractIncomeExpense
+from api.v1.apps.companies.services import text_normalize
 from api.v1.apps.expenses.reports.models import ExpenseReportMonth
 
 
@@ -28,7 +28,6 @@ class UserExpense(AbstractIncomeExpense):
     to_user = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL,
                                 related_name='to_user_expenses', null=True, blank=True)
     to_pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE, blank=True, null=True)
-
     # -------
 
     def __str__(self):
