@@ -25,8 +25,8 @@ class PharmacyIncomeReportMonth(models.Model):
                                                                                    rs=models.Sum('receipt_price'))
 
         price, receipt_price = data['s'], data['rs']
-        obj.price = price if price else 0
-        obj.receipt_price = receipt_price if receipt_price else 0
+        obj.price = int(price if price else 0)
+        obj.receipt_price = int(receipt_price if receipt_price else 0)
         obj.save()
 
 
