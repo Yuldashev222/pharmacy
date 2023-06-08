@@ -80,7 +80,7 @@ class PharmacyExpenseAPIViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated, NotProjectOwner]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = {
-        'expense_type': ['exact', 'gte'],
+        'expense_type': ['exact', 'gte', 'gt'],
         'shift': ['exact'],
         'report_date': ['exact'],
         'from_pharmacy': ['exact']
