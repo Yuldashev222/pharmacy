@@ -12,7 +12,7 @@ def create_company(instance, created, *args, **kwargs):
     if created and instance.is_director:
         instance.director_id = instance.id
         instance.save()
-        Company.objects.create(name=str(instance))
+        Company.objects.create(name=str(instance), director_id=instance.id)
 
     try:
         user = CustomUser.objects.get(pk=instance.pk)

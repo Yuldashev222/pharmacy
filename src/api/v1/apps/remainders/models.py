@@ -25,7 +25,7 @@ class RemainderShift(models.Model):
     @classmethod
     def get_price(cls, report_date, shift, pharmacy_id):
         try:
-            report_date = datetime.strptime(report_date, '%Y-%m-%d').date()
+            report_date = datetime.strptime(str(report_date), '%Y-%m-%d').date()
             shift = int(shift)
             pharmacy_id = int(pharmacy_id)
         except Exception as e:

@@ -152,7 +152,7 @@ class OwnerRetrieveUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = [
-            'phone_number', 'first_name', 'last_name', 'role', 'shift',
+            'id', 'phone_number', 'first_name', 'last_name', 'role', 'shift',
             'pharmacy', 'director', 'wage', 'bio', 'photo',
             'address', 'email', 'is_active', 'date_joined',
         ]
