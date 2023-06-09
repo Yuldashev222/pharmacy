@@ -23,12 +23,12 @@ class WorkerReportMonthSerializer(serializers.ModelSerializer):
         fields = ['worker', 'year', 'month', 'expense_price', 'income_price', 'pharmacy']
 
 
-class WorkerReportMontAPIView(ReadOnlyModelViewSet):
+class WorkerReportMonthAPIView(ReadOnlyModelViewSet):
     pagination_class = None
     serializer_class = WorkerReportMonthSerializer
     permission_classes = [IsAuthenticated, (IsDirector | IsManager)]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['worker', 'year', 'month', 'pharmacy']
+    filterset_fields = ['worker', 'year', 'pharmacy']
 
     def get_queryset(self):
         queryset = WorkerReportMonth.objects.filter(worker__director_id=self.request.user.director_id).order_by('month')
@@ -50,7 +50,7 @@ class WorkerReportMonthExcelSerializer(serializers.ModelSerializer):
         return ret
 
 
-class WorkerReportMontExcelAPIView(XLSXFileMixin, WorkerReportMontAPIView):
+class WorkerReportMontExcelAPIView(XLSXFileMixin, WorkerReportMonthAPIView):
     renderer_classes = (XLSXRenderer,)
     serializer_class = WorkerReportMonthExcelSerializer
 

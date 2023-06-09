@@ -53,7 +53,7 @@ class FirmDebtByMonthAPIView(ReadOnlyModelViewSet):
     serializer_class = FirmDebtByMonthSerializer
     permission_classes = [IsAuthenticated, (IsDirector | IsManager)]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['year', 'month', 'firm', 'pharmacy']
+    filterset_fields = ['year', 'firm', 'pharmacy']
 
     def get_queryset(self):
         return FirmDebtByMonth.objects.filter(firm__director_id=self.request.user.director_id).select_related(

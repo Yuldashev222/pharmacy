@@ -41,7 +41,7 @@ def update_user_month_report(instance, *args, **kwargs):
             expense_price = WorkerReport.objects.filter(is_expense=True,
                                                         report_date__year=obj.year,
                                                         report_date__month=obj.month,
-                                                        worker_id=obj.worker_id,
+                                                        worker=obj.worker,
                                                         pharmacy=obj.pharmacy
                                                         ).aggregate(s=Sum('price'))['s']
 
@@ -68,7 +68,7 @@ def update_report(instance, *args, **kwargs):
         expense_price = WorkerReport.objects.filter(is_expense=True,
                                                     report_date__year=obj.year,
                                                     report_date__month=obj.month,
-                                                    worker_id=obj.worker_id,
+                                                    worker=obj.worker,
                                                     pharmacy=obj.pharmacy
                                                     ).aggregate(s=Sum('price'))['s']
 
