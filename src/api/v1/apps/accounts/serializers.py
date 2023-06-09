@@ -10,6 +10,8 @@ from .models import CustomUser
 
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.serializers import TokenObtainSerializer
+
+
 class CustomTokenObtainPairSerializer(TokenObtainSerializer):
     token_class = RefreshToken
 
@@ -72,6 +74,17 @@ class WorkerCreateSerializer(UserCreateSerializer):
         extra_kwargs = UserCreateSerializer.Meta.extra_kwargs.copy()
         extra_kwargs['pharmacy'] = {'required': True, 'allow_null': False}
         extra_kwargs['shift'] = {'required': True, 'validators': [MinValueValidator(1)]}
+
+    def validate(self, attrs):
+        is_main_worker = attrs['is_main_worker']
+        shift = attrs['shift']
+        pharmacy = attrs['pharmacy']
+
+        if is_main_worker and CustomUser.objects.filter(is_main_worker=True, shift=shift,
+                                                        pharmacy_id=pharmacy.id).exists():
+            raise ValidationError({'is_main_worker': 'unique'})
+
+        return super().validate(attrs)
 
     def validate_pharmacy(self, obj):
         user = self.context['request'].user
@@ -141,7 +154,17 @@ class ManagerUpdateDestroySerializer(DirectorUpdateDestroySerializer):
 class WorkerUpdateDestroySerializer(DirectorUpdateDestroySerializer):
     class Meta:
         model = CustomUser
-        fields = ['id', 'phone_number', 'is_active', 'shift', 'password', 'wage']
+        fields = ['id', 'phone_number', 'is_active', 'shift', 'password', 'wage', 'is_main_worker']
+
+    def update(self, instance, validated_data):
+        is_main_worker = validated_data.get('is_main_worker')
+        shift = validated_data.get('shift', instance.shift)
+
+        if is_main_worker and is_main_worker != instance.is_main_worker:
+            if CustomUser.objects.filter(is_main_worker=True, shift=shift, pharmacy_id=instance.pharmacy_id).exists():
+                raise ValidationError({'is_main_worker': 'unique'})
+
+        return super().update(instance, validated_data)
 
 
 class OwnerRetrieveUpdateSerializer(serializers.ModelSerializer):
@@ -154,6 +177,6 @@ class OwnerRetrieveUpdateSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'phone_number', 'first_name', 'last_name', 'role', 'shift',
             'pharmacy', 'director', 'wage', 'bio', 'photo',
-            'address', 'email', 'is_active', 'date_joined',
+            'address', 'email', 'is_active', 'date_joined', 'is_main_worker'
         ]
-        read_only_fields = ['date_joined', 'is_active', 'phone_number', 'wage', 'shift']
+        read_only_fields = ['date_joined', 'is_active', 'phone_number', 'wage', 'is_main_worker', 'shift']

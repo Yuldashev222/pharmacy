@@ -52,9 +52,10 @@ class PharmacyReportByShift(models.Model):
     expense_firm = models.IntegerField(default=0)
 
     def save(self, *args, **kwargs):
-        workers = CustomUser.objects.filter(shift=self.shift)
-        if workers.exists():
-            self.worker = workers.first()
+        try:
+            self.worker = CustomUser.objects.get(shift=self.shift, is_main_worker=True, pharmacy_id=self.pharmacy_id)
+        except CustomUser.DoesNotExist:
+            pass
 
         self.total_expense = sum([self.expense_debt_repay_from_pharmacy,
                                   self.expense_debt_from_pharmacy,

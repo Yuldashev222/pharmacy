@@ -20,6 +20,7 @@ class CustomUser(AbstractUser):
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
     role = models.CharField(max_length=1, choices=UserRole.choices())
+    is_main_worker = models.BooleanField(default=False)
     shift = models.PositiveSmallIntegerField(default=0, validators=[MaxValueValidator(3)])
     creator = models.ForeignKey('self', on_delete=models.SET_NULL, null=True)
     pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE, blank=True, null=True)
