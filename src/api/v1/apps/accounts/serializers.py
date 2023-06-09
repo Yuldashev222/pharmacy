@@ -70,7 +70,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
 class WorkerCreateSerializer(UserCreateSerializer):
     class Meta(UserCreateSerializer.Meta):
-        fields = UserCreateSerializer.Meta.fields + ['pharmacy', 'shift']
+        fields = UserCreateSerializer.Meta.fields + ['pharmacy', 'shift', 'is_main_worker']
         extra_kwargs = UserCreateSerializer.Meta.extra_kwargs.copy()
         extra_kwargs['pharmacy'] = {'required': True, 'allow_null': False}
         extra_kwargs['shift'] = {'required': True, 'validators': [MinValueValidator(1)]}
