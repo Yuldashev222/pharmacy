@@ -105,7 +105,7 @@ class UserReadOnlySerializer(serializers.ModelSerializer):
             'id', 'phone_number', 'first_name', 'last_name', 'role', 'shift',
             'creator', 'pharmacy', 'director', 'pharmacy_name',
             'wage', 'bio', 'photo', 'address', 'email', 'is_active',
-            'date_joined',
+            'date_joined', 'is_main_worker'
         ]
 
 
