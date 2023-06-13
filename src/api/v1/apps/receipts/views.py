@@ -1,4 +1,4 @@
-from rest_framework.mixins import UpdateModelMixin, CreateModelMixin
+from rest_framework.mixins import UpdateModelMixin, CreateModelMixin, RetrieveModelMixin
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
@@ -11,6 +11,7 @@ from .serializers import WorkerReceiptCreateUpdateSerializer, DirectorManagerRec
 
 
 class ReceiptCreateUpdateAPIView(CreateModelMixin,
+                                 RetrieveModelMixin,
                                  UpdateModelMixin,
                                  GenericViewSet):
     filter_backends = [DjangoFilterBackend]
@@ -35,10 +36,9 @@ class ReceiptCreateUpdateAPIView(CreateModelMixin,
     def get_queryset(self):
         user = self.request.user
         if user.is_worker:
-            queryset = Receipt.objects.filter(
-                shift=user.shift,
-                pharmacy_id=user.pharmacy_id,
-                report_date=get_worker_report_date(user.pharmacy.last_shift_end_hour))
+            queryset = Receipt.objects.filter(shift=user.shift,
+                                              pharmacy_id=user.pharmacy_id,
+                                              report_date=get_worker_report_date(user.pharmacy.last_shift_end_hour))
 
         else:
             queryset = Receipt.objects.filter(creator__director_id=user.director_id)

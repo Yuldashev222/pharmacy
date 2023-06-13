@@ -11,6 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
 DJANGO CONFIGURATIONS
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
+DEBUG = 1
 USE_TZ = True
 USE_I18N = True
 MEDIA_URL = 'media/'
@@ -19,7 +20,6 @@ LANGUAGE_CODE = 'en-us'
 ROOT_URLCONF = 'config.urls'
 TIME_ZONE = 'Asia/Tashkent'
 CELERY_TIMEZONE = 'Asia/Tashkent'
-DEBUG = 1
 WSGI_APPLICATION = 'config.wsgi.application'
 MEDIA_ROOT = os.path.join(BASE_DIR.joinpath('media'))
 STATIC_ROOT = os.path.join(BASE_DIR.joinpath('static'))

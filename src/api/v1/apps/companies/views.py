@@ -5,11 +5,9 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
 from api.v1.apps.firms.models import Firm
-from api.v1.apps.receipts.models import Receipt
 from api.v1.apps.accounts.models import CustomUser
 from api.v1.apps.expenses.models import ExpenseType
 from api.v1.apps.pharmacies.models import Pharmacy
-from api.v1.apps.pharmacies.services import get_worker_report_date
 from api.v1.apps.accounts.permissions import IsDirector, NotProjectOwner, IsManager
 
 from .models import Company, TransferMoneyType
@@ -52,28 +50,8 @@ def company_details(request, *args, **kwargs):
 
     if user.is_worker:
         data['pharmacies'] = Pharmacy.objects.filter(id=user.pharmacy_id).values('id', 'name').order_by('-id')
-
-        try:
-            receipt = Receipt.objects.get(report_date=get_worker_report_date(user.pharmacy.last_shift_end_hour),
-                                          shift=user.shift,
-                                          pharmacy_id=user.pharmacy_id)
-
-            data['receipt'] = {"id": receipt.id, "price": receipt.price}
-        except Receipt.DoesNotExist:
-            data['receipt'] = None
     else:
         data['pharmacies'] = Pharmacy.objects.filter(director_id=user.director_id).values('id', 'name').order_by('-id')
-
-        report_date = request.query_params.get('report_date')
-        shift = request.query_params.get('shift')
-        pharmacy_id = request.query_params.get('pharmacy_id')
-        if report_date and shift and pharmacy_id:
-            try:
-                receipt = Receipt.objects.get(report_date=report_date, shift=shift, pharmacy_id=pharmacy_id)
-                data['receipt'] = {"id": receipt.id, "price": receipt.price}
-            except Receipt.DoesNotExist:
-                data['receipt'] = None
-
     return Response(data)
 
 
