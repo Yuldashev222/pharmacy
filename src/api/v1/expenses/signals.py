@@ -37,7 +37,7 @@ def update_report(instance, *args, **kwargs):
         obj.report_date = instance.report_date
         obj.price = instance.price
         obj.creator = instance.creator
-        obj.pharmacy = instance.to_pharmacy
+        obj.pharmacy = instance.from_pharmacy
         obj.worker = instance.to_user
         obj.created_at = instance.created_at
         obj.is_expense = False

@@ -177,7 +177,7 @@ class WorkerReportAPIView(ReadOnlyModelViewSet):
 
     def get_queryset(self):
         queryset = WorkerReport.objects.filter(creator__director_id=self.request.user.director_id
-                                               ).order_by('report_date')
+                                               ).order_by('report_date', 'created_at')
 
         return queryset.select_related('pharmacy', 'creator', 'worker')
 
