@@ -4,6 +4,8 @@ from api.v1.companies.models import AbstractIncomeExpense
 from api.v1.companies.services import text_normalize
 from api.v1.expenses.reports.models import ExpenseReportMonth
 
+from .enums import DefaultExpenseType
+
 
 class ExpenseType(models.Model):
     name = models.CharField(max_length=300)
@@ -60,7 +62,16 @@ class PharmacyExpense(AbstractIncomeExpense):
                                                               year=self.report_date.year,
                                                               month=self.report_date.month)
             obj.price = price if price else 0
-            obj.second_name = self.second_name
+
+            if self.expense_type_id == DefaultExpenseType.discount_id.value:
+                objs = PharmacyExpense.objects.filter(from_pharmacy_id=self.from_pharmacy_id,
+                                                      expense_type_id=expense_type_id,
+                                                      report_date__year=self.report_date.year,
+                                                      report_date__month=self.report_date.month
+                                                      ).values_list('second_name', flat=True)
+                second_name_price = sum(list(map(lambda x: int(x) if str(x).isdigit() else 0, objs)))
+                obj.second_name = str(second_name_price)
+
             obj.save()
 
         price = PharmacyExpense.objects.filter(from_pharmacy_id=self.from_pharmacy_id,
@@ -74,5 +85,13 @@ class PharmacyExpense(AbstractIncomeExpense):
                                                           year=self.report_date.year,
                                                           month=self.report_date.month)
         obj.price = price if price else 0
-        obj.second_name = self.second_name
+
+        if self.expense_type_id == DefaultExpenseType.discount_id.value:
+            objs = PharmacyExpense.objects.filter(from_pharmacy_id=self.from_pharmacy_id,
+                                                  expense_type_id=expense_type_id,
+                                                  report_date__year=self.report_date.year,
+                                                  report_date__month=self.report_date.month
+                                                  ).values_list('second_name', flat=True)
+            second_name_price = sum(list(map(lambda x: int(x) if str(x).isdigit() else 0, objs)))
+            obj.second_name = str(second_name_price)
         obj.save()
