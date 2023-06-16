@@ -81,7 +81,7 @@ class ExpenseAPIView(ReadOnlyModelViewSet):
                                                   ).select_related('creator',
                                                                    'expense_type',
                                                                    'from_pharmacy'
-                                                                   ).order_by('-report_date')
+                                                                   ).order_by('report_date')
         return queryset
 
 
