@@ -70,6 +70,7 @@ class WorkerReportMonth(models.Model):
 class WorkerReport(models.Model):
     is_expense = models.BooleanField(default=True)
     user_expense = models.ForeignKey('expenses.UserExpense', on_delete=models.CASCADE, null=True, blank=True)
+    pharmacy_expense = models.ForeignKey('expenses.PharmacyExpense', on_delete=models.CASCADE, null=True, blank=True)
     pharmacy_income = models.ForeignKey('incomes.PharmacyIncome', on_delete=models.CASCADE, null=True, blank=True)
     firm_expense = models.ForeignKey('firms.FirmExpense', on_delete=models.CASCADE, null=True, blank=True)
     debt_repay_from_pharmacy = models.ForeignKey('debts.DebtRepayFromPharmacy', on_delete=models.CASCADE,

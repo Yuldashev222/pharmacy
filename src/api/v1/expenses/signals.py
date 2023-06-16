@@ -32,6 +32,19 @@ def update_report(instance, *args, **kwargs):
         obj.expense_pharmacy = expense_pharmacy if expense_pharmacy else 0
         obj.save()
 
+    if instance.to_user:
+        obj, _ = WorkerReport.objects.get_or_create(pharmacy_expense_id=instance.id)
+        obj.report_date = instance.report_date
+        obj.price = instance.price
+        obj.creator = instance.creator
+        obj.pharmacy = instance.to_pharmacy
+        obj.worker = instance.to_user
+        obj.created_at = instance.created_at
+        obj.is_expense = False
+        obj.save()
+    else:
+        WorkerReport.objects.filter(pharmacy_expense_id=instance.id).delete()
+
 
 @receiver(pre_delete, sender=PharmacyExpense)
 def update_report(instance, *args, **kwargs):
