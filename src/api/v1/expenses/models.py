@@ -74,4 +74,5 @@ class PharmacyExpense(AbstractIncomeExpense):
                                                           year=self.report_date.year,
                                                           month=self.report_date.month)
         obj.price = price if price else 0
+        obj.second_name = self.second_name
         obj.save()
