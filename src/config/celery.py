@@ -18,7 +18,7 @@ def debug_task(self):
 
 app.conf.beat_schedule = {
     'send-sms-every-days': {
-        'task': 'api.v1.apps.firms.tasks.send_sms_to_director',
+        'task': 'api.v1.firms.tasks.send_sms_to_director',
         'schedule': crontab(hour=8, minute=0),
     },
 }

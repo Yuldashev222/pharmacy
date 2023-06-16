@@ -3,14 +3,14 @@ from django.urls import path, include
 from django.contrib import admin
 from django.conf.urls.static import static
 
-from api.v1.apps.companies.views import company_details
-from api.v1.apps.companies.routers import router
+from api.v1.companies.views import company_details
+from api.v1.companies.routers import router
 
 from .yasg import urlpatterns as doc_urls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/accounts/', include('api.v1.apps.accounts.urls')),
+    path('api/v1/accounts/', include('api.v1.accounts.urls')),
     path('api/v1/', include(router.urls)),
     path('api/v1/companies/details', company_details, name='company-details'),
 
