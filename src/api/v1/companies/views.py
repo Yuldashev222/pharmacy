@@ -45,6 +45,9 @@ def company_details(request, *args, **kwargs):
         'employees': CustomUser.objects.filter(director_id=user.director_id).values('id',
                                                                                     'first_name',
                                                                                     'last_name',
+                                                                                    'shift',
+                                                                                    'pharmacy_id',
+                                                                                    'is_main_worker',
                                                                                     'role').order_by('-id'),
     }
 
