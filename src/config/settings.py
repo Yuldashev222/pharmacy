@@ -88,18 +88,18 @@ INSTALLED_APPS = [
     'debug_toolbar',
 
     # apps
-    'api.v1.apps.accounts.apps.AccountsConfig',
-    'api.v1.apps.companies.apps.CompaniesConfig',
-    'api.v1.apps.pharmacies.apps.PharmaciesConfig',
-    'api.v1.apps.firms.apps.FirmsConfig',
-    'api.v1.apps.debts.apps.DebtsConfig',
-    'api.v1.apps.expenses.apps.ExpensesConfig',
-    'api.v1.apps.incomes.apps.IncomesConfig',
-    'api.v1.apps.clients.apps.ClientsConfig',
-    'api.v1.apps.drugs.apps.DrugsConfig',
-    'api.v1.apps.receipts.apps.ReceiptsConfig',
-    'api.v1.apps.remainders.apps.RemaindersConfig',
-    'api.v1.apps.offers.apps.OffersConfig',
+    'api.v1.accounts.apps.AccountsConfig',
+    'api.v1.companies.apps.CompaniesConfig',
+    'api.v1.pharmacies.apps.PharmaciesConfig',
+    'api.v1.firms.apps.FirmsConfig',
+    'api.v1.debts.apps.DebtsConfig',
+    'api.v1.expenses.apps.ExpensesConfig',
+    'api.v1.incomes.apps.IncomesConfig',
+    'api.v1.clients.apps.ClientsConfig',
+    'api.v1.drugs.apps.DrugsConfig',
+    'api.v1.receipts.apps.ReceiptsConfig',
+    'api.v1.remainders.apps.RemaindersConfig',
+    'api.v1.offers.apps.OffersConfig',
 ]
 
 DATABASES = {
@@ -112,12 +112,6 @@ DATABASES = {
         'PORT': os.getenv('POSTGRES_DB_PORT', '5432'),
     },
 }
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR.joinpath('db.sqlite3'),
-#     },
-# }
 
 CACHES = {
     'default': {
@@ -165,8 +159,6 @@ REST_FRAMEWORK = {
 
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-        # 'rest_framework.authentication.SessionAuthentication',
-        # 'rest_framework.authentication.BasicAuthentication'
     ],
 
     'DATETIME_FORMAT': '%d.%m.%Y %H:%M',
@@ -206,7 +198,7 @@ SIMPLE_JWT = {
     "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
     "USER_ID_FIELD": "id",
     "USER_ID_CLAIM": "user_id",
-    "USER_AUTHENTICATION_RULE": "api.v1.apps.accounts.services.default_user_authentication_rule",
+    "USER_AUTHENTICATION_RULE": "api.v1.accounts.services.default_user_authentication_rule",
 
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
     "TOKEN_TYPE_CLAIM": "token_type",
@@ -214,7 +206,7 @@ SIMPLE_JWT = {
 
     "JTI_CLAIM": "jti",
 
-    "TOKEN_OBTAIN_SERIALIZER": "api.v1.apps.accounts.serializers.CustomTokenObtainPairSerializer",
+    "TOKEN_OBTAIN_SERIALIZER": "api.v1.accounts.serializers.CustomTokenObtainPairSerializer",
     "TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSerializer",
     "TOKEN_VERIFY_SERIALIZER": "rest_framework_simplejwt.serializers.TokenVerifySerializer",
     "TOKEN_BLACKLIST_SERIALIZER": "rest_framework_simplejwt.serializers.TokenBlacklistSerializer",
