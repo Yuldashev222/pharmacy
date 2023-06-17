@@ -11,7 +11,6 @@ from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 
 from api.v1.firms.models import FirmReport, FirmDebtByDate, FirmDebtByMonth, Firm
-from api.v1.pharmacies.models import Pharmacy
 from api.v1.accounts.permissions import IsDirector, IsManager
 
 
@@ -60,8 +59,7 @@ class FirmDebtByMonthAPIView(ReadOnlyModelViewSet):
     filterset_fields = ['year', 'firm', 'pharmacy']
 
     def get_queryset(self):
-        return FirmDebtByMonth.objects.filter(pharmacy__isnull=False,
-                                              firm__director_id=self.request.user.director_id
+        return FirmDebtByMonth.objects.filter(firm__director_id=self.request.user.director_id
                                               ).select_related('firm', 'pharmacy').order_by('month')
 
 
@@ -94,7 +92,7 @@ class FirmReportAPIView(ReadOnlyModelViewSet):
     def get_queryset(self):
         user = self.request.user
         return FirmReport.objects.filter(creator__director_id=user.director_id
-                                         ).select_related('creator', 'pharmacy').order_by('report_date')
+                                         ).select_related('creator', 'pharmacy').order_by('report_date', 'created_at')
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
