@@ -10,5 +10,5 @@ class OfferAdmin(admin.ModelAdmin):
     # list_filter = ['status', 'answered_at']
     list_display_links = list_display
 
-    # readonly_fields = ['creator', 'status', 'title', 'text', 'answered_at']
-    # fields = ['creator', 'status', 'title', 'text']
+    readonly_fields = ['creator', 'status', 'title', 'text', 'answered_at']
+    fields = ['creator', 'status', 'title', 'text']
