@@ -31,6 +31,10 @@ class CustomUser(AbstractUser):
     photo = models.ImageField(upload_to=user_photo_upload_location, blank=True, null=True)
     address = models.CharField(max_length=500, blank=True)
 
+    class Meta:
+        verbose_name = 'Director'
+        verbose_name_plural = 'Directors'
+
     def __str__(self):
         return self.get_full_name()
 

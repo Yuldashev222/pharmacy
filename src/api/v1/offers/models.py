@@ -20,6 +20,10 @@ class Offer(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     answered_at = models.DateTimeField(blank=True, null=True)
 
+    class Meta:
+        verbose_name = 'Taklif'
+        verbose_name_plural = 'Takliflar'
+
     def save(self, *args, **kwargs):
         if self.answer_text and self.status != 'a':
             self.status = 'a'
