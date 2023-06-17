@@ -60,8 +60,9 @@ class FirmDebtByMonthAPIView(ReadOnlyModelViewSet):
     filterset_fields = ['year', 'firm', 'pharmacy']
 
     def get_queryset(self):
-        return FirmDebtByMonth.objects.filter(firm__director_id=self.request.user.director_id).select_related(
-            'firm', 'pharmacy').order_by('month')
+        return FirmDebtByMonth.objects.filter(pharmacy__isnull=False,
+                                              firm__director_id=self.request.user.director_id
+                                              ).select_related('firm', 'pharmacy').order_by('month')
 
 
 class CustomPageNumberPagination(PageNumberPagination):
