@@ -169,7 +169,6 @@ class DebtToPharmacyExcelAPIView(DebtToPharmacyAPIView):
     }
 
 
-
 class TodayDebtToPharmacyAPIView(DebtToPharmacyAPIView):
     pagination_class = None
 
@@ -177,6 +176,23 @@ class TodayDebtToPharmacyAPIView(DebtToPharmacyAPIView):
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
         return Response({'results': serializer.data})
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_worker:
+            queryset = DebtToPharmacy.objects.filter(to_pharmacy_id=user.pharmacy_id,
+                                                     is_paid=False,
+                                                     shift=user.shift,
+                                                     report_date=get_worker_report_date(
+                                                         user.pharmacy.last_shift_end_hour))
+        else:
+            queryset = DebtToPharmacy.objects.filter(to_pharmacy__director_id=user.director_id)
+        queryset = queryset.exclude(to_firm_expense__isnull=False,
+                                    to_firm_expense__is_verified=False).select_related('creator',
+                                                                                       'to_pharmacy',
+                                                                                       'transfer_type'
+                                                                                       ).order_by('-created_at')
+        return queryset
 
 
 class DebtRepayFromPharmacyAPIView(ModelViewSet):
