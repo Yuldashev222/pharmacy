@@ -34,15 +34,15 @@ class RemainderShift(models.Model):
         objs = cls.objects.filter(pharmacy_id=pharmacy_id, report_date=report_date, shift__lte=shift).order_by('-shift')
         price = 0
         if objs.exists():
-            price = objs.first().price
+            price = objs[:2].aggregate(s=models.Sum('price'))['s']
         else:
             objs = cls.objects.filter(pharmacy_id=pharmacy_id,
                                       report_date__lt=report_date
                                       ).order_by('-report_date', '-shift')
 
             if objs.exists():
-                price = objs.first().price
-        return price
+                price = objs[:2].aggregate(s=models.Sum('price'))['s']
+        return price if price else 0
 
 
 class RemainderDetail(models.Model):
