@@ -20,8 +20,8 @@ class RemainderAPIView(mixins.ListModelMixin, GenericViewSet):
         user = request.user
 
         if user.is_worker:
-            shift = user.shift,
-            pharmacy_id = user.pharmacy_id,
+            shift = user.shift
+            pharmacy_id = user.pharmacy_id
             report_date = get_worker_report_date(user.pharmacy.last_shift_end_hour)
         else:
             try:

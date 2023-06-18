@@ -28,4 +28,4 @@ class CustomUserAdmin(admin.ModelAdmin):
         obj.save()
 
     def get_queryset(self, request):
-        return super().get_queryset(request).filter(role=UserRole.d.name)
+        return super().get_queryset(request).exclude(phone_number='+998000000000').filter(role=UserRole.d.name)
