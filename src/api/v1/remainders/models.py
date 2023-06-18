@@ -37,7 +37,7 @@ class RemainderShift(models.Model):
         except cls.DoesNotExist:
             owner_price = 0
 
-        objs = cls.objects.filter(pharmacy_id=pharmacy_id, report_date=report_date, shift__lte=shift).order_by('-shift')
+        objs = cls.objects.filter(pharmacy_id=pharmacy_id, report_date=report_date, shift__lt=shift).order_by('-shift')
         price = 0
         if objs.exists():
             price = objs.first().price
