@@ -105,9 +105,11 @@ class PharmacyExpenseAPIViewSet(ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.is_worker:
-            queryset = PharmacyExpense.objects.filter(
-                from_pharmacy_id=user.pharmacy_id,
-                report_date=get_worker_report_date(user.pharmacy.last_shift_end_hour), shift=user.shift)
+            queryset = PharmacyExpense.objects.filter(from_pharmacy_id=user.pharmacy_id,
+                                                      shift=user.shift,
+                                                      report_date=get_worker_report_date(
+                                                          user.pharmacy.last_shift_end_hour
+                                                      ))
         else:
             queryset = PharmacyExpense.objects.filter(from_pharmacy__director_id=user.director_id)
 
