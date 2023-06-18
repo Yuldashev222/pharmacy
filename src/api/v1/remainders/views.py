@@ -1,10 +1,9 @@
 from datetime import datetime
-
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
+from rest_framework.permissions import IsAuthenticated
+
 
 from api.v1.pharmacies.services import get_worker_report_date
 from api.v1.accounts.permissions import NotProjectOwner

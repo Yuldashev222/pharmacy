@@ -236,7 +236,8 @@ class DebtRepayFromPharmacyAPIView(ModelViewSet):
                                                                 user.pharmacy.last_shift_end_hour))
         else:
             queryset = DebtRepayFromPharmacy.objects.filter(to_debt__to_pharmacy__director_id=user.director_id)
-        return queryset.select_related('creator', 'from_user', 'transfer_type', 'to_debt').order_by('-created_at')
+        return queryset.select_related('creator', 'from_user', 'transfer_type', 'to_debt').order_by('-report_date',
+                                                                                                    '-created_at')
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
