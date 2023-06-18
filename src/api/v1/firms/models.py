@@ -36,6 +36,9 @@ class Firm(models.Model):
         self.desc = text_normalize(self.desc)
         super().save(*args, **kwargs)
 
+    class Meta:
+        unique_together = ['director', 'name']
+
 
 class FirmIncome(AbstractIncomeExpense):
     transfer_type = None
