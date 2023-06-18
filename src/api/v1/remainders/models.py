@@ -31,17 +31,17 @@ class RemainderShift(models.Model):
         except Exception as e:
             return str(e)
 
-        objs = cls.objects.filter(pharmacy_id=pharmacy_id, report_date=report_date, shift__lte=shift).order_by('-shift')
+        objs = cls.objects.filter(pharmacy_id=pharmacy_id, report_date__lte=report_date, shift__lte=shift
+                                  ).order_by('-report_date', '-shift')
         price = 0
         if objs.exists():
             price = objs[:2].aggregate(s=models.Sum('price'))['s']
-        else:
-            objs = cls.objects.filter(pharmacy_id=pharmacy_id,
-                                      report_date__lt=report_date
-                                      ).order_by('-report_date', '-shift')
-
-            if objs.exists():
-                price = objs[:2].aggregate(s=models.Sum('price'))['s']
+        # else:
+        #     objs = cls.objects.filter(pharmacy_id=pharmacy_id, report_date__lt=report_date).order_by('-report_date',
+        #                                                                                              '-shift')
+        #
+        #     if objs.exists():
+        #         price = objs[:2].aggregate(s=models.Sum('price'))['s']
         return price if price else 0
 
 
@@ -63,7 +63,6 @@ class RemainderDetail(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if self.report_date and self.shift and self.pharmacy:
-
             price = RemainderDetail.objects.filter(pharmacy_id=self.pharmacy_id,
                                                    report_date=self.report_date,
                                                    shift=self.shift
