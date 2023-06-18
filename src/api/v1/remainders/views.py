@@ -32,8 +32,7 @@ class RemainderAPIView(mixins.ListModelMixin, GenericViewSet):
                 return Response(str(e))
 
         try:
-            obj = RemainderShift.get_price(shift=shift, pharmacy_id=pharmacy_id, report_date=report_date)
-            price = obj.price
+            price = RemainderShift.get_price(shift=shift, pharmacy_id=pharmacy_id, report_date=report_date)
         except RemainderShift.DoesNotExist:
             price = 0
         return Response({'price': price})
