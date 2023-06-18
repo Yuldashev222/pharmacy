@@ -7,7 +7,7 @@ from . import models
 
 def get_deleted_pharmacy_obj(obj):
     obj, _ = models.Pharmacy.objects.get_or_create(name=f'deleted {obj.name[:90]}',
-                                                   director_id=CustomUser.get_fake_director())
+                                                   director=CustomUser.get_fake_director())
     return obj
 
 
