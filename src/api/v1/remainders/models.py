@@ -21,6 +21,19 @@ class RemainderShift(models.Model):
         obj.remainder = self.price
         obj.save()
 
+    @classmethod
+    def get_price(cls, pharmacy_id, report_date, shift):
+        price = 0
+        objs = cls.objects.filter(pharmacy_id=pharmacy_id, report_date=report_date, shift__lte=shift).order_by('-shift')
+        if objs.exists():
+            price = objs.first().price
+        objs = cls.objects.filter(pharmacy_id=pharmacy_id, report_date__lt=report_date).order_by('-report_date',
+                                                                                                 '-shift')
+        if objs.exists():
+            price = objs.first().price
+
+        return price
+
 
 class RemainderDetail(models.Model):
     pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE, null=True)
