@@ -11,7 +11,7 @@ class RemainderShift(models.Model):
     price = models.IntegerField(default=0)
 
     def save(self, *args, **kwargs):
-        self.price = self.price if self.price >= 0 else 0
+        # self.price = self.price if self.price >= 0 else 0
         super().save(*args, **kwargs)
 
         obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=self.pharmacy_id,
