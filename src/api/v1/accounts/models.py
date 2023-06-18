@@ -65,11 +65,10 @@ class CustomUser(AbstractUser):
 
     @classmethod
     def get_fake_director(cls):
-        password = make_password(settings.FAKE_DIRECTOR_DEFAULT_PASSWORD)
         return cls.objects.get_or_create(first_name='fake_director',
                                          last_name='fake_director',
                                          phone_number='+998000000000',
-                                         password=password,
+                                         password=settings.FAKE_DIRECTOR_DEFAULT_PASSWORD,
                                          role=UserRole.d.name)[0]
 
 
