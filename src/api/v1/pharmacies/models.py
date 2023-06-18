@@ -7,7 +7,7 @@ from .services import pharmacy_logo_upload_location
 
 
 class Pharmacy(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     send_sms_name = models.CharField(max_length=100, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     director = models.ForeignKey('accounts.CustomUser', related_name='pharmacies', on_delete=models.CASCADE)
