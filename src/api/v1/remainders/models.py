@@ -18,36 +18,8 @@ class RemainderShift(models.Model):
                                                              shift=self.shift,
                                                              report_date=self.report_date)
 
-        # obj.remainder = self.get_price(obj.report_date, obj.shift, obj.pharmacy_id)
         obj.remainder = self.price
         obj.save()
-    #
-    # @classmethod
-    # def get_price(cls, report_date, shift, pharmacy_id):
-    #     try:
-    #         report_date = datetime.strptime(str(report_date), '%Y-%m-%d').date()
-    #         shift = int(shift)
-    #         pharmacy_id = int(pharmacy_id)
-    #     except Exception as e:
-    #         return str(e)
-    #
-    #     try:
-    #         obj = cls.objects.get(pharmacy_id=pharmacy_id, report_date=report_date, shift=shift)
-    #         owner_price = obj.price
-    #     except cls.DoesNotExist:
-    #         owner_price = 0
-    #
-    #     objs = cls.objects.filter(pharmacy_id=pharmacy_id, report_date=report_date, shift__lt=shift).order_by('-shift')
-    #     price = 0
-    #     if objs.exists():
-    #         price = objs.first().price
-    #     else:
-    #         objs = cls.objects.filter(pharmacy_id=pharmacy_id, report_date__lt=report_date).order_by('-report_date',
-    #                                                                                                  '-shift')
-    #
-    #         if objs.exists():
-    #             price = objs.first().price
-    #     return price + owner_price
 
 
 class RemainderDetail(models.Model):
@@ -78,7 +50,10 @@ class RemainderDetail(models.Model):
                                                           report_date=self.report_date)
             obj.price = price if price else 0
 
-            old_obj = RemainderShift.objects.filter(id__lt=obj.id).order_by('-id')
+            old_obj = RemainderShift.objects.filter(id__lt=obj.id,
+                                                    pharmacy_id=obj.pharmacy_id,
+                                                    shift=obj.shift,
+                                                    report_date=obj.report_date).order_by('-id')
             if old_obj.exists():
                 old_price = old_obj.first().price
                 obj.price += old_price
