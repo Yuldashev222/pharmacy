@@ -95,7 +95,7 @@ class FirmExpenseSerializer(serializers.ModelSerializer):
 
 class WorkerFirmExpenseSerializer(FirmExpenseSerializer):
     class Meta(FirmExpenseSerializer.Meta):
-        read_only_fields = ('report_date', 'shift', 'from_pharmacy', 'creator')
+        read_only_fields = ('report_date', 'shift', 'from_pharmacy', 'creator', 'is_verified')
 
 
 class DirectorManagerFirmExpenseSerializer(FirmExpenseSerializer):
