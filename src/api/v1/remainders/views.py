@@ -22,17 +22,17 @@ class RemainderAPIView(mixins.ListModelMixin, GenericViewSet):
         user = request.user
 
         if user.is_worker:
-            return Response(
-                {'price': RemainderShift.get_price(get_worker_report_date(user.pharmacy.last_shift_end_hour),
-                                                   user.shift,
-                                                   user.pharmacy_id)})
+            return Response({'price': RemainderShift.objects.filter(shift=user.shift,
+                                                                    pharmacy_id=user.pharmacy_id,
+                                                                    report_date=get_worker_report_date(
+                                                                        user.pharmacy.last_shift_end_hour))})
 
         try:
             pharmacy_id = int(request.GET['pharmacy_id'])
             report_date = datetime.strptime(request.GET['report_date'], '%Y-%m-%d').date()
             shift = int(request.GET['shift'])
-            return Response({'price': RemainderShift.get_price(report_date=report_date,
-                                                               shift=shift,
-                                                               pharmacy_id=pharmacy_id)})
+            return Response({'price': RemainderShift.objects.filter(report_date=report_date,
+                                                                    shift=shift,
+                                                                    pharmacy_id=pharmacy_id)})
         except Exception as e:
             return Response(str(e))
