@@ -19,7 +19,7 @@ class RemainderShift(models.Model):
                                                              shift=self.shift,
                                                              report_date=self.report_date)
 
-        obj.remainder = self.price
+        obj.remainder = self.get_price(obj.report_date, obj.shift, obj.pharmacy_id)
         obj.save()
 
     @classmethod
