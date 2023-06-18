@@ -16,7 +16,6 @@ def update_report(instance, *args, **kwargs):
     # remainder update
     if instance.transfer_type_id == DefaultTransferType.cash.value:
         if not instance.to_user:
-            print('AAAAAAAAAAAAAAAAAAAAAAAa')
             obj, _ = RemainderDetail.objects.get_or_create(pharmacy_expense_id=instance.id)
             obj.report_date = instance.report_date
             obj.price = -1 * instance.price
