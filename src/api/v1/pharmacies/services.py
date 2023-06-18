@@ -1,6 +1,4 @@
 from datetime import timedelta, datetime, time, date
-from django.conf import settings
-from django.contrib.auth.hashers import make_password
 
 from api.v1.accounts.models import CustomUser
 
@@ -8,9 +6,7 @@ from . import models
 
 
 def get_deleted_pharmacy_obj(obj):
-    password = make_password(settings.FAKE_DIRECTOR_DEFAULT_PASSWORD)
     obj, _ = models.Pharmacy.objects.get_or_create(name=f'deleted {obj.name[:90]}',
-                                                   password=password,
                                                    director_id=CustomUser.get_fake_director())
     return obj
 
