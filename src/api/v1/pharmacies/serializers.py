@@ -12,8 +12,8 @@ class PharmacySerializer(serializers.ModelSerializer):
         exclude = ('director',)
 
     def create(self, validated_data):
-        director = validated_data['director']
+        director_id = validated_data['director_id']
         name = validated_data['name']
-        if Pharmacy.objects.filter(name=name, director_id=director.id).exists():
+        if Pharmacy.objects.filter(name=name, director_id=director_id).exists():
             raise ValidationError({'name': 'unique'})
         return super().create(validated_data)
