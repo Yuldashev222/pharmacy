@@ -64,10 +64,10 @@ class UserExpenseAPIViewSet(ModelViewSet):
         queryset = UserExpense.objects.filter(from_user__director_id=user.director_id)
         if user.is_worker:
             queryset = queryset.filter(report_date=get_worker_report_date(user.pharmacy.last_shift_end_hour),
-                                       shift=user.shift)
+                                       shift=user.shift, to_pharmacy_id=user.pharmacy_id)
 
         return queryset.select_related('creator', 'expense_type', 'transfer_type', 'to_user', 'from_user', 'to_pharmacy'
-                                       ).order_by('-created_at')
+                                       ).order_by('-report_date', '-created_at')
 
 
 class PharmacyExpenseAPIViewSet(ModelViewSet):
@@ -108,8 +108,7 @@ class PharmacyExpenseAPIViewSet(ModelViewSet):
             queryset = PharmacyExpense.objects.filter(from_pharmacy_id=user.pharmacy_id,
                                                       shift=user.shift,
                                                       report_date=get_worker_report_date(
-                                                          user.pharmacy.last_shift_end_hour
-                                                      ))
+                                                          user.pharmacy.last_shift_end_hour))
         else:
             queryset = PharmacyExpense.objects.filter(from_pharmacy__director_id=user.director_id)
 
@@ -117,4 +116,4 @@ class PharmacyExpenseAPIViewSet(ModelViewSet):
                                        'transfer_type',
                                        'expense_type',
                                        'from_pharmacy',
-                                       'to_user').order_by('-created_at')
+                                       'to_user').order_by('-report_date', '-created_at')
