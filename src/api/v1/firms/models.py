@@ -82,8 +82,6 @@ class FirmExpense(AbstractIncomeExpense):
         return str(self.to_firm)
 
     def save(self, *args, **kwargs):
-        FirmExpense.objects.filter(is_verified=False, created_at__lt=datetime.now() - timedelta(minutes=5)).delete()
-
         if not self.pk:
             if self.from_pharmacy:
                 self.report_date = get_worker_report_date(self.from_pharmacy.last_shift_end_hour)

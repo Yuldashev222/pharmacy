@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -125,6 +127,8 @@ class FirmExpenseVerifySerializer(serializers.Serializer):
     firm_expense_id = serializers.IntegerField()
 
     def validate(self, attrs):
+        FirmExpense.objects.filter(is_verified=False, created_at__lt=datetime.now() - timedelta(minutes=5)).delete()
+
         code = attrs['code']
         firm_expense_id = attrs['firm_expense_id']
         try:
@@ -132,14 +136,10 @@ class FirmExpenseVerifySerializer(serializers.Serializer):
         except FirmExpense.DoesNotExist:
             raise ValidationError({'firm_expense_id': 'not found'})
         if firm_expense.verified_code != code:
-            firm_expense.delete()
             raise ValidationError({'code': 'Not Valid'})
 
         w_name = ''.join([i for i in firm_expense.verified_firm_worker_name if i.isalpha() or i in ' \''])
-        message = EskizUz.success_message(
-            firm_worker_name=w_name,
-            price=firm_expense.price
-        )
+        message = EskizUz.success_message(firm_worker_name=w_name, price=firm_expense.price)
         EskizUz.send_sms(phone_number=firm_expense.verified_phone_number[1:], message=message)
 
         firm_expense.is_verified = True
@@ -153,6 +153,9 @@ class FirmReturnProductVerifySerializer(FirmExpenseVerifySerializer):
     firm_return_id = serializers.IntegerField()
 
     def validate(self, attrs):
+        FirmReturnProduct.objects.filter(is_verified=False, created_at__lt=datetime.now() - timedelta(minutes=5)
+                                         ).delete()
+
         code = attrs['code']
         firm_return_id = attrs['firm_return_id']
         try:
@@ -160,12 +163,10 @@ class FirmReturnProductVerifySerializer(FirmExpenseVerifySerializer):
         except FirmReturnProduct.DoesNotExist:
             raise ValidationError({'firm_return_id': 'not found'})
         if firm_return.verified_code != code:
-            firm_return.delete()
             raise ValidationError({'code': 'Not Valid'})
 
         w_name = ''.join([i for i in firm_return.verified_firm_worker_name if i.isalpha() or i in ' \''])
-        message = EskizUz.return_product_success_message(
-            firm_worker_name=w_name, price=firm_return.price)
+        message = EskizUz.return_product_success_message(firm_worker_name=w_name, price=firm_return.price)
         EskizUz.send_sms(phone_number=firm_return.verified_phone_number[1:], message=message)
 
         firm_return.is_verified = True
