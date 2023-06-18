@@ -104,8 +104,8 @@ INSTALLED_APPS = [
 
 DATABASES = {
     'default': {
-        'ENGINE': os.getenv('POSTGRES_DB_ENGINE', 'django.db.backends.sqlite3'),
-        'NAME': os.getenv('POSTGRES_DB_NAME', BASE_DIR.joinpath('db.sqlite3')),
+        'ENGINE': os.getenv('POSTGRES_DB_ENGIN', 'django.db.backends.sqlite3'),
+        'NAME': os.getenv('POSTGRES_DB_NAM', BASE_DIR.joinpath('db.sqlite3')),
         'USER': os.getenv('POSTGRES_DB_USER', 'user'),
         'PASSWORD': os.getenv('POSTGRES_DB_PASSWORD', 'password'),
         'HOST': os.getenv('POSTGRES_DB_HOST', 'localhost'),

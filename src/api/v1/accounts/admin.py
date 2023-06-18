@@ -26,3 +26,6 @@ class CustomUserAdmin(admin.ModelAdmin):
         obj.creator_id = request.user.id
         obj.role = UserRole.d.name
         obj.save()
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(role=UserRole.d.name)
