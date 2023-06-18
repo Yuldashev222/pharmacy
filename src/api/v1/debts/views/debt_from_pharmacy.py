@@ -56,7 +56,7 @@ class DebtFromPharmacyAPIView(ModelViewSet):
             queryset = DebtFromPharmacy.objects.filter(from_pharmacy_id=user.pharmacy_id)
         else:
             queryset = DebtFromPharmacy.objects.filter(from_pharmacy__director_id=user.director_id)
-        return queryset.select_related('creator', 'from_pharmacy', 'transfer_type').order_by('-report_date'
+        return queryset.select_related('creator', 'from_pharmacy', 'transfer_type').order_by('-report_date',
                                                                                              '-created_at')
 
 
@@ -180,7 +180,7 @@ class TodayDebtFromPharmacyAPIView(DebtFromPharmacyAPIView):
                                                            user.pharmacy.last_shift_end_hour))
         else:
             queryset = DebtFromPharmacy.objects.filter(from_pharmacy__director_id=user.director_id)
-        return queryset.select_related('creator', 'from_pharmacy', 'transfer_type').order_by('-report_date'
+        return queryset.select_related('creator', 'from_pharmacy', 'transfer_type').order_by('-report_date',
                                                                                              '-created_at')
 
     def list(self, request, *args, **kwargs):
