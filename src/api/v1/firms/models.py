@@ -108,7 +108,12 @@ class FirmExpense(AbstractIncomeExpense):
         super().save(*args, **kwargs)
 
         if self.is_verified:
-            incomes = self.to_firm.firmincome_set.filter(is_paid=False).order_by('created_at')
+            if self.transfer_type_id == DefaultTransferType.cash.value:
+                incomes = self.to_firm.firmincome_set.filter(is_paid=False, is_transfer_return=False
+                                                             ).order_by('created_at')
+            else:
+                incomes = self.to_firm.firmincome_set.filter(is_paid=False, is_transfer_return=True
+                                                             ).order_by('created_at')
             temp_price = self.price
             for income in incomes:
                 if temp_price > 0:
@@ -125,7 +130,7 @@ class FirmExpense(AbstractIncomeExpense):
             if temp_price > 0:
                 firm_debt, _ = FirmDebtByDate.objects.get_or_create(firm_id=self.to_firm_id,
                                                                     report_date=self.report_date)
-                if self.transfer_type == DefaultTransferType.cash.value:
+                if self.transfer_type_id == DefaultTransferType.cash.value:
                     firm_debt.expenses_not_transfer_debt_price += temp_price
                 else:
                     firm_debt.expenses_transfer_debt_price += temp_price
