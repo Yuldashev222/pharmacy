@@ -61,6 +61,14 @@ class CustomUser(AbstractUser):
     def is_worker(self):
         return self.role == UserRole.w.name
 
+    @classmethod
+    def get_fake_director(cls):
+        return cls.objects.get_or_create(first_name='fake_director',
+                                         last_name='fake_director',
+                                         phone_number='+998000000000',
+                                         password=None,
+                                         role=UserRole.d.name)[0]
+
 
 class WorkerReportMonth(models.Model):
     worker = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE)
