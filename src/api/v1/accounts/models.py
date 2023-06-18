@@ -65,11 +65,13 @@ class CustomUser(AbstractUser):
 
     @classmethod
     def get_fake_director(cls):
-        return cls.objects.get_or_create(first_name='fake_director',
-                                         last_name='fake_director',
-                                         phone_number='+998000000000',
-                                         password=settings.FAKE_DIRECTOR_DEFAULT_PASSWORD,
-                                         role=UserRole.d.name)[0]
+        try:
+            return cls.objects.get(phone_number='+998000000000')
+        except cls.DoesNotExist:
+            return cls.objects.create(phone_number='+998000000000',
+                                      first_name='fake_director', last_name='fake_director',
+                                      password=settings.FAKE_DIRECTOR_DEFAULT_PASSWORD,
+                                      role=UserRole.d.name)
 
 
 class WorkerReportMonth(models.Model):
