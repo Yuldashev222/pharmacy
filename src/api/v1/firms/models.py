@@ -1,5 +1,5 @@
 from random import randint
-from datetime import timedelta, datetime, date
+from datetime import date
 from django.db import models
 
 from api.v1.companies.enums import DefaultTransferType

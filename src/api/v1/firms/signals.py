@@ -1,5 +1,5 @@
 from django.db.models import Sum
-from django.db.models.signals import post_delete, post_save
+from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 
 from api.v1.accounts.models import WorkerReport
@@ -10,7 +10,7 @@ from api.v1.pharmacies.models import PharmacyReportByShift
 from .models import FirmIncome, FirmExpense, FirmReport, FirmDebtByDate, FirmDebtByMonth
 
 
-@receiver(post_delete, sender=FirmReport)
+@receiver(pre_delete, sender=FirmReport)
 def update_firm_report(instance, *args, **kwargs):
     firm_debt, _ = FirmDebtByDate.objects.get_or_create(firm_id=instance.firm_id, report_date=instance.report_date)
 
@@ -38,19 +38,19 @@ def update_firm_report(instance, *args, **kwargs):
                                                         firm_id=instance.firm_id,
                                                         pharmacy=instance.pharmacy)
 
-    expense_price = FirmReport.objects.filter(report_date__year=by_month.year,
-                                              report_date__month=by_month.month,
-                                              firm_id=by_month.firm_id,
-                                              pharmacy=by_month.pharmacy,
-                                              is_expense=True
-                                              ).aggregate(s=Sum('price'))['s']
+    expense_price = FirmReport.objects.exclude(id=instance.id).filter(report_date__year=by_month.year,
+                                                                      report_date__month=by_month.month,
+                                                                      firm_id=by_month.firm_id,
+                                                                      pharmacy=by_month.pharmacy,
+                                                                      is_expense=True
+                                                                      ).aggregate(s=Sum('price'))['s']
 
-    income_price = FirmReport.objects.filter(report_date__year=by_month.year,
-                                             report_date__month=by_month.month,
-                                             firm_id=by_month.firm_id,
-                                             pharmacy=by_month.pharmacy,
-                                             is_expense=False
-                                             ).aggregate(s=Sum('price'))['s']
+    income_price = FirmReport.objects.exclude(id=instance.id).filter(report_date__year=by_month.year,
+                                                                     report_date__month=by_month.month,
+                                                                     firm_id=by_month.firm_id,
+                                                                     pharmacy=by_month.pharmacy,
+                                                                     is_expense=False
+                                                                     ).aggregate(s=Sum('price'))['s']
 
     by_month.expense_price = expense_price if expense_price else 0
     by_month.income_price = income_price if income_price else 0
