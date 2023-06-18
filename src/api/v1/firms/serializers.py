@@ -16,6 +16,13 @@ class FirmSerializer(serializers.ModelSerializer):
         exclude = ('director',)
         read_only_fields = ['creator']
 
+    def create(self, validated_data):
+        director = validated_data['director']
+        name = validated_data['name']
+        if Firm.objects.filter(name=name, director_id=director.id).exists():
+            raise ValidationError({'name': 'unique'})
+        return super().create(validated_data)
+
 
 class FirmIncomeSerializer(serializers.ModelSerializer):
     creator_name = serializers.StringRelatedField(source='creator', read_only=True)
