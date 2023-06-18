@@ -118,8 +118,6 @@ class PharmacyReportExcelAPIViewSet(PharmacyReportAPIViewSet):
         response = super().finalize_response(request, response, *args, **kwargs)
         filename = escape_uri_path(self.get_filename(request=request, *args, **kwargs))
         response["content-disposition"] = f"attachment; filename={filename}"
-        print()
-        print()
 
         data = []
         obj = OrderedDict()
@@ -148,8 +146,6 @@ class PharmacyReportExcelAPIViewSet(PharmacyReportAPIViewSet):
         else:
             if obj:
                 data.append(obj)
-        print()
-        print()
         response.data = data
         try:
             total_not_transfer_income = sum(list(map(lambda x: x['not_transfer_income'], response.data)))
