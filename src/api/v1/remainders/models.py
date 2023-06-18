@@ -1,4 +1,3 @@
-from datetime import datetime
 from django.db import models
 
 from api.v1.pharmacies.models import PharmacyReportByShift
@@ -11,28 +10,27 @@ class RemainderShift(models.Model):
     price = models.IntegerField(default=0)
 
     def save(self, *args, **kwargs):
-        # self.price = self.price if self.price >= 0 else 0
+        self.price = self.price if self.price >= 0 else 0
         super().save(*args, **kwargs)
+        if self.price:
+            obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=self.pharmacy_id,
+                                                                 shift=self.shift,
+                                                                 report_date=self.report_date)
 
-        obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=self.pharmacy_id,
-                                                             shift=self.shift,
-                                                             report_date=self.report_date)
-
-        obj.remainder = self.price
-        obj.save()
+            obj.remainder = self.price
+            obj.save()
 
     @classmethod
     def get_price(cls, pharmacy_id, report_date, shift):
-        price = 0
         objs = cls.objects.filter(pharmacy_id=pharmacy_id, report_date=report_date, shift__lte=shift).order_by('-shift')
         if objs.exists():
-            price = objs.first().price
+            return objs.first().price
         objs = cls.objects.filter(pharmacy_id=pharmacy_id, report_date__lt=report_date).order_by('-report_date',
                                                                                                  '-shift')
         if objs.exists():
-            price = objs.first().price
+            return objs.first().price
 
-        return price
+        return 0
 
 
 class RemainderDetail(models.Model):
@@ -55,19 +53,16 @@ class RemainderDetail(models.Model):
         if self.report_date and self.shift and self.pharmacy:
             price = RemainderDetail.objects.filter(pharmacy_id=self.pharmacy_id,
                                                    report_date=self.report_date,
-                                                   shift=self.shift
+                                                   shift__lte=self.shift
                                                    ).aggregate(s=models.Sum('price'))['s']
+            price = price if price else 0
+            price2 = RemainderDetail.objects.filter(pharmacy_id=self.pharmacy_id,
+                                                    report_date__lt=self.report_date,
+                                                    ).aggregate(s=models.Sum('price'))['s']
+            price += price2 if price2 else 0
 
             obj, _ = RemainderShift.objects.get_or_create(pharmacy_id=self.pharmacy_id,
                                                           shift=self.shift,
                                                           report_date=self.report_date)
             obj.price = price if price else 0
-
-            old_obj = RemainderShift.objects.filter(id__lt=obj.id,
-                                                    pharmacy_id=obj.pharmacy_id,
-                                                    shift=obj.shift,
-                                                    report_date=obj.report_date).order_by('-id')
-            if old_obj.exists():
-                old_price = old_obj.first().price
-                obj.price += old_price
             obj.save()

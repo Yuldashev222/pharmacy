@@ -19,6 +19,7 @@ class CustomUserAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         password = make_password(obj.password)
+        print(password, obj.password)
         if not obj.id:
             obj.password = password
         elif obj.password != CustomUser.objects.get(id=obj.id).password:
