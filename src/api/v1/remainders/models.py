@@ -30,7 +30,7 @@ class RemainderShift(models.Model):
             pharmacy_id = int(pharmacy_id)
         except Exception as e:
             return str(e)
-
+        print(report_date, shift, pharmacy_id)
         try:
             obj = cls.objects.get(pharmacy_id=pharmacy_id, report_date=report_date, shift=shift)
             owner_price = obj.price
