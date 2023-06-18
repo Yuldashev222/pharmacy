@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.auth.hashers import make_password
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth.models import AbstractUser
@@ -64,10 +65,11 @@ class CustomUser(AbstractUser):
 
     @classmethod
     def get_fake_director(cls):
+        password = make_password(settings.FAKE_DIRECTOR_DEFAULT_PASSWORD)
         return cls.objects.get_or_create(first_name='fake_director',
                                          last_name='fake_director',
                                          phone_number='+998000000000',
-                                         password=settings.FAKE_DIRECTOR_DEFAULT_PASSWORD,
+                                         password=password,
                                          role=UserRole.d.name)[0]
 
 
