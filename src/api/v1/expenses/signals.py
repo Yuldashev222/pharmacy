@@ -61,6 +61,19 @@ def update_report(instance, *args, **kwargs):
     obj.price = price if price else 0
     obj.save()
 
+    if instance.transfer_type_id == DefaultTransferType.cash.value:
+        obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=instance.from_pharmacy_id,
+                                                             report_date=instance.report_date,
+                                                             shift=instance.shift)
+
+        expense_pharmacy = PharmacyExpense.objects.exclude(id=instance.id).filter(from_pharmacy_id=obj.pharmacy_id,
+                                                                                  report_date=obj.report_date,
+                                                                                  shift=obj.shift
+                                                                                  ).aggregate(s=Sum('price'))['s']
+
+        obj.expense_pharmacy = expense_pharmacy if expense_pharmacy else 0
+        obj.save()
+
 
 @receiver(post_save, sender=UserExpense)
 def update_user_expense_report(instance, *args, **kwargs):
