@@ -36,6 +36,7 @@ class RemainderShift(models.Model):
         price = 0
         if objs.exists():
             price = objs[:2].aggregate(s=models.Sum('price'))['s']
+            print(objs[:2], 11111, price, 2222222222222222)
         # else:
         #     objs = cls.objects.filter(pharmacy_id=pharmacy_id, report_date__lt=report_date).order_by('-report_date',
         #                                                                                              '-shift')
