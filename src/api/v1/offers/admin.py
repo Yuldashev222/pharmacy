@@ -12,3 +12,9 @@ class OfferAdmin(admin.ModelAdmin):
 
     readonly_fields = ['creator', 'status', 'title', 'text', 'answered_at']
     fields = ['creator', 'status', 'title', 'text']
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
