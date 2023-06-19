@@ -130,7 +130,7 @@ class RetrieveUpdateDestroySerializer(serializers.ModelSerializer):
 class DirectorUpdateDestroySerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ['id', 'phone_number', 'is_active', 'password']
+        fields = ['id', 'phone_number', 'is_active', 'password', 'first_name', 'last_name']
         extra_kwargs = {
             'password': {
                 'write_only': True,
@@ -148,13 +148,13 @@ class DirectorUpdateDestroySerializer(serializers.ModelSerializer):
 
 class ManagerUpdateDestroySerializer(DirectorUpdateDestroySerializer):
     class Meta(DirectorUpdateDestroySerializer.Meta):
-        fields = DirectorUpdateDestroySerializer.Meta.fields + ['shift', 'wage']
+        fields = DirectorUpdateDestroySerializer.Meta.fields + ['wage']
 
 
 class WorkerUpdateDestroySerializer(DirectorUpdateDestroySerializer):
-    class Meta:
+    class Meta(ManagerUpdateDestroySerializer.Meta):
         model = CustomUser
-        fields = ['id', 'phone_number', 'is_active', 'shift', 'password', 'wage', 'is_main_worker']
+        fields = ManagerUpdateDestroySerializer.Meta.fields + ['shift', 'is_main_worker']
 
     def update(self, instance, validated_data):
         is_main_worker = validated_data.get('is_main_worker')
