@@ -1,6 +1,6 @@
+from django.dispatch import receiver
 from django.db.models import Sum
 from django.db.models.signals import post_save, pre_delete
-from django.dispatch import receiver
 
 from api.v1.accounts.models import WorkerReport
 from api.v1.companies.enums import DefaultTransferType
