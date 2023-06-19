@@ -15,13 +15,12 @@ from .reports.models import ExpenseReportMonth
 def update_report(instance, *args, **kwargs):
     # remainder update
     if instance.transfer_type_id == DefaultTransferType.cash.value:
-        if not instance.to_user:
-            obj, _ = RemainderDetail.objects.get_or_create(pharmacy_expense_id=instance.id)
-            obj.report_date = instance.report_date
-            obj.price = -1 * instance.price
-            obj.shift = instance.shift
-            obj.pharmacy_id = instance.from_pharmacy_id
-            obj.save()
+        obj, _ = RemainderDetail.objects.get_or_create(pharmacy_expense_id=instance.id)
+        obj.report_date = instance.report_date
+        obj.price = -1 * instance.price
+        obj.shift = instance.shift
+        obj.pharmacy_id = instance.from_pharmacy_id
+        obj.save()
 
         obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=instance.from_pharmacy_id,
                                                              report_date=instance.report_date,
