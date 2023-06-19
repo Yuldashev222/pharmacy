@@ -17,6 +17,9 @@ class CustomUserAdmin(admin.ModelAdmin):
 
     fields = ['first_name', 'last_name', 'phone_number', 'password', 'is_active']
 
+    def has_delete_permission(self, request, obj=None):
+        return False
+
     def save_model(self, request, obj, form, change):
         password = make_password(obj.password)
         if not obj.id:
