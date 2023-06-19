@@ -122,12 +122,8 @@ CACHES = {
 
 INTERNAL_IPS = []
 if DEBUG:
-    INTERNAL_IPS = [
-        "127.0.0.1",
-        "localhost",
-        "zbesstudio.uz",
-        "89.223.127.4",
-    ]
+    INTERNAL_IPS = ALLOWED_HOSTS
+
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""
 DJANGO CONFIGURATIONS
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
