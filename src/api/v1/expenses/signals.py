@@ -79,13 +79,13 @@ def update_report(instance, *args, **kwargs):
 @receiver(post_save, sender=UserExpense)
 def update_user_expense_report(instance, *args, **kwargs):
     # remainder update
-    if instance.transfer_type_id == DefaultTransferType.cash.value and instance.to_pharmacy:
-        obj, _ = RemainderDetail.objects.get_or_create(user_expense_id=instance.id)
-        obj.report_date = instance.report_date
-        obj.price = instance.price
-        obj.shift = instance.shift
-        obj.pharmacy_id = instance.to_pharmacy_id
-        obj.save()
+    # if instance.transfer_type_id == DefaultTransferType.cash.value and instance.to_pharmacy:
+    #     obj, _ = RemainderDetail.objects.get_or_create(user_expense_id=instance.id)
+    #     obj.report_date = instance.report_date
+    #     obj.price = instance.price
+    #     obj.shift = instance.shift
+    #     obj.pharmacy_id = instance.to_pharmacy_id
+    #     obj.save()
 
     # worker reports update
     obj, _ = WorkerReport.objects.get_or_create(user_expense_id=instance.id, is_expense=True)
