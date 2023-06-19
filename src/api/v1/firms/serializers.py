@@ -73,7 +73,8 @@ class FirmExpenseSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'from_pharmacy': {'required': True, 'allow_null': False}
         }
-        read_only_fields = ('is_verified', 'report_date', 'creator')
+        # read_only_fields = ('is_verified', 'report_date', 'creator')
+        read_only_fields = ('is_verified', 'creator')
 
     def validate(self, attrs):
         user = self.context['request'].user
@@ -95,7 +96,8 @@ class FirmExpenseSerializer(serializers.ModelSerializer):
 
 class WorkerFirmExpenseSerializer(FirmExpenseSerializer):
     class Meta(FirmExpenseSerializer.Meta):
-        read_only_fields = ('report_date', 'shift', 'from_pharmacy', 'creator', 'is_verified')
+        # read_only_fields = ('report_date', 'shift', 'from_pharmacy', 'creator', 'is_verified')
+        read_only_fields = ('shift', 'from_pharmacy', 'creator', 'is_verified')
 
 
 class DirectorManagerFirmExpenseSerializer(FirmExpenseSerializer):
