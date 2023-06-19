@@ -13,20 +13,22 @@ from .models import FirmIncome, FirmExpense, FirmReport, FirmDebtByDate, FirmDeb
 @receiver(pre_delete, sender=FirmReport)
 def update_firm_report(instance, *args, **kwargs):
     firm_debt, _ = FirmDebtByDate.objects.get_or_create(firm_id=instance.firm_id, report_date=instance.report_date)
+    objs = FirmIncome.objects.filter(is_paid=False,
+                                     is_transfer_return=False,
+                                     from_firm_id=firm_debt.firm_id,
+                                     report_date__lte=firm_debt.report_date)
 
-    incomes_not_transfer_debt_price = FirmIncome.objects.exclude(id=instance.income.id
-                                                                 ).filter(is_paid=False,
-                                                                          is_transfer_return=False,
-                                                                          from_firm_id=firm_debt.firm_id,
-                                                                          report_date__lte=firm_debt.report_date
-                                                                          ).aggregate(s=Sum('remaining_debt'))['s']
+    objs2 = FirmIncome.objects.filter(is_paid=False,
+                                      is_transfer_return=True,
+                                      from_firm_id=firm_debt.firm_id,
+                                      report_date__lte=firm_debt.report_date)
 
-    incomes_transfer_debt_price = FirmIncome.objects.exclude(id=instance.income.id
-                                                             ).filter(is_paid=False,
-                                                                      is_transfer_return=True,
-                                                                      from_firm_id=firm_debt.firm_id,
-                                                                      report_date__lte=firm_debt.report_date
-                                                                      ).aggregate(s=Sum('remaining_debt'))['s']
+    if instance.income:
+        objs = objs.exclude(id=instance.income.id)
+        objs2 = objs2.exclude(id=instance.income.id)
+
+    incomes_not_transfer_debt_price = objs.aggregate(s=Sum('remaining_debt'))['s']
+    incomes_transfer_debt_price = objs2.aggregate(s=Sum('remaining_debt'))['s']
 
     incomes_not_transfer_debt_price = incomes_not_transfer_debt_price if incomes_not_transfer_debt_price else 0
     incomes_transfer_debt_price = incomes_transfer_debt_price if incomes_transfer_debt_price else 0
