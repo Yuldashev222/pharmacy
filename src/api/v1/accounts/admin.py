@@ -11,9 +11,10 @@ admin.site.unregister([OutstandingToken, BlacklistedToken, Group])
 
 @admin.register(CustomUser)
 class CustomUserAdmin(admin.ModelAdmin):
-    list_display = ['first_name', 'last_name', 'phone_number', 'date_joined']
+    list_display = ['first_name', 'last_name', 'phone_number', 'date_joined', 'is_active']
     search_fields = ['first_name', 'last_name', 'phone_number']
     list_display_links = list_display
+    list_filter = ['is_active']
 
     fields = ['first_name', 'last_name', 'phone_number', 'password', 'is_active']
 
