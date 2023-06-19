@@ -7,13 +7,13 @@ from api.v1.companies.enums import DefaultTransferType
 from api.v1.remainders.models import RemainderDetail
 from api.v1.pharmacies.models import PharmacyReportByShift
 
-from .models import DebtRepayFromPharmacy, DebtToPharmacy, DebtFromPharmacy, DebtRepayToPharmacy
+from .models import DebtRepayFromPharmacy, DebtFromPharmacy, DebtRepayToPharmacy
 
 
 @receiver(post_save, sender=DebtFromPharmacy)
 def report_update(instance, *args, **kwargs):
     # remainder update
-    if instance.transfer_type_id == DefaultTransferType.cash.value and not instance.is_client:
+    if instance.transfer_type_id == DefaultTransferType.cash.value and not instance.is_client:  # last
         obj, _ = RemainderDetail.objects.get_or_create(debt_from_pharmacy_id=instance.id)
         obj.report_date = instance.report_date
         obj.price = -1 * instance.price
@@ -86,13 +86,13 @@ def report_update(instance, *args, **kwargs):
         WorkerReport.objects.filter(debt_repay_from_pharmacy_id=instance.id).delete()
 
 
-@receiver(post_save, sender=DebtToPharmacy)
-def remainder_update(instance, *args, **kwargs):
-    if instance.transfer_type_id == DefaultTransferType.cash.value and not (
-            instance.to_firm_expense or instance.pharmacy_expense or instance.user_expense):
-        obj, _ = RemainderDetail.objects.get_or_create(debt_to_pharmacy_id=instance.id)
-        obj.report_date = instance.report_date
-        obj.price = instance.price
-        obj.shift = instance.shift
-        obj.pharmacy_id = instance.to_pharmacy_id
-        obj.save()
+# @receiver(post_save, sender=DebtToPharmacy)
+# def remainder_update(instance, *args, **kwargs):
+#     if instance.transfer_type_id == DefaultTransferType.cash.value and not (
+#             instance.to_firm_expense or instance.pharmacy_expense or instance.user_expense):
+#         obj, _ = RemainderDetail.objects.get_or_create(debt_to_pharmacy_id=instance.id)
+#         obj.report_date = instance.report_date
+#         obj.price = instance.price
+#         obj.shift = instance.shift
+#         obj.pharmacy_id = instance.to_pharmacy_id
+#         obj.save()
