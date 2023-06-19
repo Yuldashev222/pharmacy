@@ -5,11 +5,12 @@ from django.utils.encoding import escape_uri_path
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
+
+from api.v1.companies.enums import MONTHS
+from api.v1.pharmacies.models import Pharmacy
 from api.v1.accounts.permissions import IsDirector, IsManager
 
 from .models import PharmacyIncomeReportMonth, PharmacyIncomeReportDay
-from ..companies.enums import MONTHS
-from ..pharmacies.models import Pharmacy
 
 
 class PharmacyIncomeReportMonthSerializer(serializers.ModelSerializer):
