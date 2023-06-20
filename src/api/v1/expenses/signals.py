@@ -38,7 +38,8 @@ def update_report(instance, *args, **kwargs):
             objs = PharmacyExpense.objects.filter(from_pharmacy_id=obj.pharmacy_id,
                                                   report_date=obj.report_date,
                                                   shift=obj.shift,
-                                                  transfer_type_id=DefaultTransferType.cash.value
+                                                  transfer_type_id=DefaultTransferType.cash.value,
+                                                  expense_type_id=DefaultExpenseType.discount_id.value,
                                                   ).values_list('price', flat=True)
 
             not_transfer_discount_price = sum(list(map(lambda x: int(x) if str(x).isdigit() else 0, objs)))
@@ -53,7 +54,8 @@ def update_report(instance, *args, **kwargs):
 
         objs = PharmacyExpense.objects.filter(from_pharmacy_id=obj.pharmacy_id,
                                               report_date=obj.report_date,
-                                              shift=obj.shift
+                                              shift=obj.shift,
+                                              expense_type_id=DefaultExpenseType.discount_id.value,
                                               ).exclude(transfer_type_id=DefaultTransferType.cash.value
                                                         ).values_list('price', flat=True)
 
@@ -106,7 +108,8 @@ def update_report(instance, *args, **kwargs):
             objs = PharmacyExpense.objects.exclude(id=instance.id).filter(from_pharmacy_id=obj.pharmacy_id,
                                                                           report_date=obj.report_date,
                                                                           shift=obj.shift,
-                                                                          transfer_type_id=DefaultTransferType.cash.value
+                                                                          transfer_type_id=DefaultTransferType.cash.value,
+                                                                          expense_type_id=DefaultExpenseType.discount_id.value
                                                                           ).values_list('price', flat=True)
 
             not_transfer_discount_price = sum(list(map(lambda x: int(x) if str(x).isdigit() else 0, objs)))
@@ -122,7 +125,8 @@ def update_report(instance, *args, **kwargs):
         objs = PharmacyExpense.objects.exclude(id=instance.id).exclude(transfer_type_id=DefaultTransferType.cash.value
                                                                        ).filter(from_pharmacy_id=obj.pharmacy_id,
                                                                                 report_date=obj.report_date,
-                                                                                shift=obj.shift
+                                                                                shift=obj.shift,
+                                                                                expense_type_id=DefaultExpenseType.discount_id.value
                                                                                 ).values_list('price', flat=True)
 
         transfer_discount_price = sum(list(map(lambda x: int(x) if str(x).isdigit() else 0, objs)))
