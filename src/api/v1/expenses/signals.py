@@ -6,6 +6,7 @@ from api.v1.accounts.models import WorkerReport
 from api.v1.companies.enums import DefaultTransferType
 from api.v1.remainders.models import RemainderDetail
 from api.v1.pharmacies.models import PharmacyReportByShift
+from .enums import DefaultExpenseType
 
 from .models import PharmacyExpense, UserExpense
 from .reports.models import ExpenseReportMonth
@@ -25,11 +26,38 @@ def update_report(instance, *args, **kwargs):
         obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=instance.from_pharmacy_id,
                                                              report_date=instance.report_date,
                                                              shift=instance.shift)
+
         expense_pharmacy = PharmacyExpense.objects.filter(from_pharmacy_id=obj.pharmacy_id,
                                                           report_date=obj.report_date,
                                                           shift=obj.shift
                                                           ).aggregate(s=Sum('price'))['s']
+
+        if instance.expense_type_id == DefaultExpenseType.discount_id.value:
+            objs = PharmacyExpense.objects.filter(from_pharmacy_id=obj.pharmacy_id,
+                                                  report_date=obj.report_date,
+                                                  shift=obj.shift,
+                                                  transfer_type_id=DefaultTransferType.cash.value
+                                                  ).values_list('second_name', flat=True)
+
+            not_transfer_discount_price = sum(list(map(lambda x: int(x) if str(x).isdigit() else 0, objs)))
+            obj.not_transfer_discount_price = not_transfer_discount_price
+
         obj.expense_pharmacy = expense_pharmacy if expense_pharmacy else 0
+        obj.save()
+
+    elif instance.expense_type_id == DefaultExpenseType.discount_id.value:
+        obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=instance.from_pharmacy_id,
+                                                             report_date=instance.report_date,
+                                                             shift=instance.shift)
+
+        objs = PharmacyExpense.objects.filter(from_pharmacy_id=obj.pharmacy_id,
+                                              report_date=obj.report_date,
+                                              shift=obj.shift
+                                              ).exclude(transfer_type_id=DefaultTransferType.cash.value
+                                                        ).values_list('second_name', flat=True)
+
+        transfer_discount_price = sum(list(map(lambda x: int(x) if str(x).isdigit() else 0, objs)))
+        obj.transfer_discount_price = transfer_discount_price
         obj.save()
 
     if instance.to_user:
@@ -71,7 +99,32 @@ def update_report(instance, *args, **kwargs):
                                                                                   shift=obj.shift
                                                                                   ).aggregate(s=Sum('price'))['s']
 
+        if instance.expense_type_id == DefaultExpenseType.discount_id.value:
+            objs = PharmacyExpense.objects.exclude(id=instance.id).filter(from_pharmacy_id=obj.pharmacy_id,
+                                                                          report_date=obj.report_date,
+                                                                          shift=obj.shift,
+                                                                          transfer_type_id=DefaultTransferType.cash.value
+                                                                          ).values_list('second_name', flat=True)
+
+            not_transfer_discount_price = sum(list(map(lambda x: int(x) if str(x).isdigit() else 0, objs)))
+            obj.not_transfer_discount_price = not_transfer_discount_price
+
         obj.expense_pharmacy = expense_pharmacy if expense_pharmacy else 0
+        obj.save()
+
+    elif instance.expense_type_id == DefaultExpenseType.discount_id.value:
+        obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=instance.from_pharmacy_id,
+                                                             report_date=instance.report_date,
+                                                             shift=instance.shift)
+
+        objs = PharmacyExpense.objects.exclude(id=instance.id).exclude(transfer_type_id=DefaultTransferType.cash.value
+                                                                       ).filter(from_pharmacy_id=obj.pharmacy_id,
+                                                                                report_date=obj.report_date,
+                                                                                shift=obj.shift
+                                                                                ).values_list('second_name', flat=True)
+
+        transfer_discount_price = sum(list(map(lambda x: int(x) if str(x).isdigit() else 0, objs)))
+        obj.transfer_discount_price = transfer_discount_price
         obj.save()
 
 
