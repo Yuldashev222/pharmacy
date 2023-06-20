@@ -16,6 +16,7 @@ from .models import FirmIncome, FirmExpense, Firm, FirmReturnProduct
 
 class FirmAPIViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_fields = ['is_favorite']
     search_fields = ['name']
     serializer_class = serializers.FirmSerializer
 
