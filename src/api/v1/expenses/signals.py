@@ -39,7 +39,7 @@ def update_report(instance, *args, **kwargs):
                                                   report_date=obj.report_date,
                                                   shift=obj.shift,
                                                   transfer_type_id=DefaultTransferType.cash.value
-                                                  ).values_list('second_name', flat=True)
+                                                  ).values_list('price', flat=True)
 
             not_transfer_discount_price = sum(list(map(lambda x: int(x) if str(x).isdigit() else 0, objs)))
             obj.not_transfer_discount_price = not_transfer_discount_price
@@ -55,7 +55,7 @@ def update_report(instance, *args, **kwargs):
                                               report_date=obj.report_date,
                                               shift=obj.shift
                                               ).exclude(transfer_type_id=DefaultTransferType.cash.value
-                                                        ).values_list('second_name', flat=True)
+                                                        ).values_list('price', flat=True)
 
         transfer_discount_price = sum(list(map(lambda x: int(x) if str(x).isdigit() else 0, objs)))
         obj.transfer_discount_price = transfer_discount_price
@@ -107,7 +107,7 @@ def update_report(instance, *args, **kwargs):
                                                                           report_date=obj.report_date,
                                                                           shift=obj.shift,
                                                                           transfer_type_id=DefaultTransferType.cash.value
-                                                                          ).values_list('second_name', flat=True)
+                                                                          ).values_list('price', flat=True)
 
             not_transfer_discount_price = sum(list(map(lambda x: int(x) if str(x).isdigit() else 0, objs)))
             obj.not_transfer_discount_price = not_transfer_discount_price
@@ -123,7 +123,7 @@ def update_report(instance, *args, **kwargs):
                                                                        ).filter(from_pharmacy_id=obj.pharmacy_id,
                                                                                 report_date=obj.report_date,
                                                                                 shift=obj.shift
-                                                                                ).values_list('second_name', flat=True)
+                                                                                ).values_list('price', flat=True)
 
         transfer_discount_price = sum(list(map(lambda x: int(x) if str(x).isdigit() else 0, objs)))
         obj.transfer_discount_price = transfer_discount_price
