@@ -46,6 +46,8 @@ class PharmacyReportByShift(models.Model):
     total_expense = models.IntegerField(default=0)  # last
     remainder = models.IntegerField(default=0)
     receipt_price = models.IntegerField(default=0)
+    transfer_discount_price = models.IntegerField(default=0)
+    not_transfer_discount_price = models.IntegerField(default=0)
 
     expense_debt_repay_from_pharmacy = models.IntegerField(default=0)
     expense_debt_from_pharmacy = models.IntegerField(default=0)
