@@ -20,5 +20,5 @@ def update_user_income_report(instance, *args, **kwargs):
     obj, _ = RemainderShift.objects.get_or_create(pharmacy_id=instance.pharmacy_id,
                                                   shift=instance.shift,
                                                   report_date=instance.report_date)
-    obj.price = price if price else 0
+    obj.price = price
     obj.save()
