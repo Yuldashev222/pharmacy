@@ -1,5 +1,5 @@
 from django.dispatch import receiver
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.db.models.signals import pre_delete, post_save
 
 from api.v1.accounts.models import WorkerReport
@@ -16,19 +16,28 @@ def update_user_income_report(instance, *args, **kwargs):
     obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=instance.to_pharmacy_id,
                                                          report_date=instance.report_date,
                                                          shift=instance.shift)
-
+    print(11111111111111)
     if instance.transfer_type_id != DefaultTransferType.cash.value:
-        transfer_income = PharmacyIncome.objects.exclude(id=instance.id, transfer_type_id=DefaultTransferType.cash.value
-                                                         ).filter(report_date=obj.report_date,
-                                                                  to_pharmacy_id=obj.pharmacy_id,
-                                                                  shift=obj.shift).aggregate(s=Sum('price'))['s']
+        print(22222222222222)
+        print(instance.id)
+        print(obj.report_date)
+        print(obj.pharmacy_id)
+        print(obj.shift)
+        transfer_income = PharmacyIncome.objects.exclude(Q(transfer_type_id=DefaultTransferType.cash.value) |
+                                                         Q(id=instance.id)).filter(report_date=obj.report_date,
+                                                                                   to_pharmacy_id=obj.pharmacy_id,
+                                                                                   shift=obj.shift
+                                                                                   ).aggregate(s=Sum('price'))['s']
+        print(transfer_income, 'AAAAAAAAAAAAAAAAA')
+
         obj.transfer_income = transfer_income if transfer_income else 0
     else:
-        not_transfer_income = PharmacyIncome.objects.exclude(id=instance.id).filter(report_date=obj.report_date,
-                                                                                    to_pharmacy_id=obj.pharmacy_id,
-                                                                                    shift=obj.shift,
-                                                                                    transfer_type_id=DefaultTransferType.cash.value
-                                                                                    ).aggregate(s=Sum('price'))['s']
+        not_transfer_income = PharmacyIncome.objects.exclude(id=instance.id
+                                                             ).filter(report_date=obj.report_date,
+                                                                      to_pharmacy_id=obj.pharmacy_id,
+                                                                      shift=obj.shift,
+                                                                      transfer_type_id=DefaultTransferType.cash.value
+                                                                      ).aggregate(s=Sum('price'))['s']
         obj.not_transfer_income = not_transfer_income if not_transfer_income else 0
     obj.save()
 
