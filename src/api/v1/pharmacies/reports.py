@@ -58,7 +58,16 @@ class PharmacyReportAPIViewSet(ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = PharmacyReportByShift.objects.filter(pharmacy__director_id=user.director_id).select_related('worker')
+        queryset = PharmacyReportByShift.objects.exclude(not_transfer_income=0,
+                                                         transfer_income=0,
+                                                         debt_income=0,
+                                                         total_expense=0,
+                                                         remainder=0,
+                                                         receipt_price=0,
+                                                         transfer_discount_price=0,
+                                                         not_transfer_discount_price=0,
+                                                         ).filter(pharmacy__director_id=user.director_id
+                                                                  ).select_related('worker')
         return queryset.order_by('report_date', 'shift')
 
 
