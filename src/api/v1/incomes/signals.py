@@ -12,6 +12,26 @@ from .models import PharmacyIncome, PharmacyIncomeReportDay
 
 @receiver(pre_delete, sender=PharmacyIncome)
 def update_user_income_report(instance, *args, **kwargs):
+    # pharmacy reports update
+    obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=instance.to_pharmacy_id,
+                                                         report_date=instance.report_date,
+                                                         shift=instance.shift)
+
+    if instance.transfer_type_id != DefaultTransferType.cash.value:
+        transfer_income = PharmacyIncome.objects.exclude(id=instance.id, transfer_type_id=DefaultTransferType.cash.value
+                                                         ).filter(report_date=obj.report_date,
+                                                                  to_pharmacy_id=obj.pharmacy_id,
+                                                                  shift=obj.shift).aggregate(s=Sum('price'))['s']
+        obj.transfer_income = transfer_income if transfer_income else 0
+    else:
+        not_transfer_income = PharmacyIncome.objects.exclude(id=instance.id).filter(report_date=obj.report_date,
+                                                                                    to_pharmacy_id=obj.pharmacy_id,
+                                                                                    shift=obj.shift,
+                                                                                    transfer_type_id=DefaultTransferType.cash.value
+                                                                                    ).aggregate(s=Sum('price'))['s']
+        obj.not_transfer_income = not_transfer_income if not_transfer_income else 0
+    obj.save()
+
     price = PharmacyIncome.objects.exclude(id=instance.id).filter(report_date=instance.report_date,
                                                                   to_pharmacy_id=instance.to_pharmacy_id
                                                                   ).aggregate(s=Sum('price'))['s']
