@@ -12,13 +12,12 @@ class RemainderShift(models.Model):
     def save(self, *args, **kwargs):
         self.price = self.price if self.price >= 0 else 0
         super().save(*args, **kwargs)
-        if self.price:
-            obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=self.pharmacy_id,
-                                                                 shift=self.shift,
-                                                                 report_date=self.report_date)
+        obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=self.pharmacy_id,
+                                                             shift=self.shift,
+                                                             report_date=self.report_date)
 
-            obj.remainder = self.price
-            obj.save()
+        obj.remainder = self.price
+        obj.save()
 
     @classmethod
     def get_price(cls, pharmacy_id, report_date, shift):
