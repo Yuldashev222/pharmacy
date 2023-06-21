@@ -66,7 +66,7 @@ def report_update(instance, *args, **kwargs):
     if instance.is_verified:
 
         # remainder update
-        if instance.transfer_type_id == DefaultTransferType.cash.value and not instance.from_user:  # last
+        if instance.transfer_type_id == DefaultTransferType.cash.value and not instance.from_user:
             obj, _ = RemainderDetail.objects.get_or_create(firm_expense_id=instance.id)
             obj.report_date = instance.report_date
             obj.price = -1 * instance.price

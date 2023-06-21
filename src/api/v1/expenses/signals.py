@@ -1,5 +1,5 @@
 from django.dispatch import receiver
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.db.models.signals import pre_delete, post_save
 
 from api.v1.accounts.models import WorkerReport
@@ -28,10 +28,14 @@ def update_report(instance, *args, **kwargs):
                                                              shift=instance.shift)
 
         if instance.expense_type_id != DefaultExpenseType.discount_id.value:
-            expense_pharmacy = PharmacyExpense.objects.filter(from_pharmacy_id=obj.pharmacy_id,
-                                                              report_date=obj.report_date,
-                                                              shift=obj.shift
-                                                              ).aggregate(s=Sum('price'))['s']
+
+            expense_pharmacy = PharmacyExpense.objects.exclude(expense_type_id=DefaultExpenseType.discount_id.value
+                                                               ).filter(from_pharmacy_id=obj.pharmacy_id,
+                                                                        report_date=obj.report_date,
+                                                                        shift=obj.shift,
+                                                                        transfer_type_id=DefaultTransferType.cash.value
+                                                                        ).aggregate(s=Sum('price'))['s']
+
             obj.expense_pharmacy = expense_pharmacy if expense_pharmacy else 0
 
         else:
@@ -52,11 +56,11 @@ def update_report(instance, *args, **kwargs):
                                                              report_date=instance.report_date,
                                                              shift=instance.shift)
 
-        objs = PharmacyExpense.objects.filter(from_pharmacy_id=obj.pharmacy_id,
-                                              report_date=obj.report_date,
-                                              shift=obj.shift,
-                                              expense_type_id=DefaultExpenseType.discount_id.value,
-                                              ).exclude(transfer_type_id=DefaultTransferType.cash.value
+        objs = PharmacyExpense.objects.exclude(transfer_type_id=DefaultTransferType.cash.value
+                                               ).filter(from_pharmacy_id=obj.pharmacy_id,
+                                                        report_date=obj.report_date,
+                                                        shift=obj.shift,
+                                                        expense_type_id=DefaultExpenseType.discount_id.value,
                                                         ).values_list('price', flat=True)
 
         transfer_discount_price = sum(list(map(lambda x: int(x) if str(x).isdigit() else 0, objs)))
@@ -98,10 +102,14 @@ def update_report(instance, *args, **kwargs):
                                                              shift=instance.shift)
 
         if instance.expense_type_id != DefaultExpenseType.discount_id.value:
-            expense_pharmacy = PharmacyExpense.objects.exclude(id=instance.id).filter(from_pharmacy_id=obj.pharmacy_id,
-                                                                                      report_date=obj.report_date,
-                                                                                      shift=obj.shift
-                                                                                      ).aggregate(s=Sum('price'))['s']
+            expense_pharmacy = PharmacyExpense.objects.exclude(Q(id=instance.id) |
+                                                               Q(expense_type_id=DefaultExpenseType.discount_id.value)
+                                                               ).filter(from_pharmacy_id=obj.pharmacy_id,
+                                                                        report_date=obj.report_date,
+                                                                        transfer_type_id=DefaultTransferType.cash.value,
+                                                                        shift=obj.shift
+                                                                        ).aggregate(s=Sum('price'))['s']
+
             obj.expense_pharmacy = expense_pharmacy if expense_pharmacy else 0
 
         else:
@@ -122,12 +130,13 @@ def update_report(instance, *args, **kwargs):
                                                              report_date=instance.report_date,
                                                              shift=instance.shift)
 
-        objs = PharmacyExpense.objects.exclude(id=instance.id).exclude(transfer_type_id=DefaultTransferType.cash.value
-                                                                       ).filter(from_pharmacy_id=obj.pharmacy_id,
-                                                                                report_date=obj.report_date,
-                                                                                shift=obj.shift,
-                                                                                expense_type_id=DefaultExpenseType.discount_id.value
-                                                                                ).values_list('price', flat=True)
+        objs = PharmacyExpense.objects.exclude(id=instance.id
+                                               ).exclude(transfer_type_id=DefaultTransferType.cash.value
+                                                         ).filter(from_pharmacy_id=obj.pharmacy_id,
+                                                                  report_date=obj.report_date,
+                                                                  shift=obj.shift,
+                                                                  expense_type_id=DefaultExpenseType.discount_id.value
+                                                                  ).values_list('price', flat=True)
 
         transfer_discount_price = sum(list(map(lambda x: int(x) if str(x).isdigit() else 0, objs)))
         obj.transfer_discount_price = transfer_discount_price
