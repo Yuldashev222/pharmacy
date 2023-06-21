@@ -1,8 +1,7 @@
 from collections import OrderedDict
-
-from django.utils.encoding import escape_uri_path
-from drf_excel.renderers import XLSXRenderer
 from rest_framework import filters, serializers
+from drf_excel.renderers import XLSXRenderer
+from django.utils.encoding import escape_uri_path
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
@@ -50,15 +49,88 @@ class DebtToPharmacyAPIView(ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.is_worker:
-            queryset = DebtToPharmacy.objects.filter(to_pharmacy_id=user.pharmacy_id, is_paid=False)
+            queryset = DebtToPharmacy.objects.filter(to_pharmacy_id=user.pharmacy_id)
         else:
             queryset = DebtToPharmacy.objects.filter(to_pharmacy__director_id=user.director_id)
-        queryset = queryset.exclude(to_firm_expense__isnull=False,
-                                    to_firm_expense__is_verified=False).select_related('creator',
+        queryset = queryset.exclude(to_firm_expense__is_verified=False).select_related('creator',
                                                                                        'to_pharmacy',
                                                                                        'transfer_type'
                                                                                        ).order_by('-created_at')
         return queryset
+
+
+class TodayDebtToPharmacyAPIView(DebtToPharmacyAPIView):
+    pagination_class = None
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'results': serializer.data})
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_worker:
+            queryset = DebtToPharmacy.objects.filter(to_pharmacy_id=user.pharmacy_id,
+                                                     shift=user.shift,
+                                                     report_date=get_worker_report_date(
+                                                         user.pharmacy.last_shift_end_hour))
+        else:
+            queryset = DebtToPharmacy.objects.filter(to_pharmacy__director_id=user.director_id)
+        queryset = queryset.exclude(to_firm_expense__is_verified=False).select_related('creator',
+                                                                                       'to_pharmacy',
+                                                                                       'transfer_type'
+                                                                                       ).order_by('-created_at')
+        return queryset
+
+
+class DebtRepayFromPharmacyAPIView(ModelViewSet):
+    pagination_class = None
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['report_date', 'shift', 'to_debt__to_pharmacy']
+
+    def get_permissions(self):
+        permission_classes = [IsAuthenticated, NotProjectOwner]
+        if self.request.user.is_worker and self.action not in ['list', 'retrieve']:
+            permission_classes += [WorkerTodayObject]
+        return [permission() for permission in permission_classes]
+
+    def perform_destroy(self, instance):
+        to_debt = instance.to_debt
+        to_debt.remaining_debt += instance.price
+        if to_debt.remaining_debt > 0:
+            to_debt.is_paid = False
+        to_debt.save()
+        instance.delete()
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        data = {'creator_id': user.id}
+        if user.is_worker:
+            data['shift'] = user.shift
+            data['report_date'] = get_worker_report_date(user.pharmacy.last_shift_end_hour)
+        serializer.save(**data)
+
+    def get_serializer_class(self):
+        if self.request.user.is_worker:
+            return debt_repay_from_pharmacy.WorkerDebtRepayFromPharmacySerializer
+        return debt_repay_from_pharmacy.DirectorManagerDebtRepayFromPharmacySerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_worker:
+            queryset = DebtRepayFromPharmacy.objects.filter(to_debt__to_pharmacy_id=user.pharmacy_id,
+                                                            shift=user.shift,
+                                                            report_date=get_worker_report_date(
+                                                                user.pharmacy.last_shift_end_hour))
+        else:
+            queryset = DebtRepayFromPharmacy.objects.filter(to_debt__to_pharmacy__director_id=user.director_id)
+        return queryset.select_related('creator', 'from_user', 'transfer_type', 'to_debt').order_by('-report_date',
+                                                                                                    '-created_at')
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'results': serializer.data})
 
 
 class DebtToPharmacyExcelSerializer(serializers.ModelSerializer):
@@ -167,79 +239,3 @@ class DebtToPharmacyExcelAPIView(DebtToPharmacyAPIView):
         },
         'height': 40,
     }
-
-
-class TodayDebtToPharmacyAPIView(DebtToPharmacyAPIView):
-    pagination_class = None
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        serializer = self.get_serializer(queryset, many=True)
-        return Response({'results': serializer.data})
-
-    def get_queryset(self):
-        user = self.request.user
-        if user.is_worker:
-            queryset = DebtToPharmacy.objects.filter(to_pharmacy_id=user.pharmacy_id,
-                                                     is_paid=False,
-                                                     shift=user.shift,
-                                                     report_date=get_worker_report_date(
-                                                         user.pharmacy.last_shift_end_hour))
-        else:
-            queryset = DebtToPharmacy.objects.filter(to_pharmacy__director_id=user.director_id)
-        queryset = queryset.exclude(to_firm_expense__isnull=False,
-                                    to_firm_expense__is_verified=False).select_related('creator',
-                                                                                       'to_pharmacy',
-                                                                                       'transfer_type'
-                                                                                       ).order_by('-created_at')
-        return queryset
-
-
-class DebtRepayFromPharmacyAPIView(ModelViewSet):
-    pagination_class = None
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['report_date', 'shift', 'to_debt__to_pharmacy']
-
-    def get_permissions(self):
-        permission_classes = [IsAuthenticated, NotProjectOwner]
-        if self.request.user.is_worker and self.action not in ['list', 'retrieve']:
-            permission_classes += [WorkerTodayObject]
-        return [permission() for permission in permission_classes]
-
-    def perform_destroy(self, instance):
-        to_debt = instance.to_debt
-        to_debt.remaining_debt += instance.price
-        if to_debt.remaining_debt > 0:
-            to_debt.is_paid = False
-        to_debt.save()
-        instance.delete()
-
-    def perform_create(self, serializer):
-        user = self.request.user
-        data = {'creator_id': user.id}
-        if user.is_worker:
-            data['shift'] = user.shift
-            data['report_date'] = get_worker_report_date(user.pharmacy.last_shift_end_hour)
-        serializer.save(**data)
-
-    def get_serializer_class(self):
-        if self.request.user.is_worker:
-            return debt_repay_from_pharmacy.WorkerDebtRepayFromPharmacySerializer
-        return debt_repay_from_pharmacy.DirectorManagerDebtRepayFromPharmacySerializer
-
-    def get_queryset(self):
-        user = self.request.user
-        if user.is_worker:
-            queryset = DebtRepayFromPharmacy.objects.filter(to_debt__to_pharmacy_id=user.pharmacy_id,
-                                                            shift=user.shift,
-                                                            report_date=get_worker_report_date(
-                                                                user.pharmacy.last_shift_end_hour))
-        else:
-            queryset = DebtRepayFromPharmacy.objects.filter(to_debt__to_pharmacy__director_id=user.director_id)
-        return queryset.select_related('creator', 'from_user', 'transfer_type', 'to_debt').order_by('-report_date',
-                                                                                                    '-created_at')
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        serializer = self.get_serializer(queryset, many=True)
-        return Response({'results': serializer.data})
