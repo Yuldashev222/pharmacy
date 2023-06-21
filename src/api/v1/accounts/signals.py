@@ -32,6 +32,7 @@ def delete_photo(instance, *args, **kwargs):
 def update_user_month_report(instance, *args, **kwargs):
     if instance.pk and instance.worker and instance.report_date:
         old_worker = WorkerReport.objects.get(id=instance.id).worker
+
         if old_worker and instance.worker_id != old_worker.id:
             obj, _ = WorkerReportMonth.objects.get_or_create(month=instance.report_date.month,
                                                              year=instance.report_date.year,

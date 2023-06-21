@@ -19,11 +19,9 @@ class EskizUz:
         token = EskizUzToken.objects.all()
         if token.exists():
             return token.first().token
-        response = requests.request(
-            method='POST',
-            url=settings.ESKIZ_UZ_TOKEN_URL,
-            data={'email': settings.ESKIZ_UZ_EMAIL, 'password': settings.ESKIZ_UZ_PASSWORD}
-        )
+        response = requests.request(method='POST',
+                                    url=settings.ESKIZ_UZ_TOKEN_URL,
+                                    data={'email': settings.ESKIZ_UZ_EMAIL, 'password': settings.ESKIZ_UZ_PASSWORD})
         token = response.json()['data']['token']
         EskizUzToken.objects.create(token=token)
         return token
@@ -73,9 +71,9 @@ class EskizUz:
             if digit % 3 == 0 and temp != 0:
                 result += 'yuz '
 
-            if not (
-                    result.endswith('milliard ') or result.endswith('million ') or result.endswith('ming ')
-            ) and digit in dct:
+            if not (result.endswith('milliard ') or result.endswith('million ') or result.endswith('ming ')) \
+                    and \
+                    digit in dct:
                 result += dct[digit]
 
             price %= ten_power
@@ -99,7 +97,7 @@ class EskizUz:
     @classmethod
     def verify_code_message(cls, firm_name, pharmacy_name, price, verify_code, firm_worker_name):
         message = f'Hurmatli {firm_worker_name} sizga tasdiqlash kodi yuborildi. ' \
-                  f'Ushbu kod orqali "{firm_name}" MCHJ hisobiga, "{pharmacy_name}" ' \
+                  f'Ushbu kod orqali "{firm_name}" hisobiga, "{pharmacy_name}" ' \
                   f'tomonidan {price} ({cls.get_str_price(price)}) so\'m mablag\' ' \
                   f'olganligingiz to\'g\'riligini tasdiqlaysiz. Kod: {verify_code}'
         return message
@@ -107,7 +105,7 @@ class EskizUz:
     @classmethod
     def return_product_verify_code_message(cls, firm_name, price, verify_code, firm_worker_name, company_name):
         message = f'Hurmatli {firm_worker_name} sizga tasdiqlash kodi yuborildi. ' \
-                  f'Ushbu kod orqali "{firm_name}" MCHJ hisobiga, "{company_name}" ' \
+                  f'Ushbu kod orqali "{firm_name}" hisobiga, "{company_name}" ' \
                   f'tomonidan {price} ({cls.get_str_price(price)}) so\'m miqdoridagi mahsulotlarni qaytarib ' \
                   f'olganligingiz to\'g\'riligini tasdiqlaysiz. Kod: {verify_code}'
         return message
@@ -120,18 +118,14 @@ class EskizUz:
             'from': settings.ESKIZ_UZ_ALPHA_NICK,
             'callback_url': settings.ESKIZ_UZ_CALLBACK_URL,
         }
-        response = requests.request(
-            method='POST',
-            url=settings.ESKIZ_UZ_SEND_SMS_URL,
-            headers={'AUTHORIZATION': 'Bearer ' + cls.get_token()},
-            data=data
-        )
+        response = requests.request(method='POST',
+                                    url=settings.ESKIZ_UZ_SEND_SMS_URL,
+                                    headers={'AUTHORIZATION': 'Bearer ' + cls.get_token()},
+                                    data=data)
         if response.status_code == 401:
             EskizUzToken.objects.all().delete()
-            response = requests.request(
-                method='POST',
-                url=settings.ESKIZ_UZ_SEND_SMS_URL,
-                headers={'AUTHORIZATION': 'Bearer ' + cls.get_token()},
-                data=data
-            )
+            response = requests.request(method='POST',
+                                        url=settings.ESKIZ_UZ_SEND_SMS_URL,
+                                        headers={'AUTHORIZATION': 'Bearer ' + cls.get_token()},
+                                        data=data)
         return response.text
