@@ -224,15 +224,6 @@ class FirmDebtByDate(models.Model):
     firm = models.ForeignKey(Firm, on_delete=models.CASCADE)
 
     def save(self, *args, **kwargs):
-        prices = FirmExpense.objects.filter(to_firm_id=self.firm_id,
-                                            is_verified=True,
-                                            report_date__lte=self.report_date
-                                            ).aggregate(s=models.Sum('transfer_excess_price'),
-                                                        st=models.Sum('not_transfer_excess_price'))
-
-        self.expenses_transfer_debt_price = prices['s'] if prices['s'] else 0
-        self.expenses_not_transfer_debt_price = prices['st'] if prices['st'] else 0
-
         self.transfer_debt = self.incomes_transfer_debt_price - self.expenses_transfer_debt_price
         self.not_transfer_debt = self.incomes_not_transfer_debt_price - self.expenses_not_transfer_debt_price
         super().save(*args, **kwargs)
@@ -277,6 +268,15 @@ class FirmReport(models.Model):
 
             incomes_not_transfer_debt_price = incomes_not_transfer_debt_price if incomes_not_transfer_debt_price else 0
             incomes_transfer_debt_price = incomes_transfer_debt_price if incomes_transfer_debt_price else 0
+
+            prices = FirmExpense.objects.filter(to_firm_id=firm_debt.firm_id,
+                                                is_verified=True,
+                                                report_date__lte=firm_debt.report_date
+                                                ).aggregate(s=models.Sum('transfer_excess_price'),
+                                                            st=models.Sum('not_transfer_excess_price'))
+
+            firm_debt.expenses_transfer_debt_price = prices['s'] if prices['s'] else 0
+            firm_debt.expenses_not_transfer_debt_price = prices['st'] if prices['st'] else 0
 
             firm_debt.incomes_not_transfer_debt_price = incomes_not_transfer_debt_price
             firm_debt.incomes_transfer_debt_price = incomes_transfer_debt_price
