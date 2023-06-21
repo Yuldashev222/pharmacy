@@ -43,6 +43,7 @@ def company_details(request, *args, **kwargs):
         'expense_types': ExpenseType.objects.filter(director_id=user.director_id).values('id',
                                                                                          'name').order_by('-id'),
         'employees': CustomUser.objects.filter(director_id=user.director_id).values('id',
+                                                                                    'short_name',
                                                                                     'first_name',
                                                                                     'last_name',
                                                                                     'shift',
