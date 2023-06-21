@@ -1,6 +1,6 @@
+from django.dispatch import receiver
 from django.db.models import Sum
 from django.db.models.signals import pre_delete
-from django.dispatch import receiver
 
 from api.v1.incomes.models import PharmacyIncomeReportDay
 from api.v1.pharmacies.models import PharmacyReportByShift
