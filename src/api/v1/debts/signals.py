@@ -24,17 +24,25 @@ def report_update(instance, *args, **kwargs):
         obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=instance.from_pharmacy_id,
                                                              report_date=instance.report_date,
                                                              shift=instance.shift)
+
         expense_debt_from_pharmacy = DebtFromPharmacy.objects.filter(from_pharmacy_id=obj.pharmacy_id,
                                                                      report_date=obj.report_date,
-                                                                     shift=obj.shift
+                                                                     shift=obj.shift,
+                                                                     is_client=False,
                                                                      ).aggregate(s=Sum('price'))['s']
+
         obj.expense_debt_from_pharmacy = expense_debt_from_pharmacy if expense_debt_from_pharmacy else 0
         obj.save()
 
-    obj, _ = PharmacyReportByShift.objects.get_or_create(
-        pharmacy_id=instance.from_pharmacy_id, report_date=instance.report_date, shift=instance.shift)
-    debt_income = DebtFromPharmacy.objects.filter(
-        from_pharmacy_id=obj.pharmacy_id, report_date=obj.report_date, shift=obj.shift).aggregate(s=Sum('price'))['s']
+    obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=instance.from_pharmacy_id,
+                                                         report_date=instance.report_date,
+                                                         shift=instance.shift)
+
+    debt_income = DebtFromPharmacy.objects.filter(from_pharmacy_id=obj.pharmacy_id,
+                                                  report_date=obj.report_date,
+                                                  shift=obj.shift,
+                                                  is_client=True,
+                                                  ).aggregate(s=Sum('price'))['s']
     obj.debt_income = debt_income if debt_income else 0
     obj.save()
 
@@ -65,10 +73,12 @@ def report_update(instance, *args, **kwargs):
         obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=instance.to_debt.to_pharmacy_id,
                                                              report_date=instance.report_date,
                                                              shift=instance.shift)
+
         expense_debt_repay_from_pharmacy = DebtRepayFromPharmacy.objects.filter(to_debt__to_pharmacy_id=obj.pharmacy_id,
                                                                                 report_date=obj.report_date,
                                                                                 shift=obj.shift
                                                                                 ).aggregate(s=Sum('price'))['s']
+
         obj.expense_debt_repay_from_pharmacy = expense_debt_repay_from_pharmacy if expense_debt_repay_from_pharmacy else 0
         obj.save()
 
