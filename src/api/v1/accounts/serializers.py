@@ -157,10 +157,10 @@ class WorkerUpdateDestroySerializer(DirectorUpdateDestroySerializer):
         fields = ManagerUpdateDestroySerializer.Meta.fields + ['shift', 'is_main_worker']
 
     def update(self, instance, validated_data):
-        is_main_worker = validated_data.get('is_main_worker')
+        is_main_worker = validated_data.get('is_main_worker', instance.is_main_worker)
         shift = validated_data.get('shift', instance.shift)
-
-        if is_main_worker and is_main_worker != instance.is_main_worker:
+        print(is_main_worker, shift)
+        if is_main_worker != instance.is_main_worker and not instance.is_main_worker:
             if CustomUser.objects.filter(is_main_worker=True, shift=shift, pharmacy_id=instance.pharmacy_id).exists():
                 raise ValidationError({'is_main_worker': 'unique'})
 

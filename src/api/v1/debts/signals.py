@@ -1,5 +1,5 @@
 from django.db.models import Sum
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
 from api.v1.accounts.models import WorkerReport
@@ -105,4 +105,11 @@ def remainder_update(instance, *args, **kwargs):
         obj.price = instance.price
         obj.shift = instance.shift
         obj.pharmacy_id = instance.to_pharmacy_id
+        obj.save()
+
+
+@receiver(post_delete, sender=DebtToPharmacy)
+def remainder_update(instance, *args, **kwargs):
+    obj = instance.to_firm_expense or instance.pharmacy_expense or instance.user_expense
+    if obj:
         obj.save()
