@@ -62,7 +62,6 @@ class PharmacyReportAPIViewSet(ReadOnlyModelViewSet):
                                                          transfer_income=0,
                                                          debt_income=0,
                                                          total_expense=0,
-                                                         remainder=0,
                                                          receipt_price=0,
                                                          transfer_discount_price=0,
                                                          not_transfer_discount_price=0,
