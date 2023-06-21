@@ -69,6 +69,7 @@ class PharmacyExpense(AbstractIncomeExpense):
                                                       report_date__year=self.report_date.year,
                                                       report_date__month=self.report_date.month
                                                       ).values_list('second_name', flat=True)
+
                 second_name_price = sum(list(map(lambda x: int(x) if str(x).isdigit() else 0, objs)))
                 obj.second_name = str(second_name_price)
 

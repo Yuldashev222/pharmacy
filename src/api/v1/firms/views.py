@@ -27,7 +27,7 @@ class FirmAPIViewSet(ModelViewSet):
     def get_queryset(self):
         return Firm.objects.filter(director_id=self.request.user.director_id).select_related('creator',
                                                                                              'director'
-                                                                                             ).order_by('-created_at')
+                                                                                             ).order_by('name')
 
     def get_permissions(self):
         permission_classes = [IsAuthenticated, NotProjectOwner]
