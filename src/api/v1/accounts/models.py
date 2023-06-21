@@ -21,6 +21,7 @@ class CustomUser(AbstractUser):
     phone_number = models.CharField(max_length=13, unique=True, validators=[uzb_phone_number_validation])
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
+    short_name = models.CharField(max_length=300, blank=True)
     role = models.CharField(max_length=1, choices=UserRole.choices())
     is_main_worker = models.BooleanField(default=False)
     shift = models.PositiveSmallIntegerField(default=0, validators=[MaxValueValidator(3)])
@@ -43,6 +44,7 @@ class CustomUser(AbstractUser):
     def save(self, *args, **kwargs):
         self.first_name = text_normalize(self.first_name).title()
         self.last_name = text_normalize(self.last_name).title()
+        self.short_name = self.first_name + '.'.join(list(map(lambda x: x[1], self.last_name.split()[:2])))
         self.bio = text_normalize(self.bio)
         self.address = text_normalize(self.address)
         super().save(*args, **kwargs)

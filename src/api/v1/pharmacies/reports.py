@@ -12,7 +12,7 @@ from .models import PharmacyReportByShift, Pharmacy
 
 
 class PharmacyReportSerializer(serializers.ModelSerializer):
-    worker = serializers.StringRelatedField()
+    worker = serializers.CharField(source='worker.short_name')
 
     class Meta:
         model = PharmacyReportByShift
