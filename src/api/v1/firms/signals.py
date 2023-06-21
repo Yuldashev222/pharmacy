@@ -63,35 +63,40 @@ def update_firm_report(instance, *args, **kwargs):
 
 @receiver(post_save, sender=FirmExpense)
 def report_update(instance, *args, **kwargs):
-    # remainder update
-    if instance.transfer_type_id == DefaultTransferType.cash.value and not instance.from_user:  # last
-        obj, _ = RemainderDetail.objects.get_or_create(firm_expense_id=instance.id)
-        obj.report_date = instance.report_date
-        obj.price = -1 * instance.price
-        obj.shift = instance.shift
-        obj.pharmacy_id = instance.from_pharmacy_id
-        obj.save()
+    if instance.is_verified:
 
-        obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=instance.from_pharmacy_id,
-                                                             report_date=instance.report_date,
-                                                             shift=instance.shift)
+        # remainder update
+        if instance.transfer_type_id == DefaultTransferType.cash.value and not instance.from_user:  # last
+            obj, _ = RemainderDetail.objects.get_or_create(firm_expense_id=instance.id)
+            obj.report_date = instance.report_date
+            obj.price = -1 * instance.price
+            obj.shift = instance.shift
+            obj.pharmacy_id = instance.from_pharmacy_id
+            obj.save()
 
-        expense_firm = FirmExpense.objects.filter(from_pharmacy_id=obj.pharmacy_id,
-                                                  report_date=obj.report_date,
-                                                  shift=obj.shift
-                                                  ).aggregate(s=Sum('price'))['s']
+            obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=instance.from_pharmacy_id,
+                                                                 report_date=instance.report_date,
+                                                                 shift=instance.shift)
 
-        obj.expense_firm = expense_firm if expense_firm else 0
-        obj.save()
+            expense_firm = FirmExpense.objects.filter(from_pharmacy_id=obj.pharmacy_id,
+                                                      is_verified=True,
+                                                      from_user__isnull=True,
+                                                      transfer_type_id=DefaultTransferType.cash.value,
+                                                      report_date=obj.report_date,
+                                                      shift=obj.shift
+                                                      ).aggregate(s=Sum('price'))['s']
 
-    if instance.from_user:
-        obj, _ = WorkerReport.objects.get_or_create(firm_expense_id=instance.id)
-        obj.report_date = instance.report_date
-        obj.pharmacy = instance.from_pharmacy
-        obj.price = instance.price
-        obj.creator_id = instance.creator_id
-        obj.worker = instance.from_user
-        obj.created_at = instance.created_at
-        obj.save()
-    else:
-        WorkerReport.objects.filter(firm_expense_id=instance.id).delete()
+            obj.expense_firm = expense_firm if expense_firm else 0
+            obj.save()
+
+        if instance.from_user:
+            obj, _ = WorkerReport.objects.get_or_create(firm_expense_id=instance.id)
+            obj.report_date = instance.report_date
+            obj.pharmacy = instance.from_pharmacy
+            obj.price = instance.price
+            obj.creator_id = instance.creator_id
+            obj.worker = instance.from_user
+            obj.created_at = instance.created_at
+            obj.save()
+        else:
+            WorkerReport.objects.filter(firm_expense_id=instance.id).delete()
