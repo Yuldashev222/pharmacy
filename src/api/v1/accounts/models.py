@@ -44,7 +44,7 @@ class CustomUser(AbstractUser):
     def save(self, *args, **kwargs):
         self.first_name = text_normalize(self.first_name).title()
         self.last_name = text_normalize(self.last_name).title()
-        self.short_name = self.first_name + ' ' + '.'.join(list(map(lambda x: x[1], self.last_name.split()[:2]))).title()
+        self.short_name = self.first_name + ' ' + '.'.join(list(map(lambda x: x[0], self.last_name.split()[:2]))).title()
         self.bio = text_normalize(self.bio)
         self.address = text_normalize(self.address)
         super().save(*args, **kwargs)
