@@ -111,6 +111,7 @@ class DirectorManagerFirmExpenseSerializer(FirmExpenseSerializer):
 
 class FirmReturnProductSerializer(serializers.ModelSerializer):
     firm_name = serializers.StringRelatedField(source='firm_income.from_firm', read_only=True)
+    transfer_type = serializers.BooleanField(source='firm_income.is_transfer_return', read_only=True)
     creator_name = serializers.StringRelatedField(source='creator', read_only=True)
 
     class Meta:
