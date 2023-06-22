@@ -7,12 +7,45 @@ from api.v1.companies.enums import DefaultTransferType
 from api.v1.remainders.models import RemainderDetail
 from api.v1.pharmacies.models import PharmacyReportByShift
 
-from .models import FirmIncome, FirmExpense, FirmReport, FirmDebtByDate, FirmDebtByMonth
+from .models import FirmIncome, FirmExpense, FirmReport, FirmDebtByDate, FirmDebtByMonth, FirmExcessExpense
+
+
+@receiver(post_save, sender=FirmIncome)
+def update_excess_price(instance, created, *args, **kwargs):
+    if created:
+        objs = FirmExcessExpense.objects.filter(firm_id=instance.from_firm_id,
+                                                is_transfer=instance.is_transfer_return,
+                                                remaining_price__gt=0).order_by('report_date', 'id')
+        for obj in objs:
+            if instance.remaining_debt <= 0:
+                break
+            if instance.remaining_debt <= obj.remaining_price:
+                obj.remaining_price -= instance.remaining_debt
+                instance.remaining_debt = 0
+                instance.is_paid = True
+            else:
+                instance.remaining_debt -= obj.remaining_price
+                obj.remaining_price = 0
+            obj.firm_income_id = instance.id
+            obj.save()
+
+
+# @receiver(pre_delete, sender=FirmIncome)
+# def update_excess_price(instance, created, *args, **kwargs):
+#     objs = FirmExcessExpense.objects.filter(firm_id=instance.from_firm_id,
+#                                             firm_income_id=instance.id,
+#                                             is_transfer=instance.is_transfer_return,
+#                                             ).order_by('-report_date', '-id')
+#
+#     temp_price = instance.remaining_debt
+#     for obj in objs:
+
 
 
 @receiver(pre_delete, sender=FirmReport)
 def update_firm_report(instance, *args, **kwargs):
     firm_debt, _ = FirmDebtByDate.objects.get_or_create(firm_id=instance.firm_id, report_date=instance.report_date)
+
     objs = FirmIncome.objects.filter(is_paid=False,
                                      is_transfer_return=False,
                                      from_firm_id=firm_debt.firm_id,
