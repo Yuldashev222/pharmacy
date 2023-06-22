@@ -301,17 +301,18 @@ class FirmReport(models.Model):
             firm_debt.transfer_debt = incomes_transfer_debt_price - expenses_transfer_debt_price
             firm_debt.save()
 
-            by_month, _ = FirmDebtByMonth.objects.get_or_create(month=self.report_date.month,
-                                                                year=self.report_date.year,
-                                                                firm_id=self.firm_id,
-                                                                pharmacy=self.pharmacy)
+            if self.pharmacy:
+                by_month, _ = FirmDebtByMonth.objects.get_or_create(month=self.report_date.month,
+                                                                    year=self.report_date.year,
+                                                                    firm_id=self.firm_id,
+                                                                    pharmacy=self.pharmacy)
 
-            expense_price = FirmReport.objects.filter(report_date__year=by_month.year,
-                                                      report_date__month=by_month.month,
-                                                      firm_id=by_month.firm_id,
-                                                      pharmacy=by_month.pharmacy,
-                                                      is_expense=True
-                                                      ).aggregate(s=models.Sum('price'))['s']
+                expense_price = FirmReport.objects.filter(report_date__year=by_month.year,
+                                                          report_date__month=by_month.month,
+                                                          firm_id=by_month.firm_id,
+                                                          pharmacy=by_month.pharmacy,
+                                                          is_expense=True
+                                                          ).aggregate(s=models.Sum('price'))['s']
 
-            by_month.expense_price = expense_price if expense_price else 0
-            by_month.save()
+                by_month.expense_price = expense_price if expense_price else 0
+                by_month.save()
