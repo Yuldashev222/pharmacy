@@ -1,5 +1,5 @@
 from django.db.models import Sum
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import post_save, post_delete, pre_delete
 from django.dispatch import receiver
 
 from api.v1.accounts.models import WorkerReport
@@ -12,9 +12,9 @@ from .models import DebtRepayFromPharmacy, DebtFromPharmacy, DebtRepayToPharmacy
 
 @receiver(post_save, sender=DebtFromPharmacy)
 def report_update(instance, *args, **kwargs):
-    obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=instance.from_pharmacy_id,
-                                                         report_date=instance.report_date,
-                                                         shift=instance.shift)
+    pharmacy_obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=instance.from_pharmacy_id,
+                                                                  report_date=instance.report_date,
+                                                                  shift=instance.shift)
 
     # remainder update
     if instance.transfer_type_id == DefaultTransferType.cash.value and not instance.is_client:  # last
@@ -25,24 +25,52 @@ def report_update(instance, *args, **kwargs):
         obj.pharmacy_id = instance.from_pharmacy_id
         obj.save()
 
-        expense_debt_from_pharmacy = DebtFromPharmacy.objects.filter(from_pharmacy_id=obj.pharmacy_id,
-                                                                     report_date=obj.report_date,
-                                                                     shift=obj.shift,
+        expense_debt_from_pharmacy = DebtFromPharmacy.objects.filter(from_pharmacy_id=pharmacy_obj.pharmacy_id,
+                                                                     report_date=pharmacy_obj.report_date,
+                                                                     shift=pharmacy_obj.shift,
                                                                      is_client=False,
                                                                      transfer_type_id=DefaultTransferType.cash.value
                                                                      ).aggregate(s=Sum('price'))['s']
 
-        obj.expense_debt_from_pharmacy = expense_debt_from_pharmacy if expense_debt_from_pharmacy else 0
-        obj.save()
+        pharmacy_obj.expense_debt_from_pharmacy = expense_debt_from_pharmacy if expense_debt_from_pharmacy else 0
+        pharmacy_obj.save()
 
-    debt_income = DebtFromPharmacy.objects.filter(from_pharmacy_id=obj.pharmacy_id,
-                                                  report_date=obj.report_date,
-                                                  shift=obj.shift,
+    debt_income = DebtFromPharmacy.objects.filter(from_pharmacy_id=pharmacy_obj.pharmacy_id,
+                                                  report_date=pharmacy_obj.report_date,
+                                                  shift=pharmacy_obj.shift,
                                                   is_client=True,
                                                   ).aggregate(s=Sum('price'))['s']
 
-    obj.debt_income = debt_income if debt_income else 0
-    obj.save()
+    pharmacy_obj.debt_income = debt_income if debt_income else 0
+    pharmacy_obj.save()
+
+
+@receiver(pre_delete, sender=DebtFromPharmacy)
+def report_update(instance, *args, **kwargs):
+    pharmacy_obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=instance.from_pharmacy_id,
+                                                                  report_date=instance.report_date,
+                                                                  shift=instance.shift)
+
+    # remainder update
+    if instance.transfer_type_id == DefaultTransferType.cash.value and not instance.is_client:  # last
+        expense_debt_from_pharmacy = DebtFromPharmacy.objects.exclude(id=instance.id).filter(is_client=False,
+                                                                                             from_pharmacy_id=pharmacy_obj.pharmacy_id,
+                                                                                             report_date=pharmacy_obj.report_date,
+                                                                                             shift=pharmacy_obj.shift,
+                                                                                             transfer_type_id=DefaultTransferType.cash.value
+                                                                                             ).aggregate(s=Sum('price'))['s']
+
+        pharmacy_obj.expense_debt_from_pharmacy = expense_debt_from_pharmacy if expense_debt_from_pharmacy else 0
+        pharmacy_obj.save()
+
+    debt_income = DebtFromPharmacy.objects.exclude(id=instance.id).filter(from_pharmacy_id=pharmacy_obj.pharmacy_id,
+                                                                          report_date=pharmacy_obj.report_date,
+                                                                          shift=pharmacy_obj.shift,
+                                                                          is_client=True,
+                                                                          ).aggregate(s=Sum('price'))['s']
+
+    pharmacy_obj.debt_income = debt_income if debt_income else 0
+    pharmacy_obj.save()
 
 
 @receiver(post_save, sender=DebtRepayToPharmacy)
