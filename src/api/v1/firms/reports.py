@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from datetime import timedelta
 
 from rest_framework import serializers, filters
 from django.db.models import Sum
@@ -103,7 +104,7 @@ class FirmReportAPIView(ReadOnlyModelViewSet):
         not_transfer_debt_in_start_date = 0
         if start_date and firm_id:
             try:
-                obj = FirmDebtByDate.objects.get(report_date=start_date, firm_id=firm_id)
+                obj = FirmDebtByDate.objects.get(report_date=start_date - timedelta(days=1), firm_id=firm_id)
                 transfer_debt_in_start_date = obj.transfer_debt
                 not_transfer_debt_in_start_date = obj.not_transfer_debt
             except FirmDebtByDate.DoesNotExist:
