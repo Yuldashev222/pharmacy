@@ -64,7 +64,7 @@ def update_firm_report(instance, *args, **kwargs):
 @receiver(post_save, sender=FirmExpense)
 def report_update(instance, *args, **kwargs):
     if instance.is_verified:
-
+        print(11111111111111111)
         # remainder update
         if instance.transfer_type_id == DefaultTransferType.cash.value and not instance.from_user:
             obj, _ = RemainderDetail.objects.get_or_create(firm_expense_id=instance.id)
