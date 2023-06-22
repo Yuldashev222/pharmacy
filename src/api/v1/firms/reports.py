@@ -112,13 +112,20 @@ class FirmReportAPIView(ReadOnlyModelViewSet):
                                                            ).aggregate(s=Sum('price'))['s']
         expense_transfer_total_price = queryset.filter(is_expense=True, is_transfer=True
                                                        ).aggregate(s=Sum('price'))['s']
+        transfer_debt_in_start_date = transfer_debt_in_start_date if transfer_debt_in_start_date else 0
+        not_transfer_debt_in_start_date = not_transfer_debt_in_start_date if not_transfer_debt_in_start_date else 0
+        income_not_transfer_total_price = income_not_transfer_total_price if income_not_transfer_total_price else 0
+        income_transfer_total_price = income_transfer_total_price if income_transfer_total_price else 0
+        expense_not_transfer_total_price = expense_not_transfer_total_price if expense_not_transfer_total_price else 0
+        expense_transfer_total_price = expense_transfer_total_price if expense_transfer_total_price else 0
+
         totals = {
-            'transfer_debt_in_start_date': transfer_debt_in_start_date if transfer_debt_in_start_date else 0,
-            'not_transfer_debt_in_start_date': not_transfer_debt_in_start_date if not_transfer_debt_in_start_date else 0,
-            'income_not_transfer_total_price': income_not_transfer_total_price if income_not_transfer_total_price else 0,
-            'income_transfer_total_price': income_transfer_total_price if income_transfer_total_price else 0,
-            'expense_not_transfer_total_price': expense_not_transfer_total_price if expense_not_transfer_total_price else 0,
-            'expense_transfer_total_price': expense_transfer_total_price if expense_transfer_total_price else 0
+            'transfer_debt_in_start_date': transfer_debt_in_start_date,
+            'not_transfer_debt_in_start_date': not_transfer_debt_in_start_date,
+            'income_not_transfer_total_price': income_not_transfer_total_price,
+            'income_transfer_total_price': income_transfer_total_price,
+            'expense_not_transfer_total_price': expense_not_transfer_total_price * -1,
+            'expense_transfer_total_price': expense_transfer_total_price * -1
         }
         page = self.paginate_queryset(queryset)
         serializer = self.get_serializer(page, many=True)
