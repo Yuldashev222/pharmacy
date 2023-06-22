@@ -56,43 +56,29 @@ class FirmIncome(AbstractIncomeExpense):
 
     def save(self, *args, **kwargs):
         if not self.pk:
-            self.remaining_debt = self.price  # last
+            self.remaining_debt = self.price
         if self.remaining_debt > 0:
             if self.is_transfer_return:
-                objs = FirmDebtByDate.objects.filter(firm_id=self.from_firm_id,
-                                                     expenses_transfer_debt_price__gt=0,
-                                                     report_date__lte=self.report_date).order_by('report_date')
-
-                if objs.exists():
-                    for obj in objs:
-                        if self.remaining_debt <= 0:
-                            break
-                        if self.remaining_debt >= obj.expenses_transfer_debt_price:
-                            self.remaining_debt -= obj.expenses_transfer_debt_price
-                            obj.expenses_transfer_debt_price = 0
-                        else:
-                            obj.expenses_transfer_debt_price -= self.remaining_debt
-                            self.remaining_debt = 0
-                            self.is_paid = True
-                        obj.save()
+                excess_price = FirmDebtByDate.objects.filter(firm_id=self.from_firm_id,
+                                                             expenses_transfer_debt_price__gt=0,
+                                                             report_date__lte=self.report_date
+                                                             ).order_by('report_date').aggregate(
+                    s=models.Sum('expenses_transfer_debt_price'))['s']
 
             else:
-                objs = FirmDebtByDate.objects.filter(firm_id=self.from_firm_id,
-                                                     expenses_not_transfer_debt_price__gt=0,
-                                                     report_date__lte=self.report_date).order_by('report_date')
+                excess_price = FirmDebtByDate.objects.filter(firm_id=self.from_firm_id,
+                                                             expenses_not_transfer_debt_price__gt=0,
+                                                             report_date__lte=self.report_date
+                                                             ).order_by('report_date').aggregate(
+                    s=models.Sum('expenses_not_transfer_debt_price'))['s']
+            excess_price = excess_price if excess_price else 0
 
-                if objs.exists():
-                    for obj in objs:
-                        if self.remaining_debt <= 0:
-                            break
-                        if self.remaining_debt >= obj.expenses_not_transfer_debt_price:
-                            self.remaining_debt -= obj.expenses_not_transfer_debt_price
-                            obj.expenses_not_transfer_debt_price = 0
-                        else:
-                            obj.expenses_not_transfer_debt_price -= self.remaining_debt
-                            self.remaining_debt = 0
-                            self.is_paid = True
-                        obj.save()
+            if excess_price > 0:
+                if self.remaining_debt >= excess_price:
+                    self.remaining_debt -= excess_price
+                else:
+                    self.remaining_debt = 0
+                    self.is_paid = True
 
         super().save(*args, **kwargs)
 
@@ -307,23 +293,23 @@ class FirmReport(models.Model):
             incomes_not_transfer_debt_price = incomes_not_transfer_debt_price if incomes_not_transfer_debt_price else 0
             incomes_transfer_debt_price = incomes_transfer_debt_price if incomes_transfer_debt_price else 0
 
-            expenses_transfer_debt_price = FirmDebtByDate.objects.filter(firm_id=self.firm_id,
-                                                                         expenses_transfer_debt_price__gt=0,
-                                                                         report_date__lte=self.report_date
-                                                                         ).aggregate(
-                s=models.Sum('expenses_transfer_debt_price'))['s']
+            # expenses_transfer_debt_price = FirmDebtByDate.objects.filter(firm_id=self.firm_id,
+            #                                                              expenses_transfer_debt_price__gt=0,
+            #                                                              report_date__lte=self.report_date
+            #                                                              ).aggregate(
+            #     s=models.Sum('expenses_transfer_debt_price'))['s']
+            #
+            # expenses_not_transfer_debt_price = FirmDebtByDate.objects.filter(firm_id=self.firm_id,
+            #                                                                  expenses_not_transfer_debt_price__gt=0,
+            #                                                                  report_date__lte=self.report_date
+            #                                                                  ).aggregate(
+            #     s=models.Sum('expenses_not_transfer_debt_price'))['s']
+            #
+            # expenses_transfer_debt_price = expenses_transfer_debt_price if expenses_transfer_debt_price else 0
+            # expenses_not_transfer_debt_price = expenses_not_transfer_debt_price if expenses_not_transfer_debt_price else 0
 
-            expenses_not_transfer_debt_price = FirmDebtByDate.objects.filter(firm_id=self.firm_id,
-                                                                             expenses_not_transfer_debt_price__gt=0,
-                                                                             report_date__lte=self.report_date
-                                                                             ).aggregate(
-                s=models.Sum('expenses_not_transfer_debt_price'))['s']
-
-            expenses_transfer_debt_price = expenses_transfer_debt_price if expenses_transfer_debt_price else 0
-            expenses_not_transfer_debt_price = expenses_not_transfer_debt_price if expenses_not_transfer_debt_price else 0
-
-            firm_debt.incomes_not_transfer_debt_price = incomes_not_transfer_debt_price - expenses_not_transfer_debt_price
-            firm_debt.incomes_transfer_debt_price = incomes_transfer_debt_price - expenses_transfer_debt_price
+            firm_debt.incomes_not_transfer_debt_price = incomes_not_transfer_debt_price
+            firm_debt.incomes_transfer_debt_price = incomes_transfer_debt_price
             firm_debt.save()
 
             by_month, _ = FirmDebtByMonth.objects.get_or_create(month=self.report_date.month,
