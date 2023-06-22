@@ -1,5 +1,5 @@
 from django.dispatch import receiver
-from django.db.models import Sum
+from django.db.models import Sum, F
 from django.db.models.signals import post_save, pre_delete
 
 from api.v1.accounts.models import WorkerReport
@@ -27,6 +27,33 @@ def update_excess_price(instance, created, *args, **kwargs):
                 instance.remaining_debt -= obj.remaining_price
                 obj.remaining_price = 0
             obj.firm_income_id = instance.id
+            obj.save()
+
+
+@receiver(pre_delete, sender=FirmIncome)
+def update_excess_price(instance, created, *args, **kwargs):
+    if instance.from_firm:
+        objs = FirmExcessExpense.objects.filter(firm_income_id=instance.id,
+                                                remaining_price=0)
+        price = objs.aggregate(s=Sum('price'))['s']
+        price = price if price else 0
+        objs.update(remaining_price=F('price'))
+
+        objs = FirmExcessExpense.objects.filter(firm_income_id=instance.id,
+                                                remaining_price__gt=0
+                                                ).order_by('-report_date', '-id')
+
+        price = instance.price - price
+        for obj in objs:
+            if price <= 0:
+                break
+            temp_price = obj.price - obj.remaining_price
+            if price >= temp_price:
+                obj.remaining_price = obj.price
+                price -= temp_price
+            else:
+                obj.remaining_price += price
+                price = 0
             obj.save()
 
 
