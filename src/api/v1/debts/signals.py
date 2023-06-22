@@ -113,6 +113,9 @@ def remainder_update(instance, *args, **kwargs):
 
 @receiver(post_delete, sender=DebtToPharmacy)
 def remainder_update(instance, *args, **kwargs):
-    obj = instance.to_firm_expense or instance.pharmacy_expense or instance.user_expense
-    if obj:
-        obj.save()
+    try:
+        obj = instance.to_firm_expense or instance.pharmacy_expense or instance.user_expense
+        if obj:
+            obj.save()
+    except Exception as e:
+        print(e)
