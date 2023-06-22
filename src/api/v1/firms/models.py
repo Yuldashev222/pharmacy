@@ -75,7 +75,7 @@ class FirmExcessExpense(models.Model):
     firm_expense = models.ForeignKey('firms.FirmExpense', on_delete=models.CASCADE)
     firm_income = models.ForeignKey(FirmIncome, on_delete=models.SET_NULL, null=True)
     report_date = models.DateField()
-    price = models.BooleanField()
+    price = models.IntegerField()
     remaining_price = models.IntegerField(default=0)
     is_transfer = models.BooleanField()
 
