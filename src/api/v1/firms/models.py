@@ -265,7 +265,7 @@ class FirmDebtByDate(models.Model):
         self.transfer_debt = self.incomes_transfer_debt_price - self.expenses_transfer_debt_price
         self.not_transfer_debt = self.incomes_not_transfer_debt_price - self.expenses_not_transfer_debt_price
         super().save(*args, **kwargs)
-        obj = FirmDebtByDate.objects.filter(firm_id=self.firm_id).order_by('-report_date').first()
+        obj = FirmDebtByDate.objects.filter(firm_id=self.firm_id).order_by('-report_date', '-id').first()
         self.firm.transfer_debt = obj.transfer_debt
         self.firm.not_transfer_debt = obj.not_transfer_debt
         self.firm.save()
