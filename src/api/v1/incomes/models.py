@@ -20,8 +20,9 @@ class PharmacyIncomeReportMonth(models.Model):
                                                                     month=self.month,
                                                                     director_id=self.pharmacy.director_id)
 
-        data = PharmacyIncomeReportMonth.objects.filter(month=obj.month).aggregate(s=models.Sum('price'),
-                                                                                   rs=models.Sum('receipt_price'))
+        data = PharmacyIncomeReportMonth.objects.filter(month=obj.month,
+                                                        year=obj.year).aggregate(s=models.Sum('price'),
+                                                                                 rs=models.Sum('receipt_price'))
 
         price, receipt_price = data['s'], data['rs']
         obj.price = int(price if price else 0)
@@ -45,6 +46,7 @@ class PharmacyIncomeReportDay(models.Model):
                                                                  month=self.report_date.month)
 
         data = PharmacyIncomeReportDay.objects.filter(report_date__month=obj.month,
+                                                      report_date__year=obj.year,
                                                       pharmacy_id=obj.pharmacy_id
                                                       ).aggregate(s=models.Sum('price'),
                                                                   rs=models.Sum('receipt_price'))
