@@ -248,8 +248,20 @@ class FirmDebtByDate(models.Model):
     firm = models.ForeignKey(Firm, on_delete=models.CASCADE)
 
     def save(self, *args, **kwargs):
-        self.transfer_debt = self.incomes_transfer_debt_price - self.expenses_transfer_debt_price
-        self.not_transfer_debt = self.incomes_not_transfer_debt_price - self.expenses_not_transfer_debt_price
+        expenses_transfer_debt_price = FirmDebtByDate.objects.filter(firm_id=self.firm_id,
+                                                                     report_date__lte=self.report_date,
+                                                                     expenses_transfer_debt_price__gt=0
+                                                                     ).aggregate(
+            s=models.Sum('expenses_transfer_debt_price'))['s']
+
+        expenses_not_transfer_debt_price = FirmDebtByDate.objects.filter(firm_id=self.firm_id,
+                                                                         report_date__lte=self.report_date,
+                                                                         expenses_not_transfer_debt_price__gt=0
+                                                                         ).aggregate(
+            s=models.Sum('expenses_not_transfer_debt_price'))['s']
+
+        self.transfer_debt = self.incomes_transfer_debt_price - expenses_transfer_debt_price
+        self.not_transfer_debt = self.incomes_not_transfer_debt_price - expenses_not_transfer_debt_price
         super().save(*args, **kwargs)
         obj = FirmDebtByDate.objects.filter(firm_id=self.firm_id).order_by('-report_date', '-id').first()
         self.firm.transfer_debt = obj.transfer_debt
