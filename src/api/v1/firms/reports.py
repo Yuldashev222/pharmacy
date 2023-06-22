@@ -104,7 +104,9 @@ class FirmReportAPIView(ReadOnlyModelViewSet):
         not_transfer_debt_in_start_date = 0
         if start_date and firm_id:
             try:
-                obj = FirmDebtByDate.objects.get(report_date=start_date - timedelta(days=1), firm_id=firm_id)
+                obj = FirmDebtByDate.objects.filter(report_date__lt=start_date,
+                                                    firm_id=firm_id
+                                                    ).order_by('-report_date').first()
                 transfer_debt_in_start_date = obj.transfer_debt
                 not_transfer_debt_in_start_date = obj.not_transfer_debt
             except FirmDebtByDate.DoesNotExist:
