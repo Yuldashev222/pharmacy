@@ -67,20 +67,21 @@ def update_firm_report(instance, *args, **kwargs):
     firm_debt.transfer_debt = incomes_transfer_debt_price - expenses_transfer_debt_price
     firm_debt.save()
 
-    by_month, _ = FirmDebtByMonth.objects.get_or_create(month=instance.report_date.month,
-                                                        year=instance.report_date.year,
-                                                        firm_id=instance.firm_id,
-                                                        pharmacy=instance.pharmacy)
+    if instance.pharmacy:
+        by_month, _ = FirmDebtByMonth.objects.get_or_create(month=instance.report_date.month,
+                                                            year=instance.report_date.year,
+                                                            firm_id=instance.firm_id,
+                                                            pharmacy=instance.pharmacy)
 
-    expense_price = FirmReport.objects.exclude(id=instance.id).filter(report_date__year=by_month.year,
-                                                                      report_date__month=by_month.month,
-                                                                      firm_id=by_month.firm_id,
-                                                                      pharmacy=by_month.pharmacy,
-                                                                      is_expense=True
-                                                                      ).aggregate(s=Sum('price'))['s']
+        expense_price = FirmReport.objects.exclude(id=instance.id).filter(report_date__year=by_month.year,
+                                                                          report_date__month=by_month.month,
+                                                                          firm_id=by_month.firm_id,
+                                                                          pharmacy=by_month.pharmacy,
+                                                                          is_expense=True
+                                                                          ).aggregate(s=Sum('price'))['s']
 
-    by_month.expense_price = expense_price if expense_price else 0
-    by_month.save()
+        by_month.expense_price = expense_price if expense_price else 0
+        by_month.save()
 
 
 @receiver(post_save, sender=FirmExpense)
