@@ -83,16 +83,17 @@ def update_report(instance, *args, **kwargs):
 
 @receiver(pre_delete, sender=PharmacyExpense)
 def update_report(instance, *args, **kwargs):
-    price = PharmacyExpense.objects.exclude(id=instance.id).filter(from_pharmacy_id=instance.from_pharmacy_id,
-                                                                   expense_type_id=instance.expense_type_id,
-                                                                   report_date__year=instance.report_date.year,
-                                                                   report_date__month=instance.report_date.month
-                                                                   ).aggregate(s=Sum('price'))['s']
-
     obj, _ = ExpenseReportMonth.objects.get_or_create(pharmacy_id=instance.from_pharmacy_id,
                                                       expense_type_id=instance.expense_type_id,
                                                       year=instance.report_date.year,
                                                       month=instance.report_date.month)
+
+    price = PharmacyExpense.objects.exclude(id=instance.id).filter(from_pharmacy_id=obj.pharmacy_id,
+                                                                   expense_type_id=obj.expense_type_id,
+                                                                   report_date__year=obj.year,
+                                                                   report_date__month=obj.month
+                                                                   ).aggregate(s=Sum('price'))['s']
+
     obj.price = price if price else 0
     obj.save()
 

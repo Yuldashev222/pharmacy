@@ -13,13 +13,15 @@ class ExpenseReportMonth(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        price = ExpenseReportMonth.objects.filter(month=self.month,
-                                                  expense_type_id=self.expense_type_id
-                                                  ).aggregate(s=models.Sum('price'))['s']
-
         obj, _ = AllExpenseReportMonth.objects.get_or_create(year=self.year,
                                                              month=self.month,
                                                              expense_type_id=self.expense_type_id,
                                                              director_id=self.pharmacy.director_id)
+
+        price = ExpenseReportMonth.objects.filter(month=obj.month,
+                                                  year=obj.year,
+                                                  expense_type_id=obj.expense_type_id
+                                                  ).aggregate(s=models.Sum('price'))['s']
+
         obj.price = price if price else 0
         obj.save()
