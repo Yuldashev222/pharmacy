@@ -31,7 +31,7 @@ def update_excess_price(instance, created, *args, **kwargs):
 
 
 @receiver(pre_delete, sender=FirmIncome)
-def update_excess_price(instance, created, *args, **kwargs):
+def update_excess_price(instance, *args, **kwargs):
     if instance.from_firm:
         objs = FirmExcessExpense.objects.filter(firm_income_id=instance.id,
                                                 remaining_price=0)
