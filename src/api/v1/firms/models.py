@@ -164,7 +164,7 @@ class FirmExpense(AbstractIncomeExpense):
             firm_report.verified_firm_worker_name = self.verified_firm_worker_name
             firm_report.created_at = self.created_at
             firm_report.report_date = self.report_date
-            firm_report.price = self.price
+            firm_report.price = self.price * -1
             firm_report.is_transfer = bool(self.transfer_type_id != DefaultTransferType.cash.value)
             firm_report.save()
 
@@ -215,7 +215,7 @@ class FirmReturnProduct(AbstractIncomeExpense):
             firm_report.verified_firm_worker_name = self.verified_firm_worker_name
             firm_report.created_at = self.created_at
             firm_report.report_date = self.report_date
-            firm_report.price = self.price
+            firm_report.price = self.price * -1
             firm_report.is_transfer = self.firm_income.is_transfer_return
             firm_report.save()
 
@@ -227,24 +227,6 @@ class FirmDebtByMonth(models.Model):
     month = models.IntegerField()
     expense_price = models.IntegerField(default=0)
     income_price = models.IntegerField(default=0)
-
-
-class FirmDebtByDate(models.Model):
-    transfer_debt = models.IntegerField(default=0)
-    not_transfer_debt = models.IntegerField(default=0)
-
-    report_date = models.DateField()
-    firm = models.ForeignKey(Firm, on_delete=models.CASCADE)
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        try:
-            obj = FirmDebtByDate.objects.filter(firm_id=self.firm_id).order_by('-report_date', '-id').first()
-            self.firm.transfer_debt = obj.transfer_debt
-            self.firm.not_transfer_debt = obj.not_transfer_debt
-            self.firm.save()
-        except AttributeError:
-            pass
 
 
 class FirmReport(models.Model):
@@ -266,40 +248,18 @@ class FirmReport(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if self.firm and self.report_date:
-            firm_debt, _ = FirmDebtByDate.objects.get_or_create(firm_id=self.firm_id, report_date=self.report_date)
 
-            incomes_not_transfer_debt_price = FirmReport.objects.filter(firm_id=firm_debt.firm_id,
-                                                                        is_expense=False,
-                                                                        is_transfer=False,
-                                                                        report_date__lte=firm_debt.report_date
-                                                                        ).aggregate(s=models.Sum('price'))['s']
+            not_transfer_debt = FirmReport.objects.filter(firm_id=self.firm_id,
+                                                          is_transfer=False,
+                                                          ).aggregate(s=models.Sum('price'))['s']
 
-            incomes_transfer_debt_price = FirmReport.objects.filter(firm_id=firm_debt.firm_id,
-                                                                    is_expense=False,
-                                                                    is_transfer=True,
-                                                                    report_date__lte=firm_debt.report_date
-                                                                    ).aggregate(s=models.Sum('price'))['s']
+            transfer_debt = FirmReport.objects.filter(firm_id=self.firm_id,
+                                                      is_transfer=True,
+                                                      ).aggregate(s=models.Sum('price'))['s']
 
-            expenses_not_transfer_debt_price = FirmReport.objects.filter(firm_id=firm_debt.firm_id,
-                                                                         is_expense=True,
-                                                                         is_transfer=False,
-                                                                         report_date__lte=firm_debt.report_date
-                                                                         ).aggregate(s=models.Sum('price'))['s']
-
-            expenses_transfer_debt_price = FirmReport.objects.filter(firm_id=firm_debt.firm_id,
-                                                                     is_expense=True,
-                                                                     is_transfer=True,
-                                                                     report_date__lte=firm_debt.report_date
-                                                                     ).aggregate(s=models.Sum('price'))['s']
-
-            incomes_not_transfer_debt_price = incomes_not_transfer_debt_price if incomes_not_transfer_debt_price else 0
-            incomes_transfer_debt_price = incomes_transfer_debt_price if incomes_transfer_debt_price else 0
-            expenses_not_transfer_debt_price = expenses_not_transfer_debt_price if expenses_not_transfer_debt_price else 0
-            expenses_transfer_debt_price = expenses_transfer_debt_price if expenses_transfer_debt_price else 0
-
-            firm_debt.not_transfer_debt = incomes_not_transfer_debt_price - expenses_not_transfer_debt_price
-            firm_debt.transfer_debt = incomes_transfer_debt_price - expenses_transfer_debt_price
-            firm_debt.save()
+            self.firm.transfer_debt = transfer_debt
+            self.firm.not_transfer_debt = not_transfer_debt
+            self.firm.save()
 
             if self.pharmacy:
                 by_month, _ = FirmDebtByMonth.objects.get_or_create(month=self.report_date.month,
@@ -315,4 +275,5 @@ class FirmReport(models.Model):
                                                           ).aggregate(s=models.Sum('price'))['s']
 
                 by_month.expense_price = expense_price if expense_price else 0
+                by_month.expense_price *= -1
                 by_month.save()

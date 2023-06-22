@@ -11,7 +11,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 
-from api.v1.firms.models import FirmReport, FirmDebtByDate, FirmDebtByMonth, Firm
+from api.v1.firms.models import FirmReport, FirmDebtByMonth, Firm
 from api.v1.accounts.permissions import IsDirector, IsManager
 
 
@@ -23,6 +23,11 @@ class FirmReportSerializer(serializers.ModelSerializer):
         model = FirmReport
         exclude = ['expense', 'income', 'return_product']
 
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret['price'] = abs(ret['price'])
+        return ret
+
 
 class FirmDebtByMonthSerializer(serializers.ModelSerializer):
     firm_name = serializers.StringRelatedField(source='firm')
@@ -31,26 +36,6 @@ class FirmDebtByMonthSerializer(serializers.ModelSerializer):
     class Meta:
         model = FirmDebtByMonth
         fields = '__all__'
-
-
-class FirmDebtByDateSerializer(serializers.ModelSerializer):
-    firm_name = serializers.StringRelatedField(source='firm')
-
-    class Meta:
-        model = FirmDebtByDate
-        fields = '__all__'
-
-
-class FirmDebtByDateAPIView(ReadOnlyModelViewSet):
-    permission_classes = [IsAuthenticated, (IsDirector | IsManager)]
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    serializer_class = FirmDebtByDateSerializer
-    filterset_fields = ['firm', 'report_date']
-    search_fields = ['firm__name']
-
-    def get_queryset(self):
-        return FirmDebtByDate.objects.filter(firm__director_id=self.request.user.director_id).select_related(
-            'firm').order_by('-report_date')
 
 
 class FirmDebtByMonthAPIView(ReadOnlyModelViewSet):
@@ -93,8 +78,10 @@ class FirmReportAPIView(ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        return FirmReport.objects.filter(creator__director_id=user.director_id
-                                         ).select_related('creator', 'pharmacy').order_by('report_date', 'created_at')
+        return FirmReport.objects.filter(creator__director_id=user.director_id).select_related('creator',
+                                                                                               'pharmacy'
+                                                                                               ).order_by('report_date',
+                                                                                                          'created_at')
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
@@ -104,13 +91,18 @@ class FirmReportAPIView(ReadOnlyModelViewSet):
         not_transfer_debt_in_start_date = 0
         if start_date and firm_id:
             try:
-                obj = FirmDebtByDate.objects.filter(report_date__lt=start_date,
-                                                    firm_id=firm_id
-                                                    ).order_by('-report_date').first()
-                transfer_debt_in_start_date = obj.transfer_debt
-                not_transfer_debt_in_start_date = obj.not_transfer_debt
-            except AttributeError:
-                pass
+                not_transfer_debt_in_start_date = FirmReport.objects.filter(firm_id=firm_id,
+                                                                            is_transfer=False,
+                                                                            report_date__lt=start_date
+                                                                            ).aggregate(s=Sum('price'))['s']
+
+                transfer_debt_in_start_date = FirmReport.objects.filter(firm_id=firm_id,
+                                                                        is_transfer=True,
+                                                                        report_date__lt=start_date
+                                                                        ).aggregate(s=Sum('price'))['s']
+
+            except Exception as e:
+                print(e)
 
         income_not_transfer_total_price = queryset.filter(is_expense=False, is_transfer=False
                                                           ).aggregate(s=Sum('price'))['s']
@@ -205,11 +197,18 @@ class FirmReportExcelAPIView(FirmReportAPIView):
         not_transfer_debt_in_start_date = 0
         if start_date and firm_id:
             try:
-                obj = FirmDebtByDate.objects.get(report_date=start_date, firm_id=firm_id)
-                transfer_debt_in_start_date = obj.transfer_debt
-                not_transfer_debt_in_start_date = obj.not_transfer_debt
-            except FirmDebtByDate.DoesNotExist:
-                pass
+                not_transfer_debt_in_start_date = FirmReport.objects.filter(firm_id=firm_id,
+                                                                            is_transfer=False,
+                                                                            report_date__lte=start_date
+                                                                            ).aggregate(s=Sum('price'))['s']
+
+                transfer_debt_in_start_date = FirmReport.objects.filter(firm_id=firm_id,
+                                                                        is_transfer=True,
+                                                                        report_date__lte=start_date
+                                                                        ).aggregate(s=Sum('price'))['s']
+
+            except Exception as e:
+                print(e)
 
         try:
             total_is_expense_column = sum(
