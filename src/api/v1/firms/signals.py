@@ -66,8 +66,23 @@ def update_firm_report(instance, *args, **kwargs):
     incomes_not_transfer_debt_price = incomes_not_transfer_debt_price if incomes_not_transfer_debt_price else 0
     incomes_transfer_debt_price = incomes_transfer_debt_price if incomes_transfer_debt_price else 0
 
-    firm_debt.incomes_not_transfer_debt_price = incomes_not_transfer_debt_price
-    firm_debt.incomes_transfer_debt_price = incomes_transfer_debt_price
+    expenses_not_transfer_debt_price = FirmExcessExpense.objects.filter(is_transfer=False,
+                                                                        firm_id=firm_debt.firm_id,
+                                                                        remaining_debt__gt=0,
+                                                                        report_date__lte=firm_debt.report_date
+                                                                        ).aggregate(s=Sum('remaining_debt'))['s']
+
+    expenses_transfer_debt_price = FirmExcessExpense.objects.filter(is_transfer=True,
+                                                                    firm_id=firm_debt.firm_id,
+                                                                    remaining_debt__gt=0,
+                                                                    report_date__lte=firm_debt.report_date
+                                                                    ).aggregate(s=Sum('remaining_debt'))['s']
+
+    expenses_not_transfer_debt_price = expenses_not_transfer_debt_price if expenses_not_transfer_debt_price else 0
+    expenses_transfer_debt_price = expenses_transfer_debt_price if expenses_transfer_debt_price else 0
+
+    firm_debt.not_transfer_debt = incomes_not_transfer_debt_price - expenses_not_transfer_debt_price
+    firm_debt.transfer_debt = incomes_transfer_debt_price - expenses_transfer_debt_price
     firm_debt.save()
 
     by_month, _ = FirmDebtByMonth.objects.get_or_create(month=instance.report_date.month,
