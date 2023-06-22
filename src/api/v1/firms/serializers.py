@@ -40,26 +40,6 @@ class FirmIncomeSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class FirmIncomeUpdateSerializer(FirmIncomeSerializer):
-    class Meta:
-        model = FirmIncome
-        fields = '__all__'
-        read_only_fields = ('is_paid', 'remaining_debt', 'from_firm', 'report_date', 'creator')
-
-    def update(self, instance, validated_data):
-        new_price = validated_data.get('price')
-        if new_price and instance.price != new_price:
-            instance.remaining_debt += new_price - instance.price
-            if instance.remaining_debt <= 0:
-                instance.is_paid = True
-            else:
-                instance.is_paid = False
-        return super().update(instance, validated_data)
-
-    def validate(self, attrs):
-        return attrs
-
-
 class FirmExpenseSerializer(serializers.ModelSerializer):
     creator_name = serializers.StringRelatedField(source='creator', read_only=True)
     from_pharmacy_name = serializers.StringRelatedField(source='from_pharmacy', read_only=True)

@@ -1,5 +1,5 @@
 from datetime import date
-from rest_framework import status
+from rest_framework import status, mixins
 from rest_framework.mixins import CreateModelMixin
 from rest_framework.filters import SearchFilter
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet, GenericViewSet
@@ -38,13 +38,15 @@ class FirmAPIViewSet(ModelViewSet):
         return [permission() for permission in permission_classes]
 
 
-class FirmIncomeAPIViewSet(ModelViewSet):
+class FirmIncomeAPIViewSet(mixins.CreateModelMixin,
+                           mixins.RetrieveModelMixin,
+                           mixins.DestroyModelMixin,
+                           mixins.ListModelMixin,
+                           GenericViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['is_paid', 'report_date', 'from_firm']
 
     def get_serializer_class(self):
-        if self.action in ('update', 'partial_update'):
-            return serializers.FirmIncomeUpdateSerializer
         return serializers.FirmIncomeSerializer
 
     def get_permissions(self):
