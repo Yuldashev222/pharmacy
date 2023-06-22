@@ -41,8 +41,8 @@ def update_firm_report(instance, *args, **kwargs):
                                                                           is_transfer=True,
                                                                           ).aggregate(s=Sum('price'))['s']
 
-        instance.firm.transfer_debt = transfer_debt
-        instance.firm.not_transfer_debt = not_transfer_debt
+        instance.firm.transfer_debt = transfer_debt if transfer_debt else 0
+        instance.firm.not_transfer_debt = not_transfer_debt if not_transfer_debt else 0
         instance.firm.save()
 
     if instance.pharmacy:
