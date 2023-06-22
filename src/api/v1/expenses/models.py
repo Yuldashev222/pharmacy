@@ -51,16 +51,17 @@ class PharmacyExpense(AbstractIncomeExpense):
                 change = True
         super().save(*args, **kwargs)
         if change:
-            price = PharmacyExpense.objects.filter(from_pharmacy_id=self.from_pharmacy_id,
-                                                   expense_type_id=expense_type_id,
-                                                   report_date__year=self.report_date.year,
-                                                   report_date__month=self.report_date.month
-                                                   ).aggregate(s=models.Sum('price'))['s']
-
             obj, _ = ExpenseReportMonth.objects.get_or_create(pharmacy_id=self.from_pharmacy_id,
                                                               expense_type_id=expense_type_id,
                                                               year=self.report_date.year,
                                                               month=self.report_date.month)
+
+            price = PharmacyExpense.objects.filter(from_pharmacy_id=obj.pharmacy_id,
+                                                   expense_type_id=expense_type_id,
+                                                   report_date__year=obj.year,
+                                                   report_date__month=obj.month
+                                                   ).aggregate(s=models.Sum('price'))['s']
+
             obj.price = price if price else 0
 
             if self.expense_type_id == DefaultExpenseType.discount_id.value:
@@ -75,24 +76,27 @@ class PharmacyExpense(AbstractIncomeExpense):
 
             obj.save()
 
-        price = PharmacyExpense.objects.filter(from_pharmacy_id=self.from_pharmacy_id,
-                                               expense_type_id=self.expense_type_id,
-                                               report_date__year=self.report_date.year,
-                                               report_date__month=self.report_date.month
-                                               ).aggregate(s=models.Sum('price'))['s']
-
         obj, _ = ExpenseReportMonth.objects.get_or_create(pharmacy_id=self.from_pharmacy_id,
                                                           expense_type_id=self.expense_type_id,
                                                           year=self.report_date.year,
                                                           month=self.report_date.month)
+
+        price = PharmacyExpense.objects.filter(from_pharmacy_id=obj.pharmacy_id,
+                                               expense_type_id=obj.expense_type_id,
+                                               report_date__year=obj.year,
+                                               report_date__month=obj.month
+                                               ).aggregate(s=models.Sum('price'))['s']
+
         obj.price = price if price else 0
 
         if self.expense_type_id == DefaultExpenseType.discount_id.value:
-            objs = PharmacyExpense.objects.filter(from_pharmacy_id=self.from_pharmacy_id,
-                                                  expense_type_id=self.expense_type_id,
-                                                  report_date__year=self.report_date.year,
-                                                  report_date__month=self.report_date.month
+            objs = PharmacyExpense.objects.filter(from_pharmacy_id=obj.pharmacy_id,
+                                                  expense_type_id=obj.expense_type_id,
+                                                  report_date__year=obj.year,
+                                                  report_date__month=obj.month
                                                   ).values_list('second_name', flat=True)
+
             second_name_price = sum(list(map(lambda x: int(x) if str(x).isdigit() else 0, objs)))
             obj.second_name = str(second_name_price)
+
         obj.save()
