@@ -284,15 +284,15 @@ class FirmReport(models.Model):
 
             expenses_not_transfer_debt_price = FirmExcessExpense.objects.filter(is_transfer=False,
                                                                                 firm_id=firm_debt.firm_id,
-                                                                                remaining_debt__gt=0,
+                                                                                remaining_price__gt=0,
                                                                                 report_date__lte=firm_debt.report_date
-                                                                                ).aggregate(s=models.Sum('remaining_debt'))['s']
+                                                                                ).aggregate(s=models.Sum('remaining_price'))['s']
 
             expenses_transfer_debt_price = FirmExcessExpense.objects.filter(is_transfer=True,
                                                                             firm_id=firm_debt.firm_id,
-                                                                            remaining_debt__gt=0,
+                                                                            remaining_price__gt=0,
                                                                             report_date__lte=firm_debt.report_date
-                                                                            ).aggregate(s=models.Sum('remaining_debt'))['s']
+                                                                            ).aggregate(s=models.Sum('remaining_price'))['s']
 
             incomes_not_transfer_debt_price = incomes_not_transfer_debt_price if incomes_not_transfer_debt_price else 0
             incomes_transfer_debt_price = incomes_transfer_debt_price if incomes_transfer_debt_price else 0
