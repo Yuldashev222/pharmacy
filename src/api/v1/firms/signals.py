@@ -7,7 +7,7 @@ from api.v1.companies.enums import DefaultTransferType
 from api.v1.remainders.models import RemainderDetail
 from api.v1.pharmacies.models import PharmacyReportByShift
 
-from .models import FirmIncome, FirmExpense, FirmReport, FirmDebtByDate, FirmDebtByMonth, FirmExcessExpense
+from .models import FirmIncome, FirmExpense, FirmReport, FirmDebtByMonth, FirmExcessExpense
 
 
 @receiver(post_save, sender=FirmIncome)
@@ -32,40 +32,18 @@ def update_excess_price(instance, created, *args, **kwargs):
 
 @receiver(pre_delete, sender=FirmReport)
 def update_firm_report(instance, *args, **kwargs):
-    firm_debt, _ = FirmDebtByDate.objects.get_or_create(firm_id=instance.firm_id, report_date=instance.report_date)
+    if instance.firm and instance.report_date:
+        not_transfer_debt = FirmReport.objects.exclude(id=instance.id).filter(firm_id=instance.firm_id,
+                                                                              is_transfer=False,
+                                                                              ).aggregate(s=Sum('price'))['s']
 
-    incomes_not_transfer_debt_price = FirmReport.objects.exclude(id=instance.id).filter(firm_id=firm_debt.firm_id,
-                                                                                        is_expense=False,
-                                                                                        is_transfer=False,
-                                                                                        report_date__lte=firm_debt.report_date
-                                                                                        ).aggregate(s=Sum('price'))['s']
+        transfer_debt = FirmReport.objects.exclude(id=instance.id).filter(firm_id=instance.firm_id,
+                                                                          is_transfer=True,
+                                                                          ).aggregate(s=Sum('price'))['s']
 
-    incomes_transfer_debt_price = FirmReport.objects.exclude(id=instance.id).filter(firm_id=firm_debt.firm_id,
-                                                                                    is_expense=False,
-                                                                                    is_transfer=True,
-                                                                                    report_date__lte=firm_debt.report_date
-                                                                                    ).aggregate(s=Sum('price'))['s']
-
-    expenses_not_transfer_debt_price = FirmReport.objects.exclude(id=instance.id).filter(firm_id=firm_debt.firm_id,
-                                                                                         is_expense=True,
-                                                                                         is_transfer=False,
-                                                                                         report_date__lte=firm_debt.report_date
-                                                                                         ).aggregate(s=Sum('price'))['s']
-
-    expenses_transfer_debt_price = FirmReport.objects.exclude(id=instance.id).filter(firm_id=firm_debt.firm_id,
-                                                                                     is_expense=True,
-                                                                                     is_transfer=True,
-                                                                                     report_date__lte=firm_debt.report_date
-                                                                                     ).aggregate(s=Sum('price'))['s']
-
-    incomes_not_transfer_debt_price = incomes_not_transfer_debt_price if incomes_not_transfer_debt_price else 0
-    incomes_transfer_debt_price = incomes_transfer_debt_price if incomes_transfer_debt_price else 0
-    expenses_not_transfer_debt_price = expenses_not_transfer_debt_price if expenses_not_transfer_debt_price else 0
-    expenses_transfer_debt_price = expenses_transfer_debt_price if expenses_transfer_debt_price else 0
-
-    firm_debt.not_transfer_debt = incomes_not_transfer_debt_price - expenses_not_transfer_debt_price
-    firm_debt.transfer_debt = incomes_transfer_debt_price - expenses_transfer_debt_price
-    firm_debt.save()
+        instance.firm.transfer_debt = transfer_debt
+        instance.firm.not_transfer_debt = not_transfer_debt
+        instance.firm.save()
 
     if instance.pharmacy:
         by_month, _ = FirmDebtByMonth.objects.get_or_create(month=instance.report_date.month,
