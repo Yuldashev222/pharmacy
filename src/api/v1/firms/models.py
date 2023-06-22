@@ -255,8 +255,8 @@ class FirmDebtByDate(models.Model):
     incomes_not_transfer_debt_price = models.IntegerField(default=0)
     expenses_transfer_debt_price = models.IntegerField(default=0)
     expenses_not_transfer_debt_price = models.IntegerField(default=0)
-    transfer_debt = models.IntegerField()
-    not_transfer_debt = models.IntegerField()
+    transfer_debt = models.IntegerField(default=0)
+    not_transfer_debt = models.IntegerField(default=0)
 
     report_date = models.DateField()
     firm = models.ForeignKey(Firm, on_delete=models.CASCADE)
