@@ -11,12 +11,7 @@ from api.v1.offers.views import OfferAPIView
 from api.v1.clients.views import ClientAPIViewSet
 from api.v1.incomes.views import PharmacyIncomeAPIViewSet
 from api.v1.receipts.views import ReceiptCreateUpdateAPIView
-from api.v1.incomes.reports import (
-    PharmacyIncomeReportDayAPIView,
-    PharmacyIncomeReportMonthAPIView,
-    PharmacyIncomeReportMonthExcelAPIView,
-    PharmacyIncomeReportDayExcelAPIView
-)
+from api.v1.incomes.reports import PharmacyIncomeReportMonthAPIView, PharmacyIncomeReportMonthExcelAPIView
 from api.v1.expenses.views import PharmacyExpenseAPIViewSet, ExpenseTypeAPIViewSet
 from api.v1.pharmacies.views import PharmacyAPIViewSet
 from api.v1.pharmacies.reports import PharmacyReportAPIViewSet, PharmacyReportExcelAPIViewSet
@@ -31,8 +26,6 @@ router = DefaultRouter()
 
 router.register('pharmacies/incomes/reports/months/downloads/excel', PharmacyIncomeReportMonthExcelAPIView,
                 basename='pharmacy_income_report_month_excel')
-router.register('pharmacies/incomes/reports/days/downloads/excel', PharmacyIncomeReportDayExcelAPIView,
-                basename='pharmacy_income_report_day_excel')
 router.register('pharmacies/expenses/reports/downloads/excel', ExpenseExcelAPIView,
                 basename='pharmacy_expense_report_excel')
 router.register('pharmacies/to-debts/downloads/excel', debt_from_pharmacy.DebtFromPharmacyExcelAPIView,
@@ -46,8 +39,6 @@ router.register('pharmacies/incomes/reports/months', PharmacyIncomeReportMonthAP
                 basename='pharmacy_income_report_month')
 router.register('pharmacies/debts/downloads/excel', debt_to_pharmacy.DebtToPharmacyExcelAPIView,
                 basename='debt_to_pharmacy_excel')
-router.register('pharmacies/incomes/reports/days', PharmacyIncomeReportDayAPIView,
-                basename='pharmacy_income_report_day')
 router.register('pharmacies/debts/not-pagination', debt_to_pharmacy.TodayDebtToPharmacyAPIView,
                 basename='today_debt_to_pharmacy')
 router.register('pharmacies/expenses/reports', ExpenseAPIView, basename='pharmacy_expense_report')
