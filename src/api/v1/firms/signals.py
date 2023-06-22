@@ -65,6 +65,7 @@ def update_firm_report(instance, *args, **kwargs):
 
     firm_debt.transfer_debt = incomes_not_transfer_debt_price - expenses_not_transfer_debt_price
     firm_debt.not_transfer_debt = incomes_transfer_debt_price - expenses_transfer_debt_price
+    firm_debt.save()
 
     by_month, _ = FirmDebtByMonth.objects.get_or_create(month=instance.report_date.month,
                                                         year=instance.report_date.year,
