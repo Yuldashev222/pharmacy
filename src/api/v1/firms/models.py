@@ -263,11 +263,13 @@ class FirmDebtByDate(models.Model):
 
     def save(self, *args, **kwargs):
         expenses_transfer_debt_price = FirmDebtByDate.objects.filter(firm_id=self.firm_id,
+                                                                     expenses_transfer_debt_price__gt=0,
                                                                      report_date__lte=self.report_date
                                                                      ).aggregate(
             s=models.Sum('expenses_transfer_debt_price'))['s']
 
         expenses_not_transfer_debt_price = FirmDebtByDate.objects.filter(firm_id=self.firm_id,
+                                                                         expenses_not_transfer_debt_price__gt=0,
                                                                          report_date__lte=self.report_date
                                                                          ).aggregate(
             s=models.Sum('expenses_not_transfer_debt_price'))['s']
@@ -308,12 +310,14 @@ class FirmReport(models.Model):
             incomes_not_transfer_debt_price = FirmIncome.objects.filter(is_paid=False,
                                                                         is_transfer_return=False,
                                                                         from_firm_id=firm_debt.firm_id,
+                                                                        remaining_debt__gt=0,
                                                                         report_date__lte=firm_debt.report_date
                                                                         ).aggregate(s=models.Sum('remaining_debt'))['s']
 
             incomes_transfer_debt_price = FirmIncome.objects.filter(is_paid=False,
                                                                     is_transfer_return=True,
                                                                     from_firm_id=firm_debt.firm_id,
+                                                                    remaining_debt__gt=0,
                                                                     report_date__lte=firm_debt.report_date
                                                                     ).aggregate(s=models.Sum('remaining_debt'))['s']
 
