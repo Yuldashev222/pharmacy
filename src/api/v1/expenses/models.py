@@ -66,7 +66,7 @@ class PharmacyExpense(AbstractIncomeExpense):
 
             if self.expense_type_id == DefaultExpenseType.discount_id.value:
                 objs = PharmacyExpense.objects.filter(from_pharmacy_id=self.from_pharmacy_id,
-                                                      expense_type_id=expense_type_id,
+                                                      expense_type_id=self.expense_type_id,
                                                       report_date__year=self.report_date.year,
                                                       report_date__month=self.report_date.month
                                                       ).values_list('second_name', flat=True)
@@ -91,7 +91,7 @@ class PharmacyExpense(AbstractIncomeExpense):
 
         if self.expense_type_id == DefaultExpenseType.discount_id.value:
             objs = PharmacyExpense.objects.filter(from_pharmacy_id=obj.pharmacy_id,
-                                                  expense_type_id=obj.expense_type_id,
+                                                  expense_type_id=self.expense_type_id,
                                                   report_date__year=obj.year,
                                                   report_date__month=obj.month
                                                   ).values_list('second_name', flat=True)

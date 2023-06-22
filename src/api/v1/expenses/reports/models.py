@@ -20,7 +20,8 @@ class ExpenseReportMonth(models.Model):
 
         price = ExpenseReportMonth.objects.filter(month=obj.month,
                                                   year=obj.year,
-                                                  expense_type_id=obj.expense_type_id
+                                                  expense_type_id=obj.expense_type_id,
+                                                  pharmacy__director_id=obj.director_id
                                                   ).aggregate(s=models.Sum('price'))['s']
 
         obj.price = price if price else 0

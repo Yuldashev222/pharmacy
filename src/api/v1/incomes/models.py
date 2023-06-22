@@ -9,7 +9,6 @@ class PharmacyIncomeReportMonth(models.Model):
     year = models.IntegerField()
     month = models.IntegerField()
     price = models.IntegerField(default=0)
-    receipt_price = models.IntegerField(default=0)
 
     def __str__(self):
         return f'{self.pharmacy}: {self.price}'
@@ -20,13 +19,12 @@ class PharmacyIncomeReportMonth(models.Model):
                                                                     month=self.month,
                                                                     director_id=self.pharmacy.director_id)
 
-        data = PharmacyIncomeReportMonth.objects.filter(month=obj.month,
-                                                        year=obj.year).aggregate(s=models.Sum('price'),
-                                                                                 rs=models.Sum('receipt_price'))
+        price = PharmacyIncomeReportMonth.objects.filter(month=obj.month,
+                                                         year=obj.year,
+                                                         pharmacy__director_id=obj.director_id
+                                                         ).aggregate(s=models.Sum('price'))['s']
 
-        price, receipt_price = data['s'], data['rs']
-        obj.price = int(price if price else 0)
-        obj.receipt_price = int(receipt_price if receipt_price else 0)
+        obj.price = price if price else 0
         obj.save()
 
 
