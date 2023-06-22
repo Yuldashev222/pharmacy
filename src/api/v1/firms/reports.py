@@ -109,7 +109,7 @@ class FirmReportAPIView(ReadOnlyModelViewSet):
                                                     ).order_by('-report_date').first()
                 transfer_debt_in_start_date = obj.transfer_debt
                 not_transfer_debt_in_start_date = obj.not_transfer_debt
-            except FirmDebtByDate.DoesNotExist:
+            except AttributeError:
                 pass
 
         income_not_transfer_total_price = queryset.filter(is_expense=False, is_transfer=False
