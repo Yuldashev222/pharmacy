@@ -98,14 +98,17 @@ def report_update(instance, *args, **kwargs):
 
 @receiver(post_save, sender=DebtToPharmacy)
 def remainder_update(instance, *args, **kwargs):
-    obj = instance.to_firm_expense or instance.pharmacy_expense or instance.user_expense
-    if obj and obj.transfer_type_id == DefaultTransferType.cash.value:
-        obj, _ = RemainderDetail.objects.get_or_create(debt_to_pharmacy_id=instance.id)
-        obj.report_date = instance.report_date
-        obj.price = instance.price
-        obj.shift = instance.shift
-        obj.pharmacy_id = instance.to_pharmacy_id
-        obj.save()
+    try:
+        obj = instance.to_firm_expense or instance.pharmacy_expense or instance.user_expense
+        if obj and obj.transfer_type_id == DefaultTransferType.cash.value:
+            obj, _ = RemainderDetail.objects.get_or_create(debt_to_pharmacy_id=instance.id)
+            obj.report_date = instance.report_date
+            obj.price = instance.price
+            obj.shift = instance.shift
+            obj.pharmacy_id = instance.to_pharmacy_id
+            obj.save()
+    except Exception as e:
+        print(e)
 
 
 @receiver(post_delete, sender=DebtToPharmacy)
