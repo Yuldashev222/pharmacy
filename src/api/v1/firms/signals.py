@@ -30,26 +30,26 @@ def update_firm_report(instance, *args, **kwargs):
     incomes_not_transfer_debt_price = objs.aggregate(s=Sum('remaining_debt'))['s']
     incomes_transfer_debt_price = objs2.aggregate(s=Sum('remaining_debt'))['s']
 
-    expenses_transfer_debt_price = FirmDebtByDate.objects.filter(firm_id=instance.firm_id,
-                                                                 expenses_transfer_debt_price__gt=0,
-                                                                 report_date__lte=instance.report_date
-                                                                 ).aggregate(
-        s=Sum('expenses_transfer_debt_price'))['s']
-
-    expenses_not_transfer_debt_price = FirmDebtByDate.objects.filter(firm_id=instance.firm_id,
-                                                                     expenses_not_transfer_debt_price__gt=0,
-                                                                     report_date__lte=instance.report_date
-                                                                     ).aggregate(
-        s=Sum('expenses_not_transfer_debt_price'))['s']
-
-    expenses_transfer_debt_price = expenses_transfer_debt_price if expenses_transfer_debt_price else 0
-    expenses_not_transfer_debt_price = expenses_not_transfer_debt_price if expenses_not_transfer_debt_price else 0
+    # expenses_transfer_debt_price = FirmDebtByDate.objects.filter(firm_id=instance.firm_id,
+    #                                                              expenses_transfer_debt_price__gt=0,
+    #                                                              report_date__lte=instance.report_date
+    #                                                              ).aggregate(
+    #     s=Sum('expenses_transfer_debt_price'))['s']
+    #
+    # expenses_not_transfer_debt_price = FirmDebtByDate.objects.filter(firm_id=instance.firm_id,
+    #                                                                  expenses_not_transfer_debt_price__gt=0,
+    #                                                                  report_date__lte=instance.report_date
+    #                                                                  ).aggregate(
+    #     s=Sum('expenses_not_transfer_debt_price'))['s']
+    #
+    # expenses_transfer_debt_price = expenses_transfer_debt_price if expenses_transfer_debt_price else 0
+    # expenses_not_transfer_debt_price = expenses_not_transfer_debt_price if expenses_not_transfer_debt_price else 0
 
     incomes_not_transfer_debt_price = incomes_not_transfer_debt_price if incomes_not_transfer_debt_price else 0
     incomes_transfer_debt_price = incomes_transfer_debt_price if incomes_transfer_debt_price else 0
 
-    firm_debt.incomes_not_transfer_debt_price = incomes_not_transfer_debt_price - expenses_transfer_debt_price
-    firm_debt.incomes_transfer_debt_price = incomes_transfer_debt_price - expenses_not_transfer_debt_price
+    firm_debt.incomes_not_transfer_debt_price = incomes_not_transfer_debt_price
+    firm_debt.incomes_transfer_debt_price = incomes_transfer_debt_price
     firm_debt.save()
 
     by_month, _ = FirmDebtByMonth.objects.get_or_create(month=instance.report_date.month,
