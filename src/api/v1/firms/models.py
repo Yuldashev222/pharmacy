@@ -238,10 +238,13 @@ class FirmDebtByDate(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        obj = FirmDebtByDate.objects.filter(firm_id=self.firm_id).order_by('-report_date', '-id').first()
-        self.firm.transfer_debt = obj.transfer_debt
-        self.firm.not_transfer_debt = obj.not_transfer_debt
-        self.firm.save()
+        try:
+            obj = FirmDebtByDate.objects.filter(firm_id=self.firm_id).order_by('-report_date', '-id').first()
+            self.firm.transfer_debt = obj.transfer_debt
+            self.firm.not_transfer_debt = obj.not_transfer_debt
+            self.firm.save()
+        except AttributeError:
+            pass
 
 
 class FirmReport(models.Model):
@@ -296,6 +299,7 @@ class FirmReport(models.Model):
 
             firm_debt.transfer_debt = incomes_not_transfer_debt_price - expenses_not_transfer_debt_price
             firm_debt.not_transfer_debt = incomes_transfer_debt_price - expenses_transfer_debt_price
+            firm_debt.save()
 
             by_month, _ = FirmDebtByMonth.objects.get_or_create(month=self.report_date.month,
                                                                 year=self.report_date.year,
