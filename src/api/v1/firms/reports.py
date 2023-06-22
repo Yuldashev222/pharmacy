@@ -44,6 +44,7 @@ class FirmDebtByDateAPIView(ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated, (IsDirector | IsManager)]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     serializer_class = FirmDebtByDateSerializer
+    filterset_fields = ['firm', 'report_date']
     search_fields = ['firm__name']
 
     def get_queryset(self):
