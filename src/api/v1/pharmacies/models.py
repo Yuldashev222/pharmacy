@@ -1,5 +1,6 @@
 from django.db import models
 
+from api.v1.incomes.models import PharmacyIncomeReportMonth
 from api.v1.accounts.models import CustomUser
 from api.v1.companies.services import text_normalize
 
@@ -64,5 +65,27 @@ class PharmacyReportByShift(models.Model):
                                   self.expense_debt_from_pharmacy,
                                   self.expense_pharmacy,
                                   self.expense_firm])
+
+        obj, _ = PharmacyIncomeReportMonth.objects.get_or_create(pharmacy_id=self.pharmacy_id,
+                                                                 year=self.report_date.year,
+                                                                 month=self.report_date.month)
+
+        data = PharmacyReportByShift.objects.filter(report_date__month=obj.month,
+                                                    report_date__year=obj.year,
+                                                    pharmacy_id=obj.pharmacy_id
+                                                    ).aggregate(nti=models.Sum('not_transfer_income'),
+                                                                ti=models.Sum('transfer_income'),
+                                                                di=models.Sum('debt_income'),
+                                                                tdp=models.Sum('transfer_discount_price'),
+                                                                ntd=models.Sum('not_transfer_discount_price'))
+
+        not_transfer_income = data['nti'] if data['nti'] else 0
+        transfer_income = data['ti'] if data['ti'] else 0
+        debt_income = data['di'] if data['di'] else 0
+        transfer_discount_price = data['tdp'] if data['tdp'] else 0
+        not_transfer_discount_price = data['ntd'] if data['ntd'] else 0
+
+        obj.price = not_transfer_income + transfer_income + debt_income + transfer_discount_price + not_transfer_discount_price
+        obj.save()
 
         super().save(*args, **kwargs)

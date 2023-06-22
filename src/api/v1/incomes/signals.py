@@ -7,7 +7,7 @@ from api.v1.companies.enums import DefaultTransferType
 from api.v1.remainders.models import RemainderDetail
 from api.v1.pharmacies.models import PharmacyReportByShift
 
-from .models import PharmacyIncome, PharmacyIncomeReportDay
+from .models import PharmacyIncome
 
 
 @receiver(pre_delete, sender=PharmacyIncome)
@@ -38,12 +38,6 @@ def update_user_income_report(instance, *args, **kwargs):
     price = PharmacyIncome.objects.exclude(id=instance.id).filter(report_date=instance.report_date,
                                                                   to_pharmacy_id=instance.to_pharmacy_id
                                                                   ).aggregate(s=Sum('price'))['s']
-
-    obj, _ = PharmacyIncomeReportDay.objects.get_or_create(pharmacy_id=instance.to_pharmacy_id,
-                                                           report_date=instance.report_date)
-
-    obj.price = price if price else 0
-    obj.save()
 
 
 @receiver(post_save, sender=PharmacyIncome)
