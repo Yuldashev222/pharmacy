@@ -52,11 +52,7 @@ class DebtToPharmacyAPIView(ModelViewSet):
             queryset = DebtToPharmacy.objects.filter(to_pharmacy_id=user.pharmacy_id)
         else:
             queryset = DebtToPharmacy.objects.filter(to_pharmacy__director_id=user.director_id)
-        queryset = queryset.exclude(to_firm_expense__is_verified=False).select_related('creator',
-                                                                                       'to_pharmacy',
-                                                                                       'transfer_type'
-                                                                                       ).order_by('-created_at')
-        return queryset
+        return queryset.select_related('creator', 'to_pharmacy', 'transfer_type').order_by('-created_at')
 
 
 class TodayDebtToPharmacyAPIView(DebtToPharmacyAPIView):
@@ -76,10 +72,7 @@ class TodayDebtToPharmacyAPIView(DebtToPharmacyAPIView):
                                                          user.pharmacy.last_shift_end_hour))
         else:
             queryset = DebtToPharmacy.objects.filter(to_pharmacy__director_id=user.director_id)
-        queryset = queryset.exclude(to_firm_expense__is_verified=False).select_related('creator',
-                                                                                       'to_pharmacy',
-                                                                                       'transfer_type'
-                                                                                       ).order_by('-created_at')
+        queryset = queryset.select_related('creator', 'to_pharmacy', 'transfer_type').order_by('-created_at')
         return queryset
 
 
