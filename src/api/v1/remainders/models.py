@@ -10,7 +10,6 @@ class RemainderShift(models.Model):
     price = models.IntegerField(default=0)
 
     def save(self, *args, **kwargs):
-        # self.price = self.price if self.price >= 0 else 0
         super().save(*args, **kwargs)
         obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=self.pharmacy_id,
                                                              shift=self.shift,
@@ -55,6 +54,7 @@ class RemainderDetail(models.Model):
                                                    shift__lte=self.shift
                                                    ).aggregate(s=models.Sum('price'))['s']
             price = price if price else 0
+
             price2 = RemainderDetail.objects.filter(pharmacy_id=self.pharmacy_id,
                                                     report_date__lt=self.report_date,
                                                     ).aggregate(s=models.Sum('price'))['s']
@@ -63,5 +63,6 @@ class RemainderDetail(models.Model):
             obj, _ = RemainderShift.objects.get_or_create(pharmacy_id=self.pharmacy_id,
                                                           shift=self.shift,
                                                           report_date=self.report_date)
+
             obj.price = price if price else 0
             obj.save()

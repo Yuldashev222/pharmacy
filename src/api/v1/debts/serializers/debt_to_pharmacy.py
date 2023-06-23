@@ -12,8 +12,6 @@ class DebtToPharmacySerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         if validated_data.get('to_pharmacy'):
             del validated_data['to_pharmacy']
-        if validated_data.get('to_firm_expense'):
-            del validated_data['to_firm_expense']
 
         new_price = validated_data.get('price')
         if new_price and instance.price != new_price:
@@ -23,15 +21,6 @@ class DebtToPharmacySerializer(serializers.ModelSerializer):
             else:
                 instance.is_paid = False
         return super().update(instance, validated_data)
-
-    def validate(self, attrs):
-        user = self.context['request'].user
-        to_firm_expense = attrs.get('to_firm_expense')
-
-        if to_firm_expense and to_firm_expense.creator.director_id != user.director_id:
-            raise ValidationError({'to_firm_expense': 'not found'})
-
-        return attrs
 
 
 class DirectorManagerDebtToPharmacySerializer(DebtToPharmacySerializer):

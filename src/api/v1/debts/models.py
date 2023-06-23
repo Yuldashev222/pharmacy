@@ -13,11 +13,6 @@ class DebtToPharmacy(AbstractIncomeExpense):  # aptekaga qarz berdi
     is_paid = models.BooleanField(default=False)
     remaining_debt = models.IntegerField()
 
-    # select
-    user_expense = models.ForeignKey(UserExpense, on_delete=models.CASCADE, blank=True, null=True)
-    to_firm_expense = models.ForeignKey(FirmExpense, on_delete=models.CASCADE, blank=True, null=True)
-    pharmacy_expense = models.ForeignKey(PharmacyExpense, on_delete=models.CASCADE, blank=True, null=True)
-
     def save(self, *args, **kwargs):
         if not self.pk:
             self.remaining_debt = self.price
