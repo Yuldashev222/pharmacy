@@ -20,14 +20,18 @@ class FirmAPIViewSet(ModelViewSet):
     search_fields = ['name']
     serializer_class = serializers.FirmSerializer
 
+    def perform_destroy(self, instance):
+        instance.is_deleted = True
+        instance.save()
+
     def perform_create(self, serializer):
         user = self.request.user
         serializer.save(director_id=user.director_id, creator_id=user.id)
 
     def get_queryset(self):
-        return Firm.objects.filter(director_id=self.request.user.director_id).select_related('creator',
-                                                                                             'director'
-                                                                                             ).order_by('name')
+        return Firm.objects.filter(director_id=self.request.user.director_id,
+                                   is_deleted=False
+                                   ).select_related('creator', 'director').order_by('name')
 
     def get_permissions(self):
         permission_classes = [IsAuthenticated, NotProjectOwner]
