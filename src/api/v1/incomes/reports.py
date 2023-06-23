@@ -16,7 +16,7 @@ from .models import PharmacyIncomeReportMonth
 class PharmacyIncomeReportMonthSerializer(serializers.ModelSerializer):
     class Meta:
         model = PharmacyIncomeReportMonth
-        fields = ['month', 'price', 'receipt_price']
+        fields = ['month', 'price']
 
 
 class PharmacyIncomeReportMonthAPIView(ReadOnlyModelViewSet):
@@ -33,18 +33,12 @@ class PharmacyIncomeReportMonthAPIView(ReadOnlyModelViewSet):
 
 
 class PharmacyIncomeReportMonthExcelSerializer(serializers.ModelSerializer):
-    not_receipt_price = serializers.SerializerMethodField()
-
-    def get_not_receipt_price(self, val):
-        return 0
-
     class Meta:
         model = PharmacyIncomeReportMonth
-        fields = ['month', 'receipt_price', 'not_receipt_price', 'price']
+        fields = ['month', 'price']
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
-        ret['not_receipt_price'] = ret['price'] - ret['receipt_price']
         ret['month'] = MONTHS[ret['month']]
         return ret
 
