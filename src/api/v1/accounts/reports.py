@@ -33,8 +33,6 @@ class WorkerReportMonthAPIView(ReadOnlyModelViewSet):
 
 class CustomPageNumberPagination(PageNumberPagination):
     def get_paginated_response(self, data):
-        del data['month_income_total_price']
-        del data['month_expense_total_price']
         return Response(OrderedDict([
             ('count', self.page.paginator.count),
             ('month_income_total_price', data['month_income_total_price']),
