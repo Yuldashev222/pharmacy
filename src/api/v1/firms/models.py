@@ -91,6 +91,7 @@ class FirmExpense(AbstractIncomeExpense):
     verified_code = models.PositiveIntegerField()
     verified_phone_number = models.CharField(max_length=13, validators=[uzb_phone_number_validation], blank=True)
     verified_firm_worker_name = models.CharField(max_length=50, blank=True)
+    from_user_price = models.IntegerField(default=0)
 
     from_user = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, blank=True, null=True,
                                   related_name='firm_expenses')
