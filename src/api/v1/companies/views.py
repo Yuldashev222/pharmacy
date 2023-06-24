@@ -28,8 +28,7 @@ class CompanyAPIViewSet(mixins.RetrieveModelMixin,
         return [permission() for permission in permission_classes]
 
     def get_queryset(self):
-        user = self.request.user
-        return Company.objects.filter(director_id=user.director_id)
+        return Company.objects.filter(director_id=self.request.user.director_id)
 
 
 @api_view(['GET'])
@@ -37,21 +36,23 @@ class CompanyAPIViewSet(mixins.RetrieveModelMixin,
 def company_details(request, *args, **kwargs):
     user = request.user
     data = {
+        'expense_types': ExpenseType.objects.filter(director_id=user.director_id).values('id', 'name').order_by('name'),
+
         'firms': Firm.objects.filter(director_id=user.director_id, is_favorite=True, is_deleted=False
-                                     ).values('id', 'name').order_by('-id'),
+                                     ).values('id', 'name').order_by('name'),
+
         'transfer_types': TransferMoneyType.objects.filter(director_id=user.director_id
-                                                           ).values('id', 'name').order_by('-id'),
-        'expense_types': ExpenseType.objects.filter(director_id=user.director_id
-                                                    ).values('id', 'name').order_by('-id'),
+                                                           ).values('id', 'name').order_by('name'),
+
         'employees': CustomUser.objects.filter(director_id=user.director_id
                                                ).values('id', 'short_name', 'first_name', 'last_name', 'shift',
-                                                        'pharmacy_id', 'is_main_worker', 'role').order_by('-id'),
+                                                        'pharmacy_id', 'is_main_worker', 'role').order_by('-id')
     }
 
     if user.is_worker:
-        data['pharmacies'] = Pharmacy.objects.filter(id=user.pharmacy_id).values('id', 'name').order_by('-id')
+        data['pharmacies'] = Pharmacy.objects.filter(id=user.pharmacy_id).values('id', 'name').order_by('name')
     else:
-        data['pharmacies'] = Pharmacy.objects.filter(director_id=user.director_id).values('id', 'name').order_by('-id')
+        data['pharmacies'] = Pharmacy.objects.filter(director_id=user.director_id).values('id', 'name').order_by('name')
     return Response(data)
 
 
@@ -68,4 +69,4 @@ class TransferMoneyTypeAPIViewSet(ModelViewSet):
         serializer.save(director_id=self.request.user.director_id)
 
     def get_queryset(self):
-        return TransferMoneyType.objects.filter(director_id=self.request.user.director_id).order_by('-id')
+        return TransferMoneyType.objects.filter(director_id=self.request.user.director_id).order_by('name')

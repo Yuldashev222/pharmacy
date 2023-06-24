@@ -7,4 +7,4 @@ class ClientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Client
         fields = '__all__'
-        read_only_fields = ['creator']
+        read_only_fields = ['creator', 'director']

@@ -75,10 +75,10 @@ def update_report(instance, *args, **kwargs):
     if instance.to_user:
         obj, _ = WorkerReport.objects.get_or_create(pharmacy_income_id=instance.id)
         obj.report_date = instance.report_date
-        obj.pharmacy = instance.to_pharmacy
+        obj.pharmacy_id = instance.to_pharmacy.id
         obj.price = instance.price
         obj.creator = instance.creator
-        obj.worker = instance.to_user
+        obj.worker_id = instance.to_user.id
         obj.created_at = instance.created_at
         obj.is_expense = False
         obj.save()

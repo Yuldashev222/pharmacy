@@ -44,8 +44,7 @@ class DebtFromPharmacyAPIView(ModelViewSet):
         serializer.save(**data)
 
     def get_serializer_class(self):
-        user = self.request.user
-        if user.is_authenticated and user.is_worker:
+        if self.request.user.is_worker:
             return debt_from_pharmacy.WorkerDebtFromPharmacySerializer
         return debt_from_pharmacy.DirectorManagerDebtFromPharmacySerializer
 
@@ -217,8 +216,7 @@ class DebtRepayToPharmacyAPIView(ModelViewSet):
         instance.delete()
 
     def get_serializer_class(self):
-        user = self.request.user
-        if user.is_authenticated and user.is_worker:
+        if self.request.user.is_worker:
             return debt_repay_to_pharmacy.WorkerDebtRepayToPharmacySerializer
         return debt_repay_to_pharmacy.DirectorManagerDebtRepayToPharmacySerializer
 

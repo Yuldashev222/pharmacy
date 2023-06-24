@@ -1,10 +1,11 @@
 import os
+from django.dispatch import receiver
 from django.db.models import Sum
 from django.db.models.signals import post_save, post_delete, pre_save
-from django.dispatch import receiver
+
+from api.v1.companies.models import Company
 
 from .models import CustomUser, WorkerReport, WorkerReportMonth
-from ..companies.models import Company
 
 
 @receiver(post_save, sender=CustomUser)
@@ -14,12 +15,14 @@ def create_company(instance, created, *args, **kwargs):
         instance.save()
         Company.objects.create(name=str(instance), director_id=instance.id)
 
-    try:
+
+@receiver(pre_save, sender=CustomUser)
+def update_photo(instance, *args, **kwargs):
+    if instance.pk:
         user = CustomUser.objects.get(pk=instance.pk)
-        if user.photo and user.photo != instance.photo and os.path.isfile(user.photo.path):
-            os.remove(user.photo.path)
-    except Exception as e:
-        print(e)
+        if user.photo and user.photo != instance.photo:
+            if os.path.isfile(user.photo.path):
+                os.remove(user.photo.path)
 
 
 @receiver(post_delete, sender=CustomUser)
@@ -36,13 +39,13 @@ def update_user_month_report(instance, *args, **kwargs):
         if old_worker and instance.worker_id != old_worker.id:
             obj, _ = WorkerReportMonth.objects.get_or_create(month=instance.report_date.month,
                                                              year=instance.report_date.year,
-                                                             worker=old_worker,
+                                                             worker_id=old_worker.id,
                                                              pharmacy=instance.pharmacy)
 
             expense_price = WorkerReport.objects.filter(is_expense=True,
                                                         report_date__year=obj.year,
                                                         report_date__month=obj.month,
-                                                        worker=obj.worker,
+                                                        worker_id=obj.worker_id,
                                                         pharmacy=obj.pharmacy
                                                         ).aggregate(s=Sum('price'))['s']
 
@@ -63,20 +66,20 @@ def update_report(instance, *args, **kwargs):
     if instance.report_date and instance.worker:
         obj, _ = WorkerReportMonth.objects.get_or_create(month=instance.report_date.month,
                                                          year=instance.report_date.year,
-                                                         worker=instance.worker,
+                                                         worker_id=instance.worker.id,
                                                          pharmacy=instance.pharmacy)
 
         expense_price = WorkerReport.objects.filter(is_expense=True,
                                                     report_date__year=obj.year,
                                                     report_date__month=obj.month,
-                                                    worker=obj.worker,
+                                                    worker_id=obj.worker.id,
                                                     pharmacy=obj.pharmacy
                                                     ).aggregate(s=Sum('price'))['s']
 
         income_price = WorkerReport.objects.filter(is_expense=False,
                                                    report_date__year=obj.year,
                                                    report_date__month=obj.month,
-                                                   worker=obj.worker,
+                                                   worker_id=obj.worker.id,
                                                    pharmacy=obj.pharmacy
                                                    ).aggregate(s=Sum('price'))['s']
 

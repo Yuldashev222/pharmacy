@@ -2,29 +2,11 @@ from rest_framework import serializers
 from django.core.validators import MinValueValidator
 from rest_framework.exceptions import ValidationError
 from django.contrib.auth.hashers import make_password
-from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.serializers import TokenObtainSerializer
+from django.contrib.auth.password_validation import validate_password
 
 from .models import CustomUser
-
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.serializers import TokenObtainSerializer
-
-
-class CustomTokenObtainPairSerializer(TokenObtainSerializer):
-    token_class = RefreshToken
-
-    def validate(self, attrs):
-        data = super().validate(attrs)
-
-        refresh = self.get_token(self.user)
-
-        data["refresh"] = str(refresh)
-        data["access"] = str(refresh.access_token)
-        data['user'] = UserReadOnlySerializer(self.user).data
-
-        return data
 
 
 class CustomTokenObtainPairSerializer(TokenObtainSerializer):
@@ -73,31 +55,29 @@ class WorkerCreateSerializer(UserCreateSerializer):
         fields = UserCreateSerializer.Meta.fields + ['pharmacy', 'shift', 'is_main_worker']
         extra_kwargs = UserCreateSerializer.Meta.extra_kwargs.copy()
         extra_kwargs['pharmacy'] = {'required': True, 'allow_null': False}
-        extra_kwargs['shift'] = {'required': True, 'validators': [MinValueValidator(1)]}
 
     def validate(self, attrs):
-        is_main_worker = attrs['is_main_worker']
-        shift = attrs['shift']
+        user = self.context['request'].user
         pharmacy = attrs['pharmacy']
+        shift = attrs.get('shift')
+        is_main_worker = attrs.get('is_main_worker', 'no')
 
-        if is_main_worker and CustomUser.objects.filter(is_main_worker=True, shift=shift,
-                                                        pharmacy_id=pharmacy.id).exists():
+        if pharmacy.director_id != user.director_id:
+            raise ValidationError('not found')
+
+        if is_main_worker != 'no' and CustomUser.objects.filter(is_main_worker=True,
+                                                                shift=shift,
+                                                                pharmacy_id=pharmacy.id).exists():
             raise ValidationError({'is_main_worker': 'unique'})
 
         return super().validate(attrs)
-
-    def validate_pharmacy(self, obj):
-        user = self.context['request'].user
-        if obj.director_id != user.director_id:
-            raise ValidationError('not found')
-        return obj
 
 
 class UserReadOnlySerializer(serializers.ModelSerializer):
     creator = serializers.StringRelatedField(read_only=True)
     director = serializers.StringRelatedField(read_only=True)
-    pharmacy_name = serializers.StringRelatedField(source='pharmacy', read_only=True)
-    role = serializers.CharField(source='get_role_display', read_only=True)
+    pharmacy_name = serializers.StringRelatedField(source='pharmacy')
+    role = serializers.CharField(source='get_role_display')
 
     class Meta:
         model = CustomUser
@@ -109,25 +89,13 @@ class UserReadOnlySerializer(serializers.ModelSerializer):
         ]
 
 
-class RetrieveUpdateDestroySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CustomUser
-        fields = [
-            'id', 'phone_number', 'role', 'shift', 'pharmacy',
-            'director', 'wage', 'is_active',
-        ]
-
-        def update(self, instance, validated_data):
-            user = self.context['request'].user
-            if user.is_project_owner:
-                validated_data = {
-                    'is_active': validated_data.get('is_active', instance.is_active),
-                    'phone_number': validated_data.get('phone_number', instance.phone_number)
-                }
-            return super().update(instance, validated_data)
+# class UserUpdateSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = CustomUser
+#         fields = ['id', 'phone_number', 'shift', 'pharmacy', 'wage', 'is_active']
 
 
-class DirectorUpdateDestroySerializer(serializers.ModelSerializer):
+class UserUpdateDestroySerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['id', 'phone_number', 'is_active', 'password', 'first_name', 'last_name']
@@ -146,12 +114,12 @@ class DirectorUpdateDestroySerializer(serializers.ModelSerializer):
         return attrs
 
 
-class ManagerUpdateDestroySerializer(DirectorUpdateDestroySerializer):
-    class Meta(DirectorUpdateDestroySerializer.Meta):
-        fields = DirectorUpdateDestroySerializer.Meta.fields + ['wage']
+class ManagerUpdateDestroySerializer(UserUpdateDestroySerializer):
+    class Meta(UserUpdateDestroySerializer.Meta):
+        fields = UserUpdateDestroySerializer.Meta.fields + ['wage']
 
 
-class WorkerUpdateDestroySerializer(DirectorUpdateDestroySerializer):
+class WorkerUpdateDestroySerializer(UserUpdateDestroySerializer):
     class Meta(ManagerUpdateDestroySerializer.Meta):
         model = CustomUser
         fields = ManagerUpdateDestroySerializer.Meta.fields + ['shift', 'is_main_worker']
@@ -159,7 +127,6 @@ class WorkerUpdateDestroySerializer(DirectorUpdateDestroySerializer):
     def update(self, instance, validated_data):
         is_main_worker = validated_data.get('is_main_worker', instance.is_main_worker)
         shift = validated_data.get('shift', instance.shift)
-        print(is_main_worker, shift)
         if is_main_worker != instance.is_main_worker and not instance.is_main_worker:
             if CustomUser.objects.filter(is_main_worker=True, shift=shift, pharmacy_id=instance.pharmacy_id).exists():
                 raise ValidationError({'is_main_worker': 'unique'})

@@ -1,8 +1,7 @@
 from collections import OrderedDict
-
-from django.utils.encoding import escape_uri_path
 from drf_excel.mixins import XLSXFileMixin
 from drf_excel.renderers import XLSXRenderer
+from django.utils.encoding import escape_uri_path
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.serializers import ModelSerializer
 from rest_framework.permissions import IsAuthenticated
@@ -16,7 +15,7 @@ from .models import AllPharmacyIncomeReportMonth
 class AllPharmacyIncomeReportMonthSerializer(ModelSerializer):
     class Meta:
         model = AllPharmacyIncomeReportMonth
-        fields = ['month', 'price', 'receipt_price']
+        fields = ['month', 'price']
 
 
 class AllPharmacyIncomeReportMonthExcelSerializer(ModelSerializer):
@@ -38,9 +37,7 @@ class AllPharmacyIncomeReportMonthAPIView(ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated, (IsDirector | IsManager)]
 
     def get_queryset(self):
-        user = self.request.user
-        queryset = AllPharmacyIncomeReportMonth.objects.filter(director_id=user.director_id)
-        return queryset.order_by('month')
+        return AllPharmacyIncomeReportMonth.objects.filter(director_id=self.request.user.director_id).order_by('month')
 
 
 class AllPharmacyIncomeReportMonthExcelAPIView(XLSXFileMixin, AllPharmacyIncomeReportMonthAPIView):

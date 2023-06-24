@@ -8,15 +8,7 @@ from . import serializers as user_serializers
 
 from .enums import UserRole
 from .models import CustomUser
-from .permissions import IsProjectOwner, IsDirector, IsManager
-
-
-class DirectorCreateAPIView(CreateAPIView):
-    serializer_class = user_serializers.UserCreateSerializer
-    permission_classes = [IsAuthenticated, IsProjectOwner]
-
-    def perform_create(self, serializer):
-        serializer.save(role=UserRole.d.name)
+from .permissions import IsDirector, IsManager, NotProjectOwner
 
 
 class ManagerCreateAPIView(CreateAPIView):
@@ -40,32 +32,20 @@ class UserReadOnlyAPIView(ReadOnlyModelViewSet):
     filterset_fields = ['role', 'shift', 'pharmacy']
     search_fields = ['first_name', 'last_name', 'bio', 'address']
     serializer_class = user_serializers.UserReadOnlySerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, NotProjectOwner]
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_project_owner:
-            queryset = CustomUser.objects.filter(role=UserRole.d.name)
-        else:
-            queryset = CustomUser.objects.filter(director_id=user.director_id)
+        queryset = CustomUser.objects.filter(director_id=user.director_id)
         return queryset.select_related('pharmacy', 'director', 'creator').order_by('-date_joined')
 
 
 class OwnerRetrieveUpdateAPIView(RetrieveAPIView, UpdateAPIView):
     serializer_class = user_serializers.OwnerRetrieveUpdateSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, NotProjectOwner]
 
     def get_object(self):
         return self.request.user
-
-
-class DirectorUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
-    serializer_class = user_serializers.DirectorUpdateDestroySerializer
-    permission_classes = [IsAuthenticated, IsProjectOwner]
-
-    def get_queryset(self):
-        queryset = CustomUser.objects.filter(role=UserRole.d.name).order_by('-date_joined')
-        return queryset
 
 
 class ManagerUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
@@ -84,15 +64,3 @@ class WorkerUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         user = self.request.user
         return CustomUser.objects.filter(role=UserRole.w.name, director_id=user.director_id).order_by('-date_joined')
-
-# director1 +998974068689
-# director2 +998974068688
-# director3 +998974068687
-
-# manager1 +998974068685
-# manager2 +998974068684
-# manager1 +998974068683
-
-# worker1 +998974068682
-# worker2 +998974068681
-# worker3 +998974068680

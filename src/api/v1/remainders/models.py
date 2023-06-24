@@ -2,6 +2,8 @@ from django.db import models
 
 from api.v1.pharmacies.models import PharmacyReportByShift
 
+from .tasks import update_all_next_remainders
+
 
 class RemainderShift(models.Model):
     pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE)
@@ -49,20 +51,22 @@ class RemainderDetail(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if self.report_date and self.shift and self.pharmacy:
-            price = RemainderDetail.objects.filter(pharmacy_id=self.pharmacy_id,
-                                                   report_date=self.report_date,
-                                                   shift__lte=self.shift
-                                                   ).aggregate(s=models.Sum('price'))['s']
-            price = price if price else 0
-
-            price2 = RemainderDetail.objects.filter(pharmacy_id=self.pharmacy_id,
-                                                    report_date__lt=self.report_date,
-                                                    ).aggregate(s=models.Sum('price'))['s']
-            price += price2 if price2 else 0
-
             obj, _ = RemainderShift.objects.get_or_create(pharmacy_id=self.pharmacy_id,
                                                           shift=self.shift,
                                                           report_date=self.report_date)
 
-            obj.price = price if price else 0
+            price = RemainderDetail.objects.filter(pharmacy_id=obj.pharmacy_id,
+                                                   report_date=obj.report_date,
+                                                   shift__lte=obj.shift
+                                                   ).aggregate(s=models.Sum('price'))['s']
+            price = price if price else 0
+
+            price2 = RemainderDetail.objects.filter(pharmacy_id=obj.pharmacy_id,
+                                                    report_date__lt=obj.report_date,
+                                                    ).aggregate(s=models.Sum('price'))['s']
+            price += price2 if price2 else 0
+
+            obj.price = price
             obj.save()
+
+            update_all_next_remainders.delay(obj.pharmacy_id, obj.report_date, obj.shift)

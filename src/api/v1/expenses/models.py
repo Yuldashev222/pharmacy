@@ -1,5 +1,6 @@
 from django.db import models
 
+from api.v1.accounts.models import CustomUser
 from api.v1.companies.models import AbstractIncomeExpense
 from api.v1.companies.services import text_normalize
 from api.v1.expenses.reports.models import ExpenseReportMonth
@@ -10,7 +11,11 @@ from .enums import DefaultExpenseType
 class ExpenseType(models.Model):
     name = models.CharField(max_length=300)
     desc = models.CharField(max_length=600, blank=True)
-    director = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, null=True)
+    director = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE)
+
+    @classmethod
+    def get_default_expense(cls):
+        return cls.objects.get_or_create(name='deleted', director_id=CustomUser.get_fake_director().id)[0]
 
     def __str__(self):
         return self.name
@@ -22,7 +27,7 @@ class ExpenseType(models.Model):
 
 
 class UserExpense(AbstractIncomeExpense):
-    expense_type = models.ForeignKey(ExpenseType, on_delete=models.CASCADE)
+    expense_type = models.ForeignKey(ExpenseType, on_delete=models.SET(ExpenseType.get_default_expense))
     to_pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE)
     from_user = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True,
                                   related_name='from_user_expenses')
@@ -35,7 +40,7 @@ class UserExpense(AbstractIncomeExpense):
 
 
 class PharmacyExpense(AbstractIncomeExpense):
-    expense_type = models.ForeignKey(ExpenseType, on_delete=models.CASCADE)
+    expense_type = models.ForeignKey(ExpenseType, on_delete=models.SET(ExpenseType.get_default_expense))
     from_pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE)
     to_user = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, related_name='pharmacy_expenses',
                                 null=True, blank=True)

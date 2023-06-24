@@ -2,8 +2,8 @@ from django.db import models
 
 from api.v1.firms.models import FirmExpense
 from api.v1.expenses.models import UserExpense, PharmacyExpense
-from api.v1.companies.validators import uzb_phone_number_validation
 from api.v1.companies.models import AbstractIncomeExpense
+from api.v1.companies.validators import uzb_phone_number_validation
 
 
 class DebtToPharmacy(AbstractIncomeExpense):  # aptekaga qarz berdi
