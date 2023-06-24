@@ -13,6 +13,7 @@ class Client(models.Model):
     last_name = models.CharField("last name", max_length=150, blank=True)
     email = models.EmailField("email address", blank=True)
     creator = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
+    director = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='clients')
     created_at = models.DateTimeField("date created", auto_now_add=True)
     total_amount = models.FloatField(validators=[MinValueValidator(0)], default=0)
 

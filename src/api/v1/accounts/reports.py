@@ -15,12 +15,9 @@ from api.v1.accounts.permissions import IsDirector, IsManager
 
 
 class WorkerReportMonthSerializer(serializers.ModelSerializer):
-    worker = serializers.StringRelatedField()
-    pharmacy = serializers.StringRelatedField()
-
     class Meta:
         model = WorkerReportMonth
-        fields = ['worker', 'year', 'month', 'expense_price', 'income_price', 'pharmacy']
+        fields = ['year', 'month', 'expense_price', 'income_price']
 
 
 class WorkerReportMonthAPIView(ReadOnlyModelViewSet):
@@ -31,125 +28,17 @@ class WorkerReportMonthAPIView(ReadOnlyModelViewSet):
     filterset_fields = ['worker', 'year', 'pharmacy']
 
     def get_queryset(self):
-        queryset = WorkerReportMonth.objects.filter(worker__director_id=self.request.user.director_id).order_by('month')
-        return queryset.select_related('worker', 'pharmacy')
-
-
-# month excel
-class WorkerReportMonthExcelSerializer(serializers.ModelSerializer):
-    worker = serializers.StringRelatedField()
-    pharmacy = serializers.StringRelatedField()
-
-    class Meta:
-        model = WorkerReportMonth
-        fields = ['year', 'month', 'pharmacy', 'worker', 'income_price', 'expense_price']
-
-    def to_representation(self, instance):
-        ret = super().to_representation(instance)
-        ret['month'] = MONTHS[ret['month']]
-        return ret
-
-
-class WorkerReportMontExcelAPIView(XLSXFileMixin, WorkerReportMonthAPIView):
-    renderer_classes = (XLSXRenderer,)
-    serializer_class = WorkerReportMonthExcelSerializer
-
-    def get_filename(self, request=None, *args, **kwargs):
-        year = request.query_params.get('year')
-        worker_id = request.query_params.get('worker')
-        try:
-            worker = CustomUser.objects.get(id=worker_id)
-        except:
-            return f'{year}_report.xlsx'
-        return f'{year}_{"".join(str(worker).split())}_report.xlsx'
-
-    def finalize_response(self, request, response, *args, **kwargs):
-        response = super().finalize_response(request, response, *args, **kwargs)
-        filename = escape_uri_path(self.get_filename(request=request, *args, **kwargs))
-        response["content-disposition"] = f"attachment; filename={filename}"
-        try:
-            total_expense_price = sum(list(map(lambda x: x['expense_price'], response.data)))
-            total_income_price = sum(list(map(lambda x: x['income_price'], response.data)))
-            response.data.append(OrderedDict())
-            response.data.append(OrderedDict(worker='Jami',
-                                             expense_price=total_expense_price,
-                                             income_price=total_income_price))
-        except Exception as e:
-            print(e)
-        return response
-
-    column_header = {
-        'titles': [
-            "Yil",
-            "Oy",
-            "Filial",
-            "Xodim",
-            "Olgan pul miqdori",
-            "Bergan pul miqdori",
-        ],
-        'column_width': [10, 20, 60, 60, 30, 30],
-        'height': 50,
-        'style': {
-            'fill': {
-                'fill_type': 'solid',
-                'start_color': 'CCCCCC',
-            },
-            'alignment': {
-                'horizontal': 'center',
-                'vertical': 'center',
-                'wrapText': True,
-                'shrink_to_fit': True,
-            },
-            'border_side': {
-                'border_style': 'thin',
-                'color': 'FF000000',
-            },
-            'font': {
-                'name': 'Arial',
-                'size': 14,
-                'bold': True,
-                'color': 'FF000000',
-            },
-        },
-    }
-
-    body = {
-        'style': {
-            'fill': {
-                'fill_type': 'solid',
-                'start_color': 'EEEEEE',
-            },
-            'alignment': {
-                'horizontal': 'center',
-                'vertical': 'center',
-                'wrapText': True,
-                'shrink_to_fit': True,
-            },
-            'border_side': {
-                'border_style': 'thin',
-                'color': 'FF000000',
-            },
-            'font': {
-                'name': 'Arial',
-                'size': 14,
-                'bold': False,
-                'color': 'FF000000',
-            }
-        },
-        'height': 40,
-    }
+        return WorkerReportMonth.objects.filter(worker__director_id=self.request.user.director_id).order_by('month')
 
 
 class CustomPageNumberPagination(PageNumberPagination):
     def get_paginated_response(self, data):
-        month_income_total_price = data['month_income_total_price']
-        month_expense_total_price = data['month_expense_total_price']
         del data['month_income_total_price']
         del data['month_expense_total_price']
         return Response(OrderedDict([
             ('count', self.page.paginator.count),
-            ('month_income_total_price', month_income_total_price),
-            ('month_expense_total_price', month_expense_total_price),
+            ('month_income_total_price', data['month_income_total_price']),
+            ('month_expense_total_price', data['month_expense_total_price']),
             ('results', data['results'])
         ]))
 
@@ -176,7 +65,7 @@ class WorkerReportAPIView(ReadOnlyModelViewSet):
     }
 
     def get_queryset(self):
-        queryset = WorkerReport.objects.filter(creator__director_id=self.request.user.director_id
+        queryset = WorkerReport.objects.filter(worker__director_id=self.request.user.director_id
                                                ).order_by('report_date', 'created_at')
 
         return queryset.select_related('pharmacy', 'creator', 'worker')
@@ -283,6 +172,111 @@ class WorkerReportExcelAPIView(ReadOnlyModelViewSet):
             "Olgan pul miqdori",
         ],
         'column_width': [30, 30, 60, 60, 60, 60, 60],
+        'height': 50,
+        'style': {
+            'fill': {
+                'fill_type': 'solid',
+                'start_color': 'CCCCCC',
+            },
+            'alignment': {
+                'horizontal': 'center',
+                'vertical': 'center',
+                'wrapText': True,
+                'shrink_to_fit': True,
+            },
+            'border_side': {
+                'border_style': 'thin',
+                'color': 'FF000000',
+            },
+            'font': {
+                'name': 'Arial',
+                'size': 14,
+                'bold': True,
+                'color': 'FF000000',
+            },
+        },
+    }
+
+    body = {
+        'style': {
+            'fill': {
+                'fill_type': 'solid',
+                'start_color': 'EEEEEE',
+            },
+            'alignment': {
+                'horizontal': 'center',
+                'vertical': 'center',
+                'wrapText': True,
+                'shrink_to_fit': True,
+            },
+            'border_side': {
+                'border_style': 'thin',
+                'color': 'FF000000',
+            },
+            'font': {
+                'name': 'Arial',
+                'size': 14,
+                'bold': False,
+                'color': 'FF000000',
+            }
+        },
+        'height': 40,
+    }
+
+
+# month excel
+class WorkerReportMonthExcelSerializer(serializers.ModelSerializer):
+    worker = serializers.StringRelatedField()
+    pharmacy = serializers.StringRelatedField()
+
+    class Meta:
+        model = WorkerReportMonth
+        fields = ['year', 'month', 'pharmacy', 'worker', 'income_price', 'expense_price']
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret['month'] = MONTHS[ret['month']]
+        return ret
+
+
+class WorkerReportMontExcelAPIView(XLSXFileMixin, WorkerReportMonthAPIView):
+    renderer_classes = (XLSXRenderer,)
+    serializer_class = WorkerReportMonthExcelSerializer
+
+    def get_filename(self, request=None, *args, **kwargs):
+        year = request.query_params.get('year')
+        worker_id = request.query_params.get('worker')
+        try:
+            worker = CustomUser.objects.get(id=worker_id)
+        except:
+            return f'{year}_report.xlsx'
+        return f'{year}_{"".join(str(worker).split())}_report.xlsx'
+
+    def finalize_response(self, request, response, *args, **kwargs):
+        response = super().finalize_response(request, response, *args, **kwargs)
+        filename = escape_uri_path(self.get_filename(request=request, *args, **kwargs))
+        response["content-disposition"] = f"attachment; filename={filename}"
+        try:
+            total_expense_price = sum(list(map(lambda x: x['expense_price'], response.data)))
+            total_income_price = sum(list(map(lambda x: x['income_price'], response.data)))
+            response.data.append(OrderedDict())
+            response.data.append(OrderedDict(worker='Jami',
+                                             expense_price=total_expense_price,
+                                             income_price=total_income_price))
+        except Exception as e:
+            print(e)
+        return response
+
+    column_header = {
+        'titles': [
+            "Yil",
+            "Oy",
+            "Filial",
+            "Xodim",
+            "Olgan pul miqdori",
+            "Bergan pul miqdori",
+        ],
+        'column_width': [10, 20, 60, 60, 30, 30],
         'height': 50,
         'style': {
             'fill': {

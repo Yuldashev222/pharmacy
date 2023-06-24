@@ -23,7 +23,7 @@ class CustomUser(AbstractUser):
     short_name = models.CharField(max_length=300, blank=True)
     role = models.CharField(max_length=1, choices=UserRole.choices())
     is_main_worker = models.BooleanField(default=False)
-    shift = models.PositiveSmallIntegerField(default=0, validators=[MaxValueValidator(3)])
+    shift = models.PositiveSmallIntegerField(default=1, validators=[MaxValueValidator(3), MinValueValidator(1)])
     creator = models.ForeignKey('self', on_delete=models.SET_NULL, null=True)
     pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE, blank=True, null=True)
     director = models.ForeignKey('self', on_delete=models.CASCADE, related_name='employees', blank=True, null=True)
@@ -43,7 +43,8 @@ class CustomUser(AbstractUser):
     def save(self, *args, **kwargs):
         self.first_name = text_normalize(self.first_name).title()
         self.last_name = text_normalize(self.last_name).title()
-        self.short_name = self.first_name + ' ' + '.'.join(list(map(lambda x: x[0], self.last_name.split()[:2]))).title()
+        self.short_name = self.first_name + ' ' + '.'.join(
+            list(map(lambda x: x[0], self.last_name.split()[:2]))).title()
         self.bio = text_normalize(self.bio)
         self.address = text_normalize(self.address)
         super().save(*args, **kwargs)
@@ -90,12 +91,12 @@ class WorkerReport(models.Model):
     pharmacy_expense = models.ForeignKey('expenses.PharmacyExpense', on_delete=models.CASCADE, null=True, blank=True)
     pharmacy_income = models.ForeignKey('incomes.PharmacyIncome', on_delete=models.CASCADE, null=True, blank=True)
     firm_expense = models.ForeignKey('firms.FirmExpense', on_delete=models.CASCADE, null=True, blank=True)
-    debt_repay_from_pharmacy = models.ForeignKey('debts.DebtRepayFromPharmacy', on_delete=models.CASCADE,
-                                                 null=True, blank=True)
+    debt_repay_from_pharmacy = models.ForeignKey('debts.DebtRepayFromPharmacy', on_delete=models.CASCADE, null=True,
+                                                 blank=True)
 
     report_date = models.DateField(null=True)
     pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE, blank=True, null=True)
     price = models.IntegerField(default=0)
     creator = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True, related_name='reports')
-    worker = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True)
+    worker = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE)
     created_at = models.DateTimeField(null=True)

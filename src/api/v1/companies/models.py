@@ -7,7 +7,7 @@ from .validators import uzb_phone_number_validation
 
 class TransferMoneyType(models.Model):
     name = models.CharField(max_length=150)
-    director = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, null=True)
+    director = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name

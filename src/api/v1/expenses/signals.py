@@ -39,15 +39,14 @@ def update_report(instance, *args, **kwargs):
             obj.expense_pharmacy = expense_pharmacy if expense_pharmacy else 0
 
         else:
-            objs = PharmacyExpense.objects.filter(from_pharmacy_id=obj.pharmacy_id,
-                                                  report_date=obj.report_date,
-                                                  shift=obj.shift,
-                                                  transfer_type_id=DefaultTransferType.cash.value,
-                                                  expense_type_id=DefaultExpenseType.discount_id.value,
-                                                  ).values_list('price', flat=True)
+            not_transfer_discount_price = PharmacyExpense.objects.filter(from_pharmacy_id=obj.pharmacy_id,
+                                                                         report_date=obj.report_date,
+                                                                         shift=obj.shift,
+                                                                         transfer_type_id=DefaultTransferType.cash.value,
+                                                                         expense_type_id=DefaultExpenseType.discount_id.value,
+                                                                         ).aggregate(s=Sum('price'))['s']
 
-            not_transfer_discount_price = sum(list(map(lambda x: int(x) if str(x).isdigit() else 0, objs)))
-            obj.not_transfer_discount_price = not_transfer_discount_price
+            obj.not_transfer_discount_price = not_transfer_discount_price if not_transfer_discount_price else 0
 
         obj.save()
 
@@ -56,15 +55,14 @@ def update_report(instance, *args, **kwargs):
                                                              report_date=instance.report_date,
                                                              shift=instance.shift)
 
-        objs = PharmacyExpense.objects.exclude(transfer_type_id=DefaultTransferType.cash.value
+        transfer_discount_price = PharmacyExpense.objects.exclude(transfer_type_id=DefaultTransferType.cash.value
                                                ).filter(from_pharmacy_id=obj.pharmacy_id,
                                                         report_date=obj.report_date,
                                                         shift=obj.shift,
                                                         expense_type_id=DefaultExpenseType.discount_id.value,
-                                                        ).values_list('price', flat=True)
+                                                        ).aggregate(s=Sum('price'))['s']
 
-        transfer_discount_price = sum(list(map(lambda x: int(x) if str(x).isdigit() else 0, objs)))
-        obj.transfer_discount_price = transfer_discount_price
+        obj.transfer_discount_price = transfer_discount_price if transfer_discount_price else 0
         obj.save()
 
     if instance.to_user:
@@ -72,8 +70,8 @@ def update_report(instance, *args, **kwargs):
         obj.report_date = instance.report_date
         obj.price = instance.price
         obj.creator = instance.creator
-        obj.pharmacy = instance.from_pharmacy
-        obj.worker = instance.to_user
+        obj.pharmacy_id = instance.from_pharmacy.id
+        obj.worker_id = instance.to_user.id
         obj.created_at = instance.created_at
         obj.is_expense = False
         obj.save()
@@ -152,7 +150,7 @@ def update_user_expense_report(instance, *args, **kwargs):
     obj.price = instance.price
     obj.creator = instance.creator
     obj.pharmacy = instance.to_pharmacy
-    obj.worker = instance.from_user
+    obj.worker_id = instance.from_user.id
     obj.created_at = instance.created_at
     obj.save()
 
@@ -162,7 +160,7 @@ def update_user_expense_report(instance, *args, **kwargs):
         obj.price = instance.price
         obj.creator = instance.creator
         obj.pharmacy = instance.to_pharmacy
-        obj.worker = instance.to_user
+        obj.worker_id = instance.to_user.id
         obj.created_at = instance.created_at
         obj.is_expense = False
         obj.save()
