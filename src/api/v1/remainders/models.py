@@ -69,4 +69,4 @@ class RemainderDetail(models.Model):
             obj.price = price
             obj.save()
 
-            update_all_next_remainders.delay(obj.pharmacy_id, obj.report_date, obj.shift)
+            update_all_next_remainders.delay(obj.pharmacy_id, str(obj.report_date), obj.shift)

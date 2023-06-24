@@ -14,14 +14,14 @@ def update_all_next_remainders(pharmacy_id, report_date, shift):
 
     for obj in objs:
         price = models.RemainderDetail.objects.filter(pharmacy_id=obj.pharmacy_id,
-                                               report_date=obj.report_date,
-                                               shift__lte=obj.shift
-                                               ).aggregate(s=Sum('price'))['s']
+                                                      report_date=obj.report_date,
+                                                      shift__lte=obj.shift
+                                                      ).aggregate(s=Sum('price'))['s']
         price = price if price else 0
 
         price2 = models.RemainderDetail.objects.filter(pharmacy_id=obj.pharmacy_id,
-                                                report_date__lt=obj.report_date,
-                                                ).aggregate(s=Sum('price'))['s']
+                                                       report_date__lt=obj.report_date,
+                                                       ).aggregate(s=Sum('price'))['s']
         price += price2 if price2 else 0
 
         obj.price = price
