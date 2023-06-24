@@ -27,7 +27,7 @@ class ExpenseType(models.Model):
 
 
 class UserExpense(AbstractIncomeExpense):
-    expense_type = models.ForeignKey(ExpenseType, on_delete=models.SET(ExpenseType.get_default_expense))
+    expense_type = models.ForeignKey(ExpenseType, on_delete=models.PROTECT)
     to_pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE)
     from_user = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True,
                                   related_name='from_user_expenses')
@@ -40,7 +40,7 @@ class UserExpense(AbstractIncomeExpense):
 
 
 class PharmacyExpense(AbstractIncomeExpense):
-    expense_type = models.ForeignKey(ExpenseType, on_delete=models.SET(ExpenseType.get_default_expense))
+    expense_type = models.ForeignKey(ExpenseType, on_delete=models.PROTECT)
     from_pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE)
     to_user = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, related_name='pharmacy_expenses',
                                 null=True, blank=True)
