@@ -97,7 +97,7 @@ def report_update(instance, *args, **kwargs):
         if instance.transfer_type_id == DefaultTransferType.cash.value and not instance.from_user:
             obj, _ = RemainderDetail.objects.get_or_create(firm_expense_id=instance.id)
             obj.report_date = instance.report_date
-            obj.price = -1 * instance.price
+            obj.price = -1 * instance.price + instance.from_user_price
             obj.shift = instance.shift
             obj.pharmacy_id = instance.from_pharmacy_id
             obj.save()
@@ -106,13 +106,17 @@ def report_update(instance, *args, **kwargs):
                                                                  report_date=instance.report_date,
                                                                  shift=instance.shift)
 
-            expense_firm = FirmExpense.objects.filter(from_pharmacy_id=obj.pharmacy_id,
-                                                      is_verified=True,
-                                                      from_user__isnull=True,
-                                                      transfer_type_id=DefaultTransferType.cash.value,
-                                                      report_date=obj.report_date,
-                                                      shift=obj.shift
-                                                      ).aggregate(s=Sum('price'))['s']
+            data = FirmExpense.objects.filter(from_pharmacy_id=obj.pharmacy_id,
+                                              is_verified=True,
+                                              from_user__isnull=True,
+                                              transfer_type_id=DefaultTransferType.cash.value,
+                                              report_date=obj.report_date,
+                                              shift=obj.shift
+                                              ).aggregate(s=Sum('price'), fs=Sum('from_user_price'))
+
+            price = data['s'] if data['s'] else 0
+            from_user_price = data['fs'] if data['fs'] else 0
+            expense_firm = price - from_user_price
 
             obj.expense_firm = expense_firm if expense_firm else 0
             obj.save()
@@ -139,13 +143,17 @@ def report_update(instance, *args, **kwargs):
                                                                  report_date=instance.report_date,
                                                                  shift=instance.shift)
 
-            expense_firm = FirmExpense.objects.exclude(id=instance.id).filter(from_pharmacy_id=obj.pharmacy_id,
-                                                                              is_verified=True,
-                                                                              from_user__isnull=True,
-                                                                              transfer_type_id=DefaultTransferType.cash.value,
-                                                                              report_date=obj.report_date,
-                                                                              shift=obj.shift
-                                                                              ).aggregate(s=Sum('price'))['s']
+            data = FirmExpense.objects.exclude(id=instance.id).filter(from_pharmacy_id=obj.pharmacy_id,
+                                                                      is_verified=True,
+                                                                      from_user__isnull=True,
+                                                                      transfer_type_id=DefaultTransferType.cash.value,
+                                                                      report_date=obj.report_date,
+                                                                      shift=obj.shift
+                                                                      ).aggregate(s=Sum('price'),
+                                                                                  fs=Sum('from_user_price'))['s']
 
+            price = data['s'] if data['s'] else 0
+            from_user_price = data['fs'] if data['fs'] else 0
+            expense_firm = price - from_user_price
             obj.expense_firm = expense_firm if expense_firm else 0
             obj.save()
