@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
 DJANGO CONFIGURATIONS
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""
-DEBUG = 1
+DEBUG = True
 USE_TZ = True
 USE_I18N = True
 MEDIA_URL = 'media/'
@@ -104,12 +104,12 @@ INSTALLED_APPS = [
 
 DATABASES = {
     'default': {
-        'ENGINE': os.getenv('POSTGRES_DB_ENGIN', 'django.db.backends.sqlite3'),
-        'NAME': os.getenv('POSTGRES_DB_NAM', BASE_DIR.joinpath('db.sqlite3')),
-        'USER': os.getenv('POSTGRES_DB_USER', 'user'),
-        'PASSWORD': os.getenv('POSTGRES_DB_PASSWORD', 'password'),
-        'HOST': os.getenv('POSTGRES_DB_HOST', 'localhost'),
-        'PORT': os.getenv('POSTGRES_DB_PORT', '5432'),
+        'ENGINE': os.getenv('POSTGRES_DB_ENGINE'),
+        'NAME': os.getenv('POSTGRES_DB_NAME'),
+        'USER': os.getenv('POSTGRES_DB_USER'),
+        'PASSWORD': os.getenv('POSTGRES_DB_PASSWORD'),
+        'HOST': os.getenv('POSTGRES_DB_HOST'),
+        'PORT': os.getenv('POSTGRES_DB_PORT'),
     },
 }
 

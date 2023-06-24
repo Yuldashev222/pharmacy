@@ -28,4 +28,4 @@ def update_all_next_remainders(pharmacy_id, report_date, shift):
         old_obj_price = obj.price
         objs_list.append(obj)
 
-    models.RemainderShift.objects.bulk_update(objs_list, ['price'])
+    return models.RemainderShift.objects.bulk_update(objs_list, ['price'])
