@@ -101,10 +101,10 @@ class FirmExpense(AbstractIncomeExpense):
 
     def save(self, *args, **kwargs):
         if not self.pk:
-            # if self.from_pharmacy and self.creator.is_worker:
-            #     self.report_date = get_worker_report_date(self.from_pharmacy.last_shift_end_hour)
-            # else:
-            #     self.report_date = date.today()
+            if self.from_pharmacy and self.creator.is_worker:
+                self.report_date = get_worker_report_date(self.from_pharmacy.last_shift_end_hour)
+            else:
+                self.report_date = date.today()
 
             self.verified_firm_worker_name = text_normalize(self.verified_firm_worker_name).title()
             self.verified_code = randint(10000, 99999)
