@@ -98,5 +98,5 @@ class WorkerReport(models.Model):
     pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE, blank=True, null=True)
     price = models.IntegerField(default=0)
     creator = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True, related_name='reports')
-    worker = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE)
+    worker = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, null=True)
     created_at = models.DateTimeField(null=True)
