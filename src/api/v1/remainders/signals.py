@@ -24,24 +24,24 @@ def update_user_income_report(instance, *args, **kwargs):
                 report_date = obj.report_date - timedelta(days=1)
 
             old_obj_price = RemainderShift.get_price(obj.pharmacy_id, report_date, shift)
-            price = RemainderDetail.objects.filter(pharmacy_id=obj.pharmacy_id,
-                                                   report_date=obj.report_date,
-                                                   shift=obj.shift
-                                                   ).aggregate(s=Sum('price'))['s']
+            price = RemainderDetail.objects.exclude(id=instance.id).filter(pharmacy_id=obj.pharmacy_id,
+                                                                           report_date=obj.report_date,
+                                                                           shift=obj.shift
+                                                                           ).aggregate(s=Sum('price'))['s']
 
             obj.price = price + old_obj_price
 
         else:
 
-            price = RemainderDetail.objects.filter(pharmacy_id=obj.pharmacy_id,
-                                                   report_date=obj.report_date,
-                                                   shift__lte=obj.shift
-                                                   ).aggregate(s=Sum('price'))['s']
+            price = RemainderDetail.objects.exclude(id=instance.id).filter(pharmacy_id=obj.pharmacy_id,
+                                                                           report_date=obj.report_date,
+                                                                           shift__lte=obj.shift
+                                                                           ).aggregate(s=Sum('price'))['s']
             price = price if price else 0
 
-            price2 = RemainderDetail.objects.filter(pharmacy_id=obj.pharmacy_id,
-                                                    report_date__lt=obj.report_date,
-                                                    ).aggregate(s=Sum('price'))['s']
+            price2 = RemainderDetail.objects.exclude(id=instance.id).filter(pharmacy_id=obj.pharmacy_id,
+                                                                            report_date__lt=obj.report_date,
+                                                                            ).aggregate(s=Sum('price'))['s']
             price += price2 if price2 else 0
 
             obj.price = price
