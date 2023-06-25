@@ -13,4 +13,3 @@ def update_connections(instance, *args, **kwargs):
     FirmExpense.objects.filter(from_pharmacy_id=instance.id).update(from_pharmacy_id=obj.id)
     FirmDebtByMonth.objects.filter(pharmacy_id=instance.id).update(pharmacy_id=obj.id)
     FirmReport.objects.filter(pharmacy_id=instance.id).update(pharmacy_id=obj.id)
-    RemainderDetail.objects.filter(pharmacy_id=instance.id).delete()

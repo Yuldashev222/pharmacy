@@ -1,10 +1,10 @@
 from django.dispatch import receiver
-from django.db.models.signals import post_delete
+from django.db.models.signals import post_delete, pre_delete
 
-from .models import RemainderDetail, RemainderShift
+from .models import RemainderDetail
 
 
-@receiver(post_delete, sender=RemainderDetail)
+@receiver(pre_delete, sender=RemainderDetail)
 def update_user_income_report(instance, *args, **kwargs):
     if instance.report_date and instance.shift and instance.pharmacy:
         objs = RemainderDetail.objects.filter(pharmacy_id=instance.pharmacy_id,
