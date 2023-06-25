@@ -50,7 +50,7 @@ class RemainderDetail(models.Model):
     price = models.IntegerField(default=0)
     shift = models.IntegerField(null=True)
 
-    def save(self, *args, **kwargs):
+    def save(self, delete=None, *args, **kwargs):
         super().save(*args, **kwargs)
         d = kwargs.get('delete', 'no')
         if d != 'no' and d:
