@@ -65,10 +65,10 @@ class RemainderDetail(models.Model):
                                                  report_date__lt=obj.report_date
                                                  ).order_by('-report_date', '-shift').first()
             if obj1 or obj2:
-                price = remainder_objs.filter(pharmacy_id=obj.pharmacy_id,
-                                              report_date=obj.report_date,
-                                              shift=obj.shift
-                                              ).aggregate(s=models.Sum('price'))['s']
+                price = RemainderDetail.objects.filter(pharmacy_id=obj.pharmacy_id,
+                                                       report_date=obj.report_date,
+                                                       shift=obj.shift
+                                                       ).aggregate(s=models.Sum('price'))['s']
                 if obj1:
                     obj.price = price if price else 0 + obj1.price
                 else:
@@ -76,15 +76,15 @@ class RemainderDetail(models.Model):
 
             else:
 
-                price = remainder_objs.filter(pharmacy_id=obj.pharmacy_id,
-                                              report_date=obj.report_date,
-                                              shift__lte=obj.shift
-                                              ).aggregate(s=models.Sum('price'))['s']
+                price = RemainderDetail.objects.filter(pharmacy_id=obj.pharmacy_id,
+                                                       report_date=obj.report_date,
+                                                       shift__lte=obj.shift
+                                                       ).aggregate(s=models.Sum('price'))['s']
                 price = price if price else 0
 
-                price2 = remainder_objs.filter(pharmacy_id=obj.pharmacy_id,
-                                               report_date__lt=obj.report_date,
-                                               ).aggregate(s=models.Sum('price'))['s']
+                price2 = RemainderDetail.objects.filter(pharmacy_id=obj.pharmacy_id,
+                                                        report_date__lt=obj.report_date,
+                                                        ).aggregate(s=models.Sum('price'))['s']
                 price += price2 if price2 else 0
 
                 obj.price = price
