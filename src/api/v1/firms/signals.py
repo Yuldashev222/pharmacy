@@ -150,7 +150,7 @@ def report_update(instance, *args, **kwargs):
                                                                       report_date=obj.report_date,
                                                                       shift=obj.shift
                                                                       ).aggregate(s=Sum('price'),
-                                                                                  fs=Sum('from_user_price'))['s']
+                                                                                  fs=Sum('from_user_price'))
 
             if data:
                 price = data['s'] if data.get('s') else 0
