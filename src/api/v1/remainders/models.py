@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.db import models
 
 from api.v1.pharmacies.models import PharmacyReportByShift
@@ -54,19 +56,37 @@ class RemainderDetail(models.Model):
             obj, _ = RemainderShift.objects.get_or_create(pharmacy_id=self.pharmacy_id,
                                                           shift=self.shift,
                                                           report_date=self.report_date)
+            
+            if RemainderShift.objects.filter(id__lt=obj.id, pharmacy_id=obj.pharmacy_id).exists():
+                report_date = obj.report_date
+                if obj.shift > 1:
+                    shift = obj.shift - 1
+                else:
+                    shift = 3
+                    report_date = obj.report_date - timedelta(days=1)
 
-            price = RemainderDetail.objects.filter(pharmacy_id=obj.pharmacy_id,
-                                                   report_date=obj.report_date,
-                                                   shift__lte=obj.shift
-                                                   ).aggregate(s=models.Sum('price'))['s']
-            price = price if price else 0
+                old_obj_price = RemainderShift.get_price(obj.pharmacy_id, report_date, shift)
+                price = RemainderDetail.objects.filter(pharmacy_id=obj.pharmacy_id,
+                                                       report_date=obj.report_date,
+                                                       shift=obj.shift
+                                                       ).aggregate(s=models.Sum('price'))['s']
 
-            price2 = RemainderDetail.objects.filter(pharmacy_id=obj.pharmacy_id,
-                                                    report_date__lt=obj.report_date,
-                                                    ).aggregate(s=models.Sum('price'))['s']
-            price += price2 if price2 else 0
+                obj.price = price + old_obj_price
 
-            obj.price = price
+            else:
+
+                price = RemainderDetail.objects.filter(pharmacy_id=obj.pharmacy_id,
+                                                       report_date=obj.report_date,
+                                                       shift__lte=obj.shift
+                                                       ).aggregate(s=models.Sum('price'))['s']
+                price = price if price else 0
+
+                price2 = RemainderDetail.objects.filter(pharmacy_id=obj.pharmacy_id,
+                                                        report_date__lt=obj.report_date,
+                                                        ).aggregate(s=models.Sum('price'))['s']
+                price += price2 if price2 else 0
+
+                obj.price = price
             obj.save()
 
-            update_all_next_remainders.delay(obj.pharmacy_id, str(obj.report_date), obj.shift)
+            update_all_next_remainders.delay(obj.pharmacy_id, str(obj.report_date), obj.shift, obj.price)
