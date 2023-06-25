@@ -25,10 +25,12 @@ def update_user_income_report(instance, *args, **kwargs):
                                                                            report_date=obj.report_date,
                                                                            shift=obj.shift
                                                                            ).aggregate(s=Sum('price'))['s']
+            price = price if price else 0
+
             if obj1:
-                obj.price = price if price else 0 + obj1.price
+                obj.price = price + obj1.price
             else:
-                obj.price = price if price else 0 + obj2.price
+                obj.price = price + obj2.price
 
         else:
 
