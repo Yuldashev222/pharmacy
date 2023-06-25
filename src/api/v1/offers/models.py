@@ -12,12 +12,12 @@ class Offer(models.Model):
         ['p', p],
         ['a', a]
     ]
-    title = models.CharField(max_length=150, blank=True)
-    text = models.TextField(max_length=1000)
-    creator = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE)
+    title = models.CharField(verbose_name='Sarlavha', max_length=150, blank=True)
+    text = models.TextField(verbose_name='Murojaat matni', max_length=1000)
+    creator = models.ForeignKey('accounts.CustomUser', verbose_name='Murojaatchi', on_delete=models.CASCADE)
     status = models.CharField(max_length=1, choices=STATUS, default='n')
     answer_text = models.TextField(max_length=1000, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Yuborilgan sana')
     answered_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
