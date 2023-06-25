@@ -17,7 +17,6 @@ def update_all_next_remainders(pharmacy_id, report_date, shift, old_obj_price):
                                                       report_date=obj.report_date,
                                                       shift=obj.shift
                                                       ).aggregate(s=Sum('price'))['s']
-        price = price if price else 0
-        obj.price = price + old_obj_price
+        obj.price = price if price else 0 + old_obj_price
         old_obj_price = obj.price
         obj.save()

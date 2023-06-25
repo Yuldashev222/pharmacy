@@ -71,7 +71,7 @@ class RemainderDetail(models.Model):
                                                        shift=obj.shift
                                                        ).aggregate(s=models.Sum('price'))['s']
 
-                obj.price = price + old_obj_price
+                obj.price = price if price else 0 + old_obj_price
 
             else:
 
