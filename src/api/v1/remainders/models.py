@@ -56,22 +56,23 @@ class RemainderDetail(models.Model):
             obj, _ = RemainderShift.objects.get_or_create(pharmacy_id=self.pharmacy_id,
                                                           shift=self.shift,
                                                           report_date=self.report_date)
-            
-            if RemainderShift.objects.filter(id__lt=obj.id, pharmacy_id=obj.pharmacy_id).exists():
-                report_date = obj.report_date
-                if obj.shift > 1:
-                    shift = obj.shift - 1
-                else:
-                    shift = 3
-                    report_date = obj.report_date - timedelta(days=1)
 
-                old_obj_price = RemainderShift.get_price(obj.pharmacy_id, report_date, shift)
+            obj1 = RemainderShift.objects.filter(shift__lt=obj.shift,
+                                                 pharmacy_id=obj.pharmacy_id,
+                                                 report_date=obj.report_date).order_by('-shift').first()
+
+            obj2 = RemainderShift.objects.filter(pharmacy_id=obj.pharmacy_id,
+                                                 report_date__lt=obj.report_date
+                                                 ).order_by('-report_date', '-shift').first()
+            if obj1 or obj2:
                 price = RemainderDetail.objects.filter(pharmacy_id=obj.pharmacy_id,
                                                        report_date=obj.report_date,
                                                        shift=obj.shift
                                                        ).aggregate(s=models.Sum('price'))['s']
-
-                obj.price = price if price else 0 + old_obj_price
+                if obj1:
+                    obj.price = price if price else 0 + obj1.price
+                else:
+                    obj.price = price if price else 0 + obj2.price
 
             else:
 
