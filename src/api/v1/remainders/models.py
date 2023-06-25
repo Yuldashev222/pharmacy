@@ -50,13 +50,8 @@ class RemainderDetail(models.Model):
     price = models.IntegerField(default=0)
     shift = models.IntegerField(null=True)
 
-    def save(self, delete=None, *args, **kwargs):
+    def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        d = kwargs.get('delete')
-        if d is not None:
-            remainder_objs = RemainderDetail.objects.exclude(id=self.id)
-        else:
-            remainder_objs = RemainderDetail.objects.all()
         if self.report_date and self.shift and self.pharmacy:
             obj, _ = RemainderShift.objects.get_or_create(pharmacy_id=self.pharmacy_id,
                                                           shift=self.shift,
