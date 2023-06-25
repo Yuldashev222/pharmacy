@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth.models import AbstractUser
+from django.utils import timezone
 
 from api.v1.companies.services import text_normalize
 from api.v1.companies.validators import uzb_phone_number_validation
@@ -17,12 +18,14 @@ class CustomUser(AbstractUser):
     REQUIRED_FIELDS = ['role']
     objects = CustomUserManager()
 
-    phone_number = models.CharField(max_length=13, unique=True, validators=[uzb_phone_number_validation])
-    first_name = models.CharField(max_length=150)
-    last_name = models.CharField(max_length=150)
+    phone_number = models.CharField(verbose_name='Telefon raqam', max_length=13, unique=True,
+                                    validators=[uzb_phone_number_validation])
+    first_name = models.CharField(verbose_name='Ism', max_length=150)
+    last_name = models.CharField(verbose_name='Familiya va Sharifi', max_length=150)
     short_name = models.CharField(max_length=300, blank=True)
     role = models.CharField(max_length=1, choices=UserRole.choices())
     is_main_worker = models.BooleanField(default=False)
+    date_joined = models.DateTimeField("Qo'shilgan sana", default=timezone.now)
     shift = models.PositiveSmallIntegerField(default=1, validators=[MaxValueValidator(3), MinValueValidator(1)])
     creator = models.ForeignKey('self', on_delete=models.SET_NULL, null=True)
     pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE, blank=True, null=True)
@@ -34,8 +37,8 @@ class CustomUser(AbstractUser):
     address = models.CharField(max_length=500, blank=True)
 
     class Meta:
-        verbose_name = 'Director'
-        verbose_name_plural = 'Directors'
+        verbose_name = 'Direktor'
+        verbose_name_plural = 'Direktorlar'
 
     def __str__(self):
         return self.get_full_name()
