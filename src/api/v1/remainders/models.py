@@ -52,8 +52,8 @@ class RemainderDetail(models.Model):
 
     def save(self, delete=None, *args, **kwargs):
         super().save(*args, **kwargs)
-        d = kwargs.get('delete', 'no')
-        if d != 'no' and d:
+        d = kwargs.get('delete')
+        if d is not None:
             remainder_objs = RemainderDetail.objects.exclude(id=self.id)
         else:
             remainder_objs = RemainderDetail.objects.all()
