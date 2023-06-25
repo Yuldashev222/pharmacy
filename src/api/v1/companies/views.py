@@ -46,14 +46,14 @@ def company_details(request, *args, **kwargs):
 
         'employees': CustomUser.objects.filter(director_id=user.director_id
                                                ).values('id', 'short_name', 'first_name', 'last_name', 'shift',
-                                                        'pharmacy_id', 'is_main_worker', 'role').order_by('-id')
+                                                        'pharmacy_id', 'is_main_worker', 'role').order_by('short_name')
     }
 
     if user.is_worker:
         pharmacies = Pharmacy.objects.filter(id=user.pharmacy_id, is_deleted=False)
     else:
         pharmacies = Pharmacy.objects.filter(director_id=user.director_id, is_deleted=False)
-    data['pharmacies'] = pharmacies.values('id', 'name').order_by('name')
+    data['pharmacies'] = pharmacies.values('id', 'name', 'is_favorite').order_by('name')
     return Response(data)
 
 
