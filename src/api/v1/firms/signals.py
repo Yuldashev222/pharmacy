@@ -152,8 +152,9 @@ def report_update(instance, *args, **kwargs):
                                                                       ).aggregate(s=Sum('price'),
                                                                                   fs=Sum('from_user_price'))['s']
 
-            price = data['s'] if data['s'] else 0
-            from_user_price = data['fs'] if data['fs'] else 0
-            expense_firm = price - from_user_price
-            obj.expense_firm = expense_firm if expense_firm else 0
-            obj.save()
+            if data:
+                price = data['s'] if data.get('s') else 0
+                from_user_price = data['fs'] if data.get('fs') else 0
+                expense_firm = price - from_user_price
+                obj.expense_firm = expense_firm if expense_firm else 0
+                obj.save()

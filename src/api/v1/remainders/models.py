@@ -88,6 +88,6 @@ class RemainderDetail(models.Model):
                 price += price2 if price2 else 0
 
                 obj.price = price
-            obj.save()
 
+            obj.save()
             update_all_next_remainders.delay(obj.pharmacy_id, str(obj.report_date), obj.shift, obj.price)
