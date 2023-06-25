@@ -50,9 +50,10 @@ def company_details(request, *args, **kwargs):
     }
 
     if user.is_worker:
-        data['pharmacies'] = Pharmacy.objects.filter(id=user.pharmacy_id).values('id', 'name').order_by('name')
+        pharmacies = Pharmacy.objects.filter(id=user.pharmacy_id, is_deleted=False)
     else:
-        data['pharmacies'] = Pharmacy.objects.filter(director_id=user.director_id).values('id', 'name').order_by('name')
+        pharmacies = Pharmacy.objects.filter(director_id=user.director_id, is_deleted=False)
+    data['pharmacies'] = pharmacies.values('id', 'name').order_by('name')
     return Response(data)
 
 

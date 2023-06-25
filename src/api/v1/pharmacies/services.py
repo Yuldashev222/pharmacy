@@ -1,15 +1,5 @@
 from datetime import timedelta, datetime, time, date
 
-from api.v1.accounts.models import CustomUser
-
-from . import models
-
-
-def get_deleted_pharmacy_obj(obj):
-    obj, _ = models.Pharmacy.objects.get_or_create(name=f'deleted {obj.name[:90]}',
-                                                   director=CustomUser.get_fake_director())
-    return obj
-
 
 def pharmacy_logo_upload_location(obj, logo):
     return f'pharmacies/{obj.name[:200]}/logos/{logo}'

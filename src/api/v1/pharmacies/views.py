@@ -6,14 +6,19 @@ from django_filters.rest_framework import DjangoFilterBackend
 from api.v1.accounts.permissions import NotProjectOwner, IsDirector
 
 from .models import Pharmacy
-
 from .serializers import PharmacySerializer
 
 
 class PharmacyAPIViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_fields = ['is_favorite']
     search_fields = ['name', 'desc']
     serializer_class = PharmacySerializer
+
+    def perform_destroy(self, instance):
+        instance.is_deleted = True
+        instance.name = 'deleted ' + instance.name[:90]
+        instance.save()
 
     def perform_create(self, serializer):
         serializer.save(director_id=self.request.user.director_id)
@@ -24,7 +29,7 @@ class PharmacyAPIViewSet(ModelViewSet):
             queryset = Pharmacy.objects.filter(id=user.pharmacy_id)
         else:
             queryset = Pharmacy.objects.filter(director_id=user.director_id)
-        return queryset.select_related('director').order_by('-created_at')
+        return queryset.filter(is_deleted=False).select_related('director').order_by('-created_at')
 
     def get_permissions(self):
         permission_classes = [IsAuthenticated, NotProjectOwner]
