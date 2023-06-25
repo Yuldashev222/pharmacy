@@ -20,6 +20,9 @@ class Offer(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Yuborilgan sana')
     answered_at = models.DateTimeField(blank=True, null=True)
 
+    def __str__(self):
+        return f'{self.creator} taklifi'
+
     class Meta:
         verbose_name = 'Taklif'
         verbose_name_plural = 'Takliflar'
