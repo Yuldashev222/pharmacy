@@ -8,10 +8,10 @@ class OfferAdmin(admin.ModelAdmin):
     list_display = ['creator', 'created_at', 'text']
     search_fields = ['title', 'text']
     # list_filter = ['status', 'answered_at']
-    list_display_links = ['created_at', 'text']
+    list_display_links = list_display
 
     readonly_fields = ['creator', 'status', 'title', 'text', 'answered_at']
-    fields = ['creator', 'status', 'title', 'text']
+    fields = ['text', 'creator', 'created_at']
 
     def has_add_permission(self, request):
         return False
