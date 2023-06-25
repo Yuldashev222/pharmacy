@@ -18,9 +18,16 @@ class Pharmacy(models.Model):
     last_shift_end_hour = models.PositiveSmallIntegerField(default=0,
                                                            help_text='Is the branch open until 00:00? If not, '
                                                                      'enter what time the business day ends')
+    is_favorite = models.BooleanField(default=True)
+    is_deleted = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
+
+    @classmethod
+    def get_deleted_pharmacy_obj(cls, pharmacy_name):
+        return cls.objects.get_or_create(name=f'deleted {pharmacy_name[:90]}',
+                                         director_id=CustomUser.get_fake_director().id)[0]
 
     def save(self, *args, **kwargs):
         self.send_sms_name = ''.join([i for i in self.name if i.isalpha() or i.isdigit() or i in ' \''])
@@ -30,7 +37,6 @@ class Pharmacy(models.Model):
         super().save(*args, **kwargs)
 
     class Meta:
-        unique_together = ['director', 'name']
         verbose_name = 'Pharmacy'
         verbose_name_plural = 'Pharmacies'
 

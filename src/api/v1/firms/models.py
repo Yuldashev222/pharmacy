@@ -13,7 +13,7 @@ from .services import firm_logo_upload_location, EskizUz
 
 class Firm(models.Model):
     name = models.CharField(max_length=400)
-    is_favorite = models.BooleanField(default=False)
+    is_favorite = models.BooleanField(default=True)
     is_deleted = models.BooleanField(default=False)
     send_sms_name = models.CharField(max_length=400, blank=True)
     not_transfer_debt = models.IntegerField(default=0)
