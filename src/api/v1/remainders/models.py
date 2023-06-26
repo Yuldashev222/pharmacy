@@ -6,10 +6,10 @@ from .tasks import update_all_next_remainders
 
 
 class RemainderShift(models.Model):
-    pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE)
-    report_date = models.DateField()
     shift = models.IntegerField()
     price = models.BigIntegerField(default=0)
+    pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE)
+    report_date = models.DateField()
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
