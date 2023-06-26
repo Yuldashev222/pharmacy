@@ -88,7 +88,7 @@ class FirmExpense(AbstractIncomeExpense):
     to_firm = models.ForeignKey(Firm, on_delete=models.CASCADE)
     from_pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.SET_NULL, null=True)
     is_verified = models.BooleanField(default=False)
-    verified_code = models.PositiveSmallIntegerField()
+    verified_code = models.PositiveIntegerField()
     verified_phone_number = models.CharField(max_length=13, validators=[uzb_phone_number_validation], blank=True)
     verified_firm_worker_name = models.CharField(max_length=50, blank=True)
     from_user_price = models.IntegerField(default=0)
@@ -174,7 +174,7 @@ class FirmReturnProduct(AbstractIncomeExpense):
 
     firm_income = models.ForeignKey(FirmIncome, on_delete=models.CASCADE)
     is_verified = models.BooleanField(default=False)
-    verified_code = models.PositiveSmallIntegerField()
+    verified_code = models.PositiveIntegerField()
     verified_phone_number = models.CharField(max_length=13, validators=[uzb_phone_number_validation])
     verified_firm_worker_name = models.CharField(max_length=50)
 
