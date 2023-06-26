@@ -64,7 +64,7 @@ def update_excess_price(instance, *args, **kwargs):
         if obj:
             obj.save()
         else:
-            FirmReport.objects.create(firm_id=instance.from_firm.id)
+            FirmReport.objects.create(firm_id=instance.from_firm.id, report_date=instance.report_date)
 
 
 @receiver(pre_delete, sender=FirmReport)
