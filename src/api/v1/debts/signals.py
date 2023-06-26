@@ -69,7 +69,8 @@ def report_update(instance, *args, **kwargs):
                                                                                                  report_date=pharmacy_obj.report_date,
                                                                                                  shift=pharmacy_obj.shift,
                                                                                                  transfer_type_id=DefaultTransferType.cash.value
-                                                                                                 ).aggregate(s=Sum('price'))['s']
+                                                                                                 ).aggregate(
+                s=Sum('price'))['s']
 
             pharmacy_obj.expense_debt_from_pharmacy = expense_debt_from_pharmacy if expense_debt_from_pharmacy else 0
 
@@ -136,3 +137,8 @@ def remainder_update(instance, *args, **kwargs):
         obj.shift = instance.shift
         obj.pharmacy_id = instance.to_pharmacy_id
         obj.save()
+
+
+@receiver(pre_delete, sender=DebtToPharmacy)
+def delete_repays(instance, *args, **kwargs):
+    instance.debtrepayfrompharmacy_set.all().delete()
