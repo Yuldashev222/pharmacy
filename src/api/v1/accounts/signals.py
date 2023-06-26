@@ -1,7 +1,7 @@
 import os
 from django.dispatch import receiver
 from django.db.models import Sum
-from django.db.models.signals import post_save, post_delete, pre_save
+from django.db.models.signals import post_save, post_delete, pre_save, pre_delete
 
 from api.v1.companies.models import Company
 
@@ -82,6 +82,33 @@ def update_report(instance, *args, **kwargs):
                                                    worker_id=obj.worker.id,
                                                    pharmacy=obj.pharmacy
                                                    ).aggregate(s=Sum('price'))['s']
+
+        obj.expense_price = expense_price if expense_price else 0
+        obj.income_price = income_price if income_price else 0
+        obj.save()
+
+
+@receiver(pre_delete, sender=WorkerReport)
+def update_report(instance, *args, **kwargs):
+    if instance.report_date and instance.worker:
+        obj, _ = WorkerReportMonth.objects.get_or_create(month=instance.report_date.month,
+                                                         year=instance.report_date.year,
+                                                         worker_id=instance.worker.id,
+                                                         pharmacy=instance.pharmacy)
+
+        expense_price = WorkerReport.objects.exclude(id=instance.id).filter(is_expense=True,
+                                                                            report_date__year=obj.year,
+                                                                            report_date__month=obj.month,
+                                                                            worker_id=obj.worker.id,
+                                                                            pharmacy=obj.pharmacy
+                                                                            ).aggregate(s=Sum('price'))['s']
+
+        income_price = WorkerReport.objects.exclude(id=instance.id).filter(is_expense=False,
+                                                                           report_date__year=obj.year,
+                                                                           report_date__month=obj.month,
+                                                                           worker_id=obj.worker.id,
+                                                                           pharmacy=obj.pharmacy
+                                                                           ).aggregate(s=Sum('price'))['s']
 
         obj.expense_price = expense_price if expense_price else 0
         obj.income_price = income_price if income_price else 0
