@@ -132,8 +132,6 @@ def report_update(instance, *args, **kwargs):
 def report_update(instance, *args, **kwargs):
     # remainder update
     if instance.transfer_type_id == DefaultTransferType.cash.value and not instance.from_user:
-        RemainderDetail.objects.filter(debt_repay_from_pharmacy_id=instance.id).delete()
-
         obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=instance.to_debt.to_pharmacy_id,
                                                              report_date=instance.report_date,
                                                              shift=instance.shift)
