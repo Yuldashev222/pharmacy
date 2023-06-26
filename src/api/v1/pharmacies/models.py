@@ -15,7 +15,7 @@ class Pharmacy(models.Model):
     logo = models.ImageField(upload_to=pharmacy_logo_upload_location, blank=True, null=True)
     address = models.CharField(max_length=500, blank=True)
     desc = models.TextField(max_length=1000, blank=True)
-    last_shift_end_hour = models.PositiveSmallIntegerField(default=0,
+    last_shift_end_hour = models.PositiveIntegerField(default=0,
                                                            help_text='Is the branch open until 00:00? If not, '
                                                                      'enter what time the business day ends')
     is_favorite = models.BooleanField(default=True)
