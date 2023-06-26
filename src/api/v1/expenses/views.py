@@ -36,7 +36,8 @@ class UserExpenseAPIViewSet(ModelViewSet):
         'expense_type': ['exact', 'gte'],
         'report_date': ['exact'],
         'shift': ['exact'],
-        'to_pharmacy': ['exact']
+        'to_pharmacy': ['exact'],
+        'to_user': ['isnull'],
     }
 
     def list(self, request, *args, **kwargs):
