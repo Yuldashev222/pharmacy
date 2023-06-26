@@ -67,12 +67,12 @@ class UserExpenseAPIViewSet(ModelViewSet):
                                        shift=user.shift,
                                        to_pharmacy_id=user.pharmacy_id)
 
-        return queryset.filter(to_user__isnull=False).select_related('creator',
-                                                                     'expense_type',
-                                                                     'transfer_type',
-                                                                     'to_user',
-                                                                     'from_user',
-                                                                     'to_pharmacy').order_by('-id')
+        return queryset.select_related('creator',
+                                       'expense_type',
+                                       'transfer_type',
+                                       'to_user',
+                                       'from_user',
+                                       'to_pharmacy').order_by('-id')
 
 
 class PharmacyExpenseAPIViewSet(ModelViewSet):
