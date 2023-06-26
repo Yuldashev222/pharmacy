@@ -1,6 +1,6 @@
 from django.dispatch import receiver
 from django.db.models import Sum, F
-from django.db.models.signals import post_save, pre_delete
+from django.db.models.signals import post_save, pre_delete, post_delete
 
 from api.v1.accounts.models import WorkerReport
 from api.v1.companies.enums import DefaultTransferType
@@ -57,7 +57,7 @@ def update_excess_price(instance, *args, **kwargs):
             obj.save()
 
 
-@receiver(pre_delete, sender=FirmIncome)
+@receiver(post_delete, sender=FirmIncome)
 def update_excess_price(instance, *args, **kwargs):
     if instance.from_firm:
         obj = FirmReport.objects.filter(firm_id=instance.from_firm.id, report_date=instance.report_date).first()
