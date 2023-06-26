@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 from django.db import models
 
 from api.v1.pharmacies.models import PharmacyReportByShift
