@@ -26,7 +26,7 @@ class Pharmacy(models.Model):
 
     @classmethod
     def get_deleted_pharmacy_obj(cls, pharmacy_name):
-        return cls.objects.get_or_create(name=f'deleted {pharmacy_name[:90]}',
+        return cls.objects.get_or_create(name=f'deleted {str(pharmacy_name[:90]).replace("deleted", "")}',
                                          director_id=CustomUser.get_fake_director().id)[0]
 
     def save(self, *args, **kwargs):
