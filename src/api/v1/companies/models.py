@@ -18,7 +18,7 @@ class AbstractIncomeExpense(models.Model):
     report_date = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
     price = models.PositiveIntegerField()
-    shift = models.PositiveSmallIntegerField(validators=[MaxValueValidator(3), MinValueValidator(1)])
+    shift = models.PositiveIntegerField(validators=[MaxValueValidator(3), MinValueValidator(1)])
     transfer_type = models.ForeignKey(TransferMoneyType, on_delete=models.PROTECT)
     desc = models.CharField(max_length=500, blank=True)
     second_name = models.CharField(max_length=100, blank=True)

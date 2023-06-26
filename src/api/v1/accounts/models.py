@@ -26,7 +26,7 @@ class CustomUser(AbstractUser):
     role = models.CharField(max_length=1, choices=UserRole.choices())
     is_main_worker = models.BooleanField(default=False)
     date_joined = models.DateTimeField("Qo'shilgan sana", default=timezone.now)
-    shift = models.PositiveSmallIntegerField(default=1, validators=[MaxValueValidator(3), MinValueValidator(1)])
+    shift = models.PositiveIntegerField(default=1, validators=[MaxValueValidator(3), MinValueValidator(1)])
     creator = models.ForeignKey('self', on_delete=models.SET_NULL, null=True)
     pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE, blank=True, null=True)
     director = models.ForeignKey('self', on_delete=models.CASCADE, related_name='employees', blank=True, null=True)
