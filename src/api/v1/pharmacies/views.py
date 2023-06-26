@@ -16,8 +16,9 @@ class PharmacyAPIViewSet(ModelViewSet):
     serializer_class = PharmacySerializer
 
     def perform_destroy(self, instance):
+        instance.customuser_set.all().delete()
         instance.is_deleted = True
-        instance.name = 'deleted ' + instance.name[:90]
+        instance.name = 'deleted ' + str(instance.name[:90]).replace('deleted', '')
         instance.save()
 
     def perform_create(self, serializer):

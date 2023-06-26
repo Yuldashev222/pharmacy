@@ -1,8 +1,8 @@
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth.models import AbstractUser
-from django.utils import timezone
 
 from api.v1.companies.services import text_normalize
 from api.v1.companies.validators import uzb_phone_number_validation
@@ -81,7 +81,7 @@ class CustomUser(AbstractUser):
 
 class WorkerReportMonth(models.Model):
     worker = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE)
-    pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE, null=True)
+    pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE, null=True)  # last
     year = models.IntegerField()
     month = models.IntegerField()
     expense_price = models.BigIntegerField(default=0)
@@ -98,7 +98,7 @@ class WorkerReport(models.Model):
                                                  blank=True)
 
     report_date = models.DateField(null=True)
-    pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE, blank=True, null=True)
+    pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE, blank=True, null=True)  # last
     price = models.IntegerField(default=0)
     creator = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True, related_name='reports')
     worker = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, null=True)
