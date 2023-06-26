@@ -132,19 +132,23 @@ def report_update(instance, *args, **kwargs):
 def report_update(instance, *args, **kwargs):
     # remainder update
     if instance.transfer_type_id == DefaultTransferType.cash.value and not instance.from_user:
+        obj, _ = RemainderDetail.objects.get_or_create(debt_repay_from_pharmacy_id=instance.id)
+        obj.price = 0
+        obj.save()
+
         obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=instance.to_debt.to_pharmacy_id,
                                                              report_date=instance.report_date,
                                                              shift=instance.shift)
 
-        expense_debt_repay_from_pharmacy = DebtRepayFromPharmacy.objects.exclude(id=instance.id
-                                                                                 ).filter(shift=obj.shift,
-                                                                                          to_debt__to_pharmacy_id=obj.pharmacy_id,
-                                                                                          report_date=obj.report_date,
-                                                                                          from_user__isnull=True,
-                                                                                          transfer_type_id=DefaultTransferType.cash.value
-                                                                                          ).aggregate(s=Sum('price'))['s']
+        price = DebtRepayFromPharmacy.objects.exclude(
+            id=instance.id).filter(shift=obj.shift,
+                                   to_debt__to_pharmacy_id=obj.pharmacy_id,
+                                   report_date=obj.report_date,
+                                   from_user__isnull=True,
+                                   transfer_type_id=DefaultTransferType.cash.value
+                                   ).aggregate(s=Sum('price'))['s']
 
-        obj.expense_debt_repay_from_pharmacy = expense_debt_repay_from_pharmacy if expense_debt_repay_from_pharmacy else 0
+        obj.expense_debt_repay_from_pharmacy = price if price else 0
         obj.save()
 
 
