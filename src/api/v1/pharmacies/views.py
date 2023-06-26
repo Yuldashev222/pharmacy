@@ -17,6 +17,7 @@ class PharmacyAPIViewSet(ModelViewSet):
 
     def perform_destroy(self, instance):
         instance.customuser_set.all().delete()
+        instance.drug_set.all().delete()
         instance.is_deleted = True
         instance.name = 'deleted ' + str(instance.name[:90]).replace('deleted', '')
         instance.save()
