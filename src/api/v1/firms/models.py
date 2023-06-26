@@ -16,8 +16,8 @@ class Firm(models.Model):
     is_favorite = models.BooleanField(default=True)
     is_deleted = models.BooleanField(default=False)
     send_sms_name = models.CharField(max_length=400, blank=True)
-    not_transfer_debt = models.IntegerField(default=0)
-    transfer_debt = models.IntegerField(default=0)
+    not_transfer_debt = models.BigIntegerField(default=0)
+    transfer_debt = models.BigIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     director = models.ForeignKey('accounts.CustomUser', related_name='firms', on_delete=models.CASCADE)
     creator = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True)
@@ -73,8 +73,8 @@ class FirmExcessExpense(models.Model):
     firm_expense = models.ForeignKey('firms.FirmExpense', on_delete=models.CASCADE)
     firm_income = models.ForeignKey(FirmIncome, on_delete=models.SET_NULL, null=True)
     report_date = models.DateField()
-    price = models.IntegerField()
-    remaining_price = models.IntegerField(default=0)
+    price = models.BigIntegerField()
+    remaining_price = models.BigIntegerField(default=0)
     is_transfer = models.BooleanField()
 
     def save(self, *args, **kwargs):
@@ -88,7 +88,7 @@ class FirmExpense(AbstractIncomeExpense):
     to_firm = models.ForeignKey(Firm, on_delete=models.CASCADE)
     from_pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.SET_NULL, null=True)
     is_verified = models.BooleanField(default=False)
-    verified_code = models.PositiveIntegerField()
+    verified_code = models.PositiveSmallIntegerField()
     verified_phone_number = models.CharField(max_length=13, validators=[uzb_phone_number_validation], blank=True)
     verified_firm_worker_name = models.CharField(max_length=50, blank=True)
     from_user_price = models.IntegerField(default=0)
@@ -174,7 +174,7 @@ class FirmReturnProduct(AbstractIncomeExpense):
 
     firm_income = models.ForeignKey(FirmIncome, on_delete=models.CASCADE)
     is_verified = models.BooleanField(default=False)
-    verified_code = models.PositiveIntegerField()
+    verified_code = models.PositiveSmallIntegerField()
     verified_phone_number = models.CharField(max_length=13, validators=[uzb_phone_number_validation])
     verified_firm_worker_name = models.CharField(max_length=50)
 
@@ -224,8 +224,8 @@ class FirmDebtByMonth(models.Model):
     pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.SET_NULL, null=True)
     year = models.IntegerField()
     month = models.IntegerField()
-    expense_price = models.IntegerField(default=0)
-    income_price = models.IntegerField(default=0)
+    expense_price = models.BigIntegerField(default=0)
+    income_price = models.BigIntegerField(default=0)
 
 
 class FirmReport(models.Model):

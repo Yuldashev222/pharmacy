@@ -30,7 +30,7 @@ class CustomUser(AbstractUser):
     creator = models.ForeignKey('self', on_delete=models.SET_NULL, null=True)
     pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE, blank=True, null=True)
     director = models.ForeignKey('self', on_delete=models.CASCADE, related_name='employees', blank=True, null=True)
-    wage = models.FloatField(validators=[MinValueValidator(0)], default=0)
+    wage = models.PositiveIntegerField(default=0)
 
     bio = models.CharField(max_length=500, blank=True)
     photo = models.ImageField(upload_to=user_photo_upload_location, blank=True, null=True)
@@ -84,8 +84,8 @@ class WorkerReportMonth(models.Model):
     pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE, null=True)
     year = models.IntegerField()
     month = models.IntegerField()
-    expense_price = models.IntegerField(default=0)
-    income_price = models.IntegerField(default=0)
+    expense_price = models.BigIntegerField(default=0)
+    income_price = models.BigIntegerField(default=0)
 
 
 class WorkerReport(models.Model):
