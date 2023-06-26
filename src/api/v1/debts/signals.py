@@ -128,6 +128,28 @@ def report_update(instance, *args, **kwargs):
         WorkerReport.objects.filter(debt_repay_from_pharmacy_id=instance.id).delete()
 
 
+@receiver(pre_delete, sender=DebtRepayFromPharmacy)
+def report_update(instance, *args, **kwargs):
+    # remainder update
+    if instance.transfer_type_id == DefaultTransferType.cash.value and not instance.from_user:
+        RemainderDetail.objects.filter(debt_repay_from_pharmacy_id=instance.id).delete()
+
+        obj, _ = PharmacyReportByShift.objects.get_or_create(pharmacy_id=instance.to_debt.to_pharmacy_id,
+                                                             report_date=instance.report_date,
+                                                             shift=instance.shift)
+
+        expense_debt_repay_from_pharmacy = DebtRepayFromPharmacy.objects.exclude(id=instance.id
+                                                                                 ).filter(shift=obj.shift,
+                                                                                          to_debt__to_pharmacy_id=obj.pharmacy_id,
+                                                                                          report_date=obj.report_date,
+                                                                                          from_user__isnull=True,
+                                                                                          transfer_type_id=DefaultTransferType.cash.value
+                                                                                          ).aggregate(s=Sum('price'))['s']
+
+        obj.expense_debt_repay_from_pharmacy = expense_debt_repay_from_pharmacy if expense_debt_repay_from_pharmacy else 0
+        obj.save()
+
+
 @receiver(post_save, sender=DebtToPharmacy)
 def remainder_update(instance, *args, **kwargs):
     if instance.transfer_type_id == DefaultTransferType.cash.value:
@@ -137,8 +159,3 @@ def remainder_update(instance, *args, **kwargs):
         obj.shift = instance.shift
         obj.pharmacy_id = instance.to_pharmacy_id
         obj.save()
-
-
-@receiver(pre_delete, sender=DebtToPharmacy)
-def delete_repays(instance, *args, **kwargs):
-    instance.debtrepayfrompharmacy_set.all().delete()
