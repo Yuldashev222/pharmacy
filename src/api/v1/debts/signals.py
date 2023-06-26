@@ -1,6 +1,6 @@
 from django.dispatch import receiver
 from django.db.models import Sum
-from django.db.models.signals import post_save, pre_delete
+from django.db.models.signals import post_save, pre_delete, post_delete
 
 from api.v1.accounts.models import WorkerReport
 from api.v1.companies.enums import DefaultTransferType
@@ -159,7 +159,10 @@ def remainder_update(instance, *args, **kwargs):
         obj.save()
 
 
-@receiver(pre_delete, sender=DebtToPharmacy)
+@receiver(post_delete, sender=DebtToPharmacy)
 def remainder_update(instance, *args, **kwargs):
     if instance.transfer_type_id == DefaultTransferType.cash.value:
-        RemainderDetail.objects.filter(debt_repay_from_pharmacy__in=instance.debtrepayfrompharmacy_set.all()).delete()
+        obj, _ = RemainderDetail.objects.get_or_create(pharmacy_id=instance.to_pharmacy_id,
+                                                       report_date=instance.report_date,
+                                                       shift=instance.shift)
+        obj.save()
