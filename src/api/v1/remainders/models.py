@@ -11,7 +11,7 @@ class RemainderShift(models.Model):
     pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE)
     report_date = models.DateField()
     shift = models.IntegerField()
-    price = models.IntegerField(default=0)
+    price = models.BigIntegerField(default=0)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

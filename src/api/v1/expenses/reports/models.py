@@ -8,7 +8,7 @@ class ExpenseReportMonth(models.Model):
     expense_type = models.ForeignKey('expenses.ExpenseType', on_delete=models.CASCADE)
     year = models.IntegerField()
     month = models.IntegerField()
-    price = models.IntegerField(default=0)
+    price = models.BigIntegerField(default=0)
     second_name = models.CharField(max_length=100, blank=True)
 
     def save(self, *args, **kwargs):

@@ -1,5 +1,4 @@
 from django.db import models
-from django.core.validators import MinValueValidator
 
 from api.v1.accounts.models import CustomUser
 from api.v1.companies.services import text_normalize
@@ -15,7 +14,7 @@ class Client(models.Model):
     creator = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
     director = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='clients')
     created_at = models.DateTimeField("date created", auto_now_add=True)
-    total_amount = models.FloatField(validators=[MinValueValidator(0)], default=0)
+    total_amount = models.PositiveBigIntegerField(default=0)
 
     bio = models.CharField(max_length=500, blank=True)
     birthdate = models.DateField(blank=True, null=True)

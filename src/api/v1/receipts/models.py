@@ -4,7 +4,7 @@ from api.v1.pharmacies.models import Pharmacy, PharmacyReportByShift
 
 
 class Receipt(models.Model):
-    price = models.IntegerField(default=0)
+    price = models.BigIntegerField(default=0)
     pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE)
     report_date = models.DateField()
     shift = models.IntegerField()

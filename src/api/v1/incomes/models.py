@@ -8,7 +8,7 @@ class PharmacyIncomeReportMonth(models.Model):
     pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE)
     year = models.IntegerField()
     month = models.IntegerField()
-    price = models.IntegerField(default=0)
+    price = models.BigIntegerField(default=0)
 
     def __str__(self):
         return f'{self.pharmacy}: {self.price}'

@@ -47,19 +47,19 @@ class PharmacyReportByShift(models.Model):
     shift = models.IntegerField()
     worker = models.ForeignKey('accounts.CustomUser', on_delete=models.SET_NULL, null=True)
 
-    not_transfer_income = models.IntegerField(default=0)
-    transfer_income = models.IntegerField(default=0)
-    debt_income = models.IntegerField(default=0)
-    total_expense = models.IntegerField(default=0)  # last
-    remainder = models.IntegerField(default=0)
-    receipt_price = models.IntegerField(default=0)
-    transfer_discount_price = models.IntegerField(default=0)
-    not_transfer_discount_price = models.IntegerField(default=0)
+    not_transfer_income = models.BigIntegerField(default=0)
+    transfer_income = models.BigIntegerField(default=0)
+    debt_income = models.BigIntegerField(default=0)
+    total_expense = models.BigIntegerField(default=0)  # last
+    remainder = models.BigIntegerField(default=0)
+    receipt_price = models.BigIntegerField(default=0)
+    transfer_discount_price = models.BigIntegerField(default=0)
+    not_transfer_discount_price = models.BigIntegerField(default=0)
 
-    expense_debt_repay_from_pharmacy = models.IntegerField(default=0)
-    expense_debt_from_pharmacy = models.IntegerField(default=0)
-    expense_pharmacy = models.IntegerField(default=0)
-    expense_firm = models.IntegerField(default=0)
+    expense_debt_repay_from_pharmacy = models.BigIntegerField(default=0)
+    expense_debt_from_pharmacy = models.BigIntegerField(default=0)
+    expense_pharmacy = models.BigIntegerField(default=0)
+    expense_firm = models.BigIntegerField(default=0)
 
     def save(self, *args, **kwargs):
         try:
