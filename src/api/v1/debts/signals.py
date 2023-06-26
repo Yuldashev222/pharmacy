@@ -162,16 +162,26 @@ def remainder_update(instance, *args, **kwargs):
 @receiver(post_delete, sender=DebtToPharmacy)
 def remainder_update(instance, *args, **kwargs):
     if instance.transfer_type_id == DefaultTransferType.cash.value:
-        obj, _ = RemainderDetail.objects.get_or_create(pharmacy_id=instance.to_pharmacy_id,
-                                                       report_date=instance.report_date,
-                                                       shift=instance.shift)
-        obj.save()
+        obj = RemainderDetail.objects.filter(pharmacy_id=instance.to_pharmacy_id,
+                                             report_date=instance.report_date,
+                                             shift=instance.shift).first()
+        if obj:
+            obj.save()
+        else:
+            RemainderDetail.objects.create(pharmacy_id=instance.to_pharmacy_id,
+                                           report_date=instance.report_date,
+                                           shift=instance.shift)
 
 
 @receiver(post_delete, sender=DebtFromPharmacy)
 def remainder_update(instance, *args, **kwargs):
     if instance.transfer_type_id == DefaultTransferType.cash.value:
-        obj, _ = RemainderDetail.objects.get_or_create(pharmacy_id=instance.from_pharmacy_id,
-                                                       report_date=instance.report_date,
-                                                       shift=instance.shift)
-        obj.save()
+        obj = RemainderDetail.objects.filter(pharmacy_id=instance.from_pharmacy_id,
+                                             report_date=instance.report_date,
+                                             shift=instance.shift).first()
+        if obj:
+            obj.save()
+        else:
+            RemainderDetail.objects.create(pharmacy_id=instance.from_pharmacy_id,
+                                           report_date=instance.report_date,
+                                           shift=instance.shift)
