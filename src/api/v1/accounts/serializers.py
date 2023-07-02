@@ -143,7 +143,20 @@ class OwnerRetrieveUpdateSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = [
             'id', 'phone_number', 'first_name', 'last_name', 'role', 'shift',
-            'pharmacy', 'director', 'wage', 'bio', 'photo',
+            'pharmacy', 'director', 'wage', 'bio', 'photo', 'password',
             'address', 'email', 'is_active', 'date_joined', 'is_main_worker'
         ]
         read_only_fields = ['date_joined', 'is_active', 'phone_number', 'wage', 'is_main_worker', 'shift']
+        extra_kwargs = {
+            'password': {
+                'write_only': True,
+                'style': {'input_type': 'password'},
+                'validators': [validate_password]
+            }
+        }
+
+    def validate(self, attrs):
+        password = attrs.get('password')
+        if password and password != self.context['request'].user.password:
+            attrs['password'] = make_password(password)
+        return super().validate(attrs)
