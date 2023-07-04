@@ -164,7 +164,10 @@ class FirmExpense(AbstractIncomeExpense):
             firm_report.created_at = self.created_at
             firm_report.report_date = self.report_date
             firm_report.price = self.price * -1
-            firm_report.is_transfer = bool(self.transfer_type_id != DefaultTransferType.cash.value)
+            if self.from_user:
+                firm_report.is_transfer = False
+            else:
+                firm_report.is_transfer = bool(self.transfer_type_id != DefaultTransferType.cash.value)
             firm_report.save()
 
 
