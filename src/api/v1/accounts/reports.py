@@ -58,8 +58,7 @@ class WorkerReportAPIView(ReadOnlyModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = {
         'report_date': ['month', 'year'],
-        'worker': ['exact'],
-        'pharmacy': ['exact'],
+        'worker': ['exact']
     }
 
     def get_queryset(self):
@@ -74,12 +73,11 @@ class WorkerReportAPIView(ReadOnlyModelViewSet):
         month = request.query_params.get('report_date__month')
         year = request.query_params.get('report_date__year')
         worker = request.query_params.get('worker')
-        pharmacy = request.query_params.get('pharmacy')
         month_income_total_price = 0
         month_expense_total_price = 0
-        if month and year and worker and pharmacy:
+        if month and year and worker:
             try:
-                obj = WorkerReportMonth.objects.get(month=month, year=year, worker_id=worker, pharmacy_id=pharmacy)
+                obj = WorkerReportMonth.objects.get(month=month, year=year, worker_id=worker)
                 month_income_total_price = obj.income_price
                 month_expense_total_price = obj.expense_price
             except WorkerReportMonth.DoesNotExist:
