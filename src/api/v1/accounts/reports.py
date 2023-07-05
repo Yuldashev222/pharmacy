@@ -1,4 +1,6 @@
 from collections import OrderedDict
+
+from django.db.models import Sum
 from rest_framework import serializers
 from drf_excel.mixins import XLSXFileMixin
 from drf_excel.renderers import XLSXRenderer
@@ -76,12 +78,12 @@ class WorkerReportAPIView(ReadOnlyModelViewSet):
         month_income_total_price = 0
         month_expense_total_price = 0
         if month and year and worker:
-            try:
-                obj = WorkerReportMonth.objects.get(month=month, year=year, worker_id=worker)
-                month_income_total_price = obj.income_price
-                month_expense_total_price = obj.expense_price
-            except WorkerReportMonth.DoesNotExist:
-                pass
+            prices = WorkerReportMonth.objects.filter(month=month,
+                                                      worker_id=worker,
+                                                      year=year).aggregate(s=Sum('income_price'),
+                                                                           fs=Sum('expense_price'))
+            month_income_total_price = prices['s'] if prices['s'] else 0
+            month_expense_total_price = prices['fs'] if prices['fs'] else 0
 
         page = self.paginate_queryset(queryset)
         serializer = self.get_serializer(page, many=True)
