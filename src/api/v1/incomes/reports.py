@@ -10,13 +10,19 @@ from api.v1.companies.enums import MONTHS
 from api.v1.pharmacies.models import Pharmacy
 from api.v1.accounts.permissions import IsDirector, IsManager
 
-from .models import PharmacyIncomeReportMonth
+from .models import PharmacyIncomeReportMonth, PharmacyIncomeReportDay
 
 
 class PharmacyIncomeReportMonthSerializer(serializers.ModelSerializer):
     class Meta:
         model = PharmacyIncomeReportMonth
-        fields = ['month', 'price']
+        fields = ['month', 'price', 'receipt_price']
+
+
+class PharmacyIncomeReportDaySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PharmacyIncomeReportDay
+        fields = ['report_date', 'total_income', 'receipt_price']
 
 
 class PharmacyIncomeReportMonthAPIView(ReadOnlyModelViewSet):
@@ -30,6 +36,22 @@ class PharmacyIncomeReportMonthAPIView(ReadOnlyModelViewSet):
         user = self.request.user
         queryset = PharmacyIncomeReportMonth.objects.filter(pharmacy__director_id=user.director_id)
         return queryset.order_by('month')
+
+
+class PharmacyIncomeReportDayAPIView(ReadOnlyModelViewSet):
+    pagination_class = None
+    permission_classes = [IsAuthenticated, (IsDirector | IsManager)]
+    filter_backends = [DjangoFilterBackend]
+    serializer_class = PharmacyIncomeReportDaySerializer
+    filterset_fields = {
+        'report_date': ['year', 'month'],
+        'pharmacy': ['exact']
+    }
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = PharmacyIncomeReportDay.objects.filter(pharmacy__director_id=user.director_id)
+        return queryset.order_by('report_date')
 
 
 class PharmacyIncomeReportMonthExcelSerializer(serializers.ModelSerializer):
