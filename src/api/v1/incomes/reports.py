@@ -22,7 +22,7 @@ class PharmacyIncomeReportMonthSerializer(serializers.ModelSerializer):
 class PharmacyIncomeReportDaySerializer(serializers.ModelSerializer):
     class Meta:
         model = PharmacyIncomeReportDay
-        fields = ['report_date', 'total_income', 'receipt_price']
+        fields = ['report_date', 'price', 'receipt_price']
 
 
 class PharmacyIncomeReportMonthAPIView(ReadOnlyModelViewSet):

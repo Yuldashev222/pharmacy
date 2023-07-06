@@ -7,7 +7,7 @@ from api.v1.companies.reports.models import AllPharmacyIncomeReportMonth
 class PharmacyIncomeReportDay(models.Model):
     pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE)
     report_date = models.DateField()
-    total_income = models.BigIntegerField(default=0)
+    price = models.BigIntegerField(default=0)
     receipt_price = models.BigIntegerField(default=0)
 
 

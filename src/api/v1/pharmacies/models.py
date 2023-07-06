@@ -87,7 +87,7 @@ class PharmacyReportByShift(models.Model):
                                                     ).aggregate(total_income=models.Sum('total_income'),
                                                                 receipt_price=models.Sum('receipt_price'))
 
-        obj.total_income = data['total_income'] if data['total_income'] else 0
+        obj.price = data['total_income'] if data['total_income'] else 0
         obj.receipt_price = data['receipt_price'] if data['receipt_price'] else 0
         obj.save()
 
