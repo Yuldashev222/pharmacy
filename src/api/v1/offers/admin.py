@@ -5,13 +5,13 @@ from .models import Offer
 
 @admin.register(Offer)
 class OfferAdmin(admin.ModelAdmin):
-    list_display = ['creator', 'created_at', 'text']
+    list_display = ['creator', 'phone_number', 'created_at', 'text']
     search_fields = ['title', 'text']
     # list_filter = ['status', 'answered_at']
     list_display_links = list_display
 
-    readonly_fields = ['creator', 'status', 'title', 'text', 'answered_at']
-    fields = ['text', 'creator', 'created_at']
+    readonly_fields = ['creator', 'phone_number', 'status', 'title', 'text', 'answered_at']
+    fields = ['text', 'creator', 'phone_number', 'created_at']
 
     def has_add_permission(self, request):
         return False
