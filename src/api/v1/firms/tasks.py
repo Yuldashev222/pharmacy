@@ -1,5 +1,6 @@
 from celery import shared_task
 from datetime import timedelta, date
+from time import sleep
 
 from .models import FirmIncome
 from .services import EskizUz
@@ -20,3 +21,4 @@ def send_sms_to_director():
                       f'Qarzni to\'liq qaytarish muddatiga 3 kun qoldi.'
 
             EskizUz.send_sms(phone_number=income.from_firm.director.phone_number[1:], message=message)
+            sleep(2)
