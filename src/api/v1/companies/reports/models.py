@@ -5,6 +5,7 @@ class AllPharmacyIncomeReportMonth(models.Model):
     year = models.IntegerField()
     month = models.IntegerField()
     price = models.BigIntegerField(default=0)
+    receipt_price = models.BigIntegerField(default=0)
     director = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE)
 
 

@@ -4,11 +4,19 @@ from api.v1.companies.models import AbstractIncomeExpense
 from api.v1.companies.reports.models import AllPharmacyIncomeReportMonth
 
 
+class PharmacyIncomeReportDay(models.Model):
+    pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE)
+    report_date = models.DateField()
+    total_income = models.BigIntegerField(default=0)
+    receipt_price = models.BigIntegerField(default=0)
+
+
 class PharmacyIncomeReportMonth(models.Model):
     pharmacy = models.ForeignKey('pharmacies.Pharmacy', on_delete=models.CASCADE)
     year = models.IntegerField()
     month = models.IntegerField()
     price = models.BigIntegerField(default=0)
+    receipt_price = models.BigIntegerField(default=0)
 
     def __str__(self):
         return f'{self.pharmacy}: {self.price}'
@@ -19,12 +27,14 @@ class PharmacyIncomeReportMonth(models.Model):
                                                                     month=self.month,
                                                                     director_id=self.pharmacy.director_id)
 
-        price = PharmacyIncomeReportMonth.objects.filter(month=obj.month,
-                                                         year=obj.year,
-                                                         pharmacy__director_id=obj.director_id
-                                                         ).aggregate(s=models.Sum('price'))['s']
+        data = PharmacyIncomeReportMonth.objects.filter(month=obj.month,
+                                                        year=obj.year,
+                                                        pharmacy__director_id=obj.director_id
+                                                        ).aggregate(price=models.Sum('price'),
+                                                                    receipt_price=models.Sum('receipt_price'))
 
-        obj.price = price if price else 0
+        obj.price = data['price'] if data['price'] else 0
+        obj.receipt_price = data['receipt_price'] if data['receipt_price'] else 0
         obj.save()
 
 
