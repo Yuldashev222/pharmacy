@@ -2,7 +2,7 @@ from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
-
+from django.shortcuts import HttpResponseRedirect
 from api.v1.accounts.permissions import NotProjectOwner, IsDirector, IsManager
 
 from .models import Client

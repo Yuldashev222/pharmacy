@@ -28,7 +28,9 @@ class FirmIncomeSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         user = self.context['request'].user
-        if attrs['from_firm'].director_id != user.director_id:
+        from_firm = attrs.get('from_firm')
+
+        if from_firm and from_firm.director_id != user.director_id or from_firm.is_deleted:
             raise ValidationError({'from_firm': 'not found'})
         return attrs
 
@@ -52,13 +54,15 @@ class FirmExpenseSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         user = self.context['request'].user
         from_user = attrs.get('from_user')
+        to_firm = attrs.get('to_firm')
         from_pharmacy_transfer = attrs.get('from_pharmacy_transfer')
         verified_phone_number = attrs.get('verified_phone_number')
         verified_firm_worker_name = attrs.get('verified_firm_worker_name')
+
         if not from_pharmacy_transfer and not (verified_firm_worker_name or verified_phone_number):
             raise ValidationError('error')
 
-        if attrs['to_firm'].director_id != user.director_id:
+        if to_firm and to_firm.director_id != user.director_id or to_firm.is_deleted:
             raise ValidationError({'to_firm': 'not found'})
 
         if from_user and user.director_id != from_user.director_id:
@@ -99,7 +103,7 @@ class FirmReturnProductSerializer(serializers.ModelSerializer):
         if attrs['price'] > firm_income.remaining_debt:
             raise ValidationError({'price': 'error'})
 
-        if firm_income.from_firm.director_id != user.director_id:
+        if firm_income.from_firm.director_id != user.director_id or firm_income.from_firm.is_deleted:
             raise ValidationError({'firm_income': 'not found'})
 
         return attrs

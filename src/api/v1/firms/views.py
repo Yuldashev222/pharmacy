@@ -63,7 +63,8 @@ class FirmIncomeAPIViewSet(mixins.CreateModelMixin,
         serializer.save(creator_id=self.request.user.id)
 
     def get_queryset(self):
-        return FirmIncome.objects.filter(from_firm__director_id=self.request.user.director_id
+        return FirmIncome.objects.filter(from_firm__director_id=self.request.user.director_id,
+                                         from_firm__is_deleted=False
                                          ).select_related('creator',
                                                           'from_firm'
                                                           ).order_by('-created_at')
@@ -96,11 +97,12 @@ class FirmExpenseAPIViewSet(CreateModelMixin, ReadOnlyModelViewSet):
         else:
             queryset = FirmExpense.objects.filter(creator__director_id=user.director_id)
 
-        return queryset.filter(is_verified=True).select_related('creator',
-                                                                'transfer_type',
-                                                                'from_pharmacy',
-                                                                'to_firm',
-                                                                'from_user').order_by('-created_at')
+        return queryset.filter(is_verified=True, to_firm__is_deleted=False).select_related('creator',
+                                                                                           'transfer_type',
+                                                                                           'from_pharmacy',
+                                                                                           'from_user',
+                                                                                           'to_firm'
+                                                                                           ).order_by('-created_at')
 
 
 class FirmReturnProductAPIViewSet(CreateModelMixin, ReadOnlyModelViewSet):  # last
@@ -120,7 +122,8 @@ class FirmReturnProductAPIViewSet(CreateModelMixin, ReadOnlyModelViewSet):  # la
     def get_queryset(self):
         user = self.request.user
         queryset = FirmReturnProduct.objects.filter(creator__director_id=user.director_id,
-                                                    is_verified=True
+                                                    is_verified=True,
+                                                    firm_income__from_firm__is_deleted=False
                                                     ).select_related('creator', 'firm_income__from_firm')
         return queryset.order_by('-created_at')
 
