@@ -60,7 +60,8 @@ class WorkerReportAPIView(ReadOnlyModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = {
         'report_date': ['month', 'year'],
-        'worker': ['exact']
+        'worker': ['exact'],
+        'pharmacy': ['exact']
     }
 
     def get_queryset(self):
@@ -75,13 +76,20 @@ class WorkerReportAPIView(ReadOnlyModelViewSet):
         month = request.query_params.get('report_date__month')
         year = request.query_params.get('report_date__year')
         worker = request.query_params.get('worker')
+        pharmacy = request.query_params.get('pharmacy')
         month_income_total_price = 0
         month_expense_total_price = 0
         if month and year and worker:
-            prices = WorkerReportMonth.objects.filter(month=month,
-                                                      worker_id=worker,
-                                                      year=year).aggregate(s=Sum('income_price'),
-                                                                           fs=Sum('expense_price'))
+            filter_data = {
+                'month': month,
+                'year': year,
+                'worker_id': worker
+            }
+            if pharmacy:
+                filter_data['pharmacy_id'] = pharmacy
+
+            prices = WorkerReportMonth.objects.filter(**filter_data).aggregate(s=Sum('income_price'),
+                                                                               fs=Sum('expense_price'))
             month_income_total_price = prices['s'] if prices['s'] else 0
             month_expense_total_price = prices['fs'] if prices['fs'] else 0
 
