@@ -19,12 +19,6 @@ class PharmacyIncomeReportMonthSerializer(serializers.ModelSerializer):
         fields = ['month', 'price', 'receipt_price']
 
 
-class PharmacyIncomeReportDaySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PharmacyIncomeReportDay
-        fields = ['report_date', 'price', 'receipt_price']
-
-
 class PharmacyIncomeReportMonthAPIView(ReadOnlyModelViewSet):
     pagination_class = None
     permission_classes = [IsAuthenticated, (IsDirector | IsManager)]
@@ -36,6 +30,12 @@ class PharmacyIncomeReportMonthAPIView(ReadOnlyModelViewSet):
         user = self.request.user
         queryset = PharmacyIncomeReportMonth.objects.filter(pharmacy__director_id=user.director_id)
         return queryset.order_by('month')
+
+
+class PharmacyIncomeReportDaySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PharmacyIncomeReportDay
+        fields = ['report_date', 'price', 'receipt_price']
 
 
 class PharmacyIncomeReportDayAPIView(ReadOnlyModelViewSet):
@@ -50,7 +50,9 @@ class PharmacyIncomeReportDayAPIView(ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = PharmacyIncomeReportDay.objects.filter(pharmacy__director_id=user.director_id)
+        queryset = PharmacyIncomeReportDay.objects.exclude(price=0,
+                                                           receipt_price=0
+                                                           ).filter(pharmacy__director_id=user.director_id)
         return queryset.order_by('report_date')
 
 
