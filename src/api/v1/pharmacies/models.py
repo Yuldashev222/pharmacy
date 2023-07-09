@@ -79,6 +79,7 @@ class PharmacyReportByShift(models.Model):
                                   self.expense_pharmacy,
                                   self.expense_firm])
 
+        super().save(*args, **kwargs)
         obj, _ = PharmacyIncomeReportDay.objects.get_or_create(pharmacy_id=self.pharmacy_id,
                                                                report_date=self.report_date)
 
@@ -104,5 +105,3 @@ class PharmacyReportByShift(models.Model):
         obj.price = data['total_income'] if data['total_income'] else 0
         obj.receipt_price = data['receipt_price'] if data['receipt_price'] else 0
         obj.save()
-
-        super().save(*args, **kwargs)
