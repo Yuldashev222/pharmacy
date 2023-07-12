@@ -258,7 +258,7 @@ class FirmReport(models.Model):
             transfer_debt = FirmReport.objects.filter(firm_id=self.firm_id,
                                                       is_transfer=True,
                                                       ).aggregate(s=models.Sum('price'))['s']
-
+            print(not_transfer_debt, transfer_debt, '==========')
             self.firm.transfer_debt = transfer_debt if transfer_debt else 0
             self.firm.not_transfer_debt = not_transfer_debt if not_transfer_debt else 0
             self.firm.save()
