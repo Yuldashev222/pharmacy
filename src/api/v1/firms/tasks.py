@@ -1,6 +1,8 @@
+from time import sleep
 from celery import shared_task
 from datetime import timedelta, date
-from time import sleep
+
+from api.v1.clients.tasks import send_sms_to_client
 
 from .models import FirmIncome
 from .services import EskizUz
@@ -8,8 +10,9 @@ from .services import EskizUz
 
 @shared_task
 def send_sms_to_director():
-    incomes = FirmIncome.objects.filter(deadline_date__isnull=False, is_paid=False).select_related('from_firm',
-                                                                                                   'from_firm__director')
+    incomes = FirmIncome.objects.filter(deadline_date__isnull=False,
+                                        from_firm__director__is_active=True,
+                                        is_paid=False).select_related('from_firm__director', 'from_firm')
     today_date = date.today()
 
     for income in incomes:
@@ -21,4 +24,6 @@ def send_sms_to_director():
                       f'Qarzni to\'liq qaytarish muddatiga 3 kun qoldi.'
 
             EskizUz.send_sms(phone_number=income.from_firm.director.phone_number[1:], message=message)
-            sleep(2)
+            sleep(1)
+
+    send_sms_to_client()
